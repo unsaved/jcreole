@@ -43,7 +43,7 @@
 
   <target name="jflex" description="run JFlex" depends="beaver, -jflex-setup">
     <mkdir dir="tmp/derived-src"/>
-    <jflex file="src/com/admc/play/wordNum.flex" destdir="tmp/derived-src"
+    <jflex file="src/com/admc/play/creole.flex" destdir="tmp/derived-src"
            verbose="${jflex.debug}" nobak="true" />
   </target>
 
