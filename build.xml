@@ -1,0 +1,99 @@
+<project name='jcreole' default='run' xmlns:ivy="antlib:org.apache.ivy.ant">
+
+  <property file="local.properties"/>
+  <property file="app.properties"/>
+  <property name="javac.sourceVersion" value="1.6"/>
+  <property name="javac.targetVersion" value="${javac.sourceVersion}"/>
+  <property name="javac.debug" value="true"/>
+  <property name="jflex.debug" value="true"/>
+
+  <import file="ivy-projsetup.xml" />
+
+  <target name="-beaver-setup" description="creates Beaver Ant task"
+          depends="-ivy-setup">
+    <ivy:cachepath conf="beaver" pathid="beaver.ivyrefid"/>
+    <available property="beaver.available" classname="beaver.comp.run.AntTask"
+               classpathref="beaver.ivyrefid"/>
+    <!-- Converting path only for useful error reporting -->
+    <pathconvert property="beaver.path" refid="beaver.ivyrefid"/>
+    <fail unless="beaver.available"
+          message="Beaver Ant task not accessible in '${beaver.path}'"/>
+    <taskdef name="beaver" classname="beaver.comp.run.AntTask"
+              classpathref="beaver.ivyrefid"/>
+  </target>
+  
+  <target name="-jflex-setup" description="creates JFlex Ant task"
+          depends="-ivy-setup">
+    <ivy:cachepath conf="jflex" pathid="jflex.ivyrefid"/>
+    <available property="jflex.available" classname="JFlex.anttask.JFlexTask"
+               classpathref="jflex.ivyrefid"/>
+    <!-- Converting path only for useful error reporting -->
+    <pathconvert property="jflex.path" refid="jflex.ivyrefid"/>
+    <fail unless="jflex.available"
+          message="JFlex Ant task not accessible in '${jflex.path}'"/>
+    <taskdef classname="JFlex.anttask.JFlexTask" name="jflex"
+              classpathref="jflex.ivyrefid"/>
+  </target>
+  
+  <target name="beaver" description="Run Beaver" depends="-beaver-setup">
+    <mkdir dir="tmp/derived-src"/>
+    <beaver file='src/com/admc/play/BeavParser.grammar' reportActions="yes"
+            destdir="tmp/derived-src" exportTerminals='yes'/>
+  </target>
+
+  <target name="jflex" description="run JFlex" depends="beaver, -jflex-setup">
+    <mkdir dir="tmp/derived-src"/>
+    <jflex file="src/com/admc/play/wordNum.flex" destdir="tmp/derived-src"
+           verbose="${jflex.debug}" nobak="true" />
+  </target>
+
+  <target name="clean" description="Clean">
+    <delete dir="dist"/>
+    <delete dir="classes"/>
+    <delete dir="tmp/derived-src"/>
+  </target>
+
+  <target name="compile" description="compile Java sources" depends="jflex">
+    <ivy:cachepath conf="build" pathid="build.ivyrefid"/>
+    <mkdir dir="classes"/>
+    <javac srcdir="src" destdir="classes" classpathref="build.ivyrefid"
+           source="${javac.sourceVersion}" target="${javac.targetVersion}"
+           deprecation="${javac.deprecation}" debug="${javac.debug}">
+      <compilerarg value="-Xlint"/>
+      <src path="tmp/derived-src"/>
+    </javac>
+  </target>
+
+  <target name="run-scanner" description="run scanner" depends="compile">
+    <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
+    <java classname="com.admc.play.FlexDriver" classpath="classes"
+          classpathref="run.ivyrefid" failonerror="true">
+      <arg value="data/3.txt"/>
+    </java>
+  </target>
+
+  <target name="run" description="run Beaver parser" depends="compile">
+    <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
+    <java classname="com.admc.play.BeaverDriver" classpath="classes"
+          classpathref="run.ivyrefid" failonerror="true">
+      <arg value="data/3.txt"/>
+    </java>
+  </target>
+
+  <target name="constrain-tabs" description="Ensure no tabs in text files">
+    <pathconvert property="tabbedFiles" pathsep=",">
+      <fileset dir="content" excludes="**/.*"
+               includes="**/*.css, **/*.js, **/*.jsp, **/*.html">
+        <contains text="&#9;"/>
+      </fileset>
+      <fileset dir="." excludes="**/.*" includes="*src/**, doc/**">
+        <contains text="&#9;"/>
+      </fileset>
+    </pathconvert>
+    <fail message="Files contain tabs: ${tabbedFiles}">
+      <condition><not>
+        <equals arg1="" arg2="${tabbedFiles}"/>
+      </not></condition>
+    </fail>
+  </target>
+</project>

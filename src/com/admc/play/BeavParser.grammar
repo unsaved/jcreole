@@ -1,0 +1,41 @@
+%package "com.admc.play";
+
+%embed {:
+    private boolean validateOnly;
+    private StringBuilder sb = new StringBuilder();
+    public void setValidateOnly(boolean validateOnly) {
+        this.validateOnly = validateOnly;
+    }
+    public void out(String s) {
+        if (validateOnly) return;
+        sb.append(s);
+        sb.append('\n');
+    }
+    public void out(char c) {
+        if (validateOnly) return;
+        sb.append(c);
+        sb.append('\n');
+    }
+    public String getOutput() {
+        return sb.toString();
+    }
+:};
+
+%terminals WORD, NUMBER;
+
+%typeof NUMBER, expr, exprs, numexpr = "Integer";
+%typeof WORD = "String";
+
+//%left NUMBER;
+//%left WORD;
+
+// %typeof  NUMBER, expr = "Integer";
+
+%goal exprs;
+
+/* The grammar */
+exprs = expr | exprs expr;
+expr = WORD.w {: out("'" + w + "'"); return _symbol_w; :}
+     | numexpr.n {: out("+" + n); return _symbol_n; :};
+numexpr = numexpr.m NUMBER.n {: return new Token(Terminals.NUMBER, Integer.valueOf(m.intValue() + n.intValue())); :}
+     | NUMBER.m;
