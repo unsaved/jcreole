@@ -8,7 +8,7 @@ public class FlexDriver {
         if (sa.length != 1)
             throw new IllegalArgumentException(
                     "SYNTAX: java com.admc.play.FlexDriver data.file");
-        Scanner scanner = new Scanner(new FileInputStream(sa[0]));
+        CreoleScanner scanner = new CreoleScanner(new FileInputStream(sa[0]));
         Token token;
         while ((token = scanner.nextToken()).getId() != Terminals.EOF)
             System.out.println(token);

@@ -39,11 +39,11 @@
     <mkdir dir="tmp/derived-src"/>
     <!-- Unfortunately task is so careless that it returns success status no
       -  matter what.  Therefore we have to check for ourselves. -->
-    <delete file="tmp/derived-src/com/admc/play/BeavParser.java"/>
-    <beaver file='src/com/admc/play/BeavParser.grammar' reportActions="yes"
+    <delete file="tmp/derived-src/com/admc/play/CreoleParser.java"/>
+    <beaver file='src/com/admc/play/CreoleParser.grammar' reportActions="yes"
             destdir="tmp/derived-src" exportTerminals='yes'/>
     <available property="beaver.success" type="file"
-            file="tmp/derived-src/com/admc/play/BeavParser.java"/>
+            file="tmp/derived-src/com/admc/play/CreoleParser.java"/>
     <fail unless="beaver.success" message="Beaver failed"/>
   </target>
 
@@ -80,7 +80,7 @@
 
   <target name="run" description="run Beaver parser" depends="compile">
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.play.BeaverDriver" classpath="classes"
+    <java classname="com.admc.play.CreoleDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <arg value="data/3.txt"/>
     </java>

@@ -1,7 +1,7 @@
 package com.admc.play;
 
 %%
-%class Scanner
+%class CreoleScanner
 %public
 %unicode
 %eofclose
