@@ -1,11 +1,7 @@
 package com.admc.play;
 
-import java.io.IOException;
-
 %%
 %class Scanner
-// %int
-// %debug
 %public
 %unicode
 %eofclose
@@ -17,26 +13,37 @@ import java.io.IOException;
 %eofval{
     return new Token(Terminals.EOF);
 %eofval}
-s = [ \t\f\n\r]
-S = [^ \t\f\n\r]
+
+%{
+    private static Token tok(short id) { return new Token(id); }
+    private static Token tok(short id, Character cr) {
+        return new Token(id, cr);
+    }
+%}
+
 UTF_EOL = \r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085
-DOT = [^\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085]
 %%
-//{s}+ { return new Symbol(sym.WHITESPACE, yytext()); }
-//{S}+ { return new Symbol(sym.WORD, yytext());}
-{s}+ { }
-[:digit:]+ {
-    //Symbol t = new Symbol(Terminals.NUMBER, yytext());
-    Token t = new Token(Terminals.NUMBER, Integer.parseInt(yytext()));
-    return t;
-}
-{S}+ {
-    //Symbol t = new Symbol(Terminals.WORD, yytext());
-    Token t = new Token(Terminals.WORD, yytext());
-    yypushback(-1);
-    return t;
-}
-//{UTF_EOL} { }
-/*
-\n | . { System.err.println("UNMATCHED: [" + yytext() + ") len=" + yytext().length()); }
-*/
+
+"~" { return tok(Terminals.ESCAPE); }
+{UTF_EOL}  "}}}" { return tok(Terminals.NOWIKI_BLOCK_CLOSE); }
+{UTF_EOL} { return tok(Terminals.NEWLINE); }
+
+[ \t]+ { return tok(Terminals.BLANKS); }
+
+":/" { return tok(Terminals.COLON_SLASH); }
+"//" { return tok(Terminals.ITAL); }
+"{{{" { return tok(Terminals.NOWIKI_OPEN); }
+"}}}" { return tok(Terminals.NOWIKI_CLOSE); }
+"[[" { return tok(Terminals.LINK_OPEN); }
+"]]" { return tok(Terminals.LINK_CLOSE); }
+"{{" { return tok(Terminals.IMAGE_OPEN); }
+"}}" { return tok(Terminals.IMAGE_CLOSE); }
+\\\\\\\\ { return tok(Terminals.FORCED_LINEBREAK); }
+= { return tok(Terminals.EQUAL); }
+'|' { return tok(Terminals.PIPE); }
+# { return tok(Terminals.POUND); }
+- { return tok(Terminals.DASH); }
+"*" { return tok(Terminals.STAR); }
+"/" { return tok(Terminals.SLASH); }
+@@ { return tok(Terminals.EXTENSION); }
+. { return tok(Terminals.NORMAL_CHAR, Character.valueOf(yytext().charAt(0))); }

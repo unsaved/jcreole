@@ -37,8 +37,14 @@
   
   <target name="beaver" description="Run Beaver" depends="-beaver-setup">
     <mkdir dir="tmp/derived-src"/>
+    <!-- Unfortunately task is so careless that it returns success status no
+      -  matter what.  Therefore we have to check for ourselves. -->
+    <delete file="tmp/derived-src/com/admc/play/BeavParser.java"/>
     <beaver file='src/com/admc/play/BeavParser.grammar' reportActions="yes"
             destdir="tmp/derived-src" exportTerminals='yes'/>
+    <available property="beaver.success" type="file"
+            file="tmp/derived-src/com/admc/play/BeavParser.java"/>
+    <fail unless="beaver.success" message="Beaver failed"/>
   </target>
 
   <target name="jflex" description="run JFlex" depends="beaver, -jflex-setup">
@@ -56,11 +62,11 @@
   <target name="compile" description="compile Java sources" depends="jflex">
     <ivy:cachepath conf="build" pathid="build.ivyrefid"/>
     <mkdir dir="classes"/>
-    <javac srcdir="src" destdir="classes" classpathref="build.ivyrefid"
+    <javac srcdir="tmp/derived-src:src"
+           destdir="classes" classpathref="build.ivyrefid"
            source="${javac.sourceVersion}" target="${javac.targetVersion}"
            deprecation="${javac.deprecation}" debug="${javac.debug}">
       <compilerarg value="-Xlint"/>
-      <src path="tmp/derived-src"/>
     </javac>
   </target>
 

@@ -21,10 +21,9 @@
     }
 :};
 
-%terminals WORD, NUMBER;
+%terminals ESCAPE, NOWIKI_BLOCK_CLOSE, NEWLINE, BLANKS, COLON_SLASH, ITAL, NOWIKI_OPEN, NOWIKI_CLOSE, LINK_OPEN, LINK_CLOSE, IMAGE_OPEN, IMAGE_CLOSE, FORCED_LINEBREAK, EQUAL, PIPE, POUND, DASH, STAR, SLASH, EXTENSION, NORMAL_CHAR;
 
-%typeof NUMBER, expr, exprs, numexpr = "Integer";
-%typeof WORD = "String";
+%typeof NORMAL_CHAR, exprs = "Character";
 
 //%left NUMBER;
 //%left WORD;
@@ -34,8 +33,12 @@
 %goal exprs;
 
 /* The grammar */
+/*
 exprs = expr | exprs expr;
 expr = WORD.w {: out("'" + w + "'"); return _symbol_w; :}
      | numexpr.n {: out("+" + n); return _symbol_n; :};
 numexpr = numexpr.m NUMBER.n {: return new Token(Terminals.NUMBER, Integer.valueOf(m.intValue() + n.intValue())); :}
      | NUMBER.m;
+*/
+exprs = NORMAL_CHAR.n other {: return _symbol_n; :};
+other = ESCAPE | NOWIKI_BLOCK_CLOSE | NEWLINE | BLANKS | COLON_SLASH | ITAL | NOWIKI_OPEN | NOWIKI_CLOSE | LINK_OPEN | LINK_CLOSE | IMAGE_OPEN | IMAGE_CLOSE | FORCED_LINEBREAK | EQUAL | PIPE | POUND | DASH | STAR | SLASH | EXTENSION;

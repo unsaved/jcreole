@@ -11,6 +11,10 @@ public class Token extends Symbol {
     public Token(short i) {
         super(i);
     }
+    public Token(short i, Character c) {
+        super(i, c);
+System.err.println("Chr");
+    }
     public Token(short i, Integer iger) {
         super(i, iger);
 System.err.println("Intr");
