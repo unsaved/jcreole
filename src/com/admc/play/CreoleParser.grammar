@@ -21,25 +21,30 @@
     }
 :};
 
-%terminals ESCAPE, NOWIKI_BLOCK_CLOSE, NEWLINE, BLANKS, COLON_SLASH, ITAL, NOWIKI_OPEN, NOWIKI_CLOSE, LINK_OPEN, LINK_CLOSE, IMAGE_OPEN, IMAGE_CLOSE, FORCED_LINEBREAK, EQUAL, PIPE, POUND, DASH, STAR, SLASH, EXTENSION, NORMAL_CHAR;
+%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, PARAGRAPH;
 
-%typeof NORMAL_CHAR, exprs = "Character";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, blocks, block, para = "String";
 
 //%left NUMBER;
 //%left WORD;
 
 // %typeof  NUMBER, expr = "Integer";
 
-%goal exprs;
+%goal blocks;
 
 /* The grammar */
+blocks = block | blocks block;
+block = BLOCK_PRE | para PARAGRAPH;
+para = frag | para frag;
+frag = INLINE_PRE | TEXT | HARDSPACE;
+
 /*
 exprs = expr | exprs expr;
 expr = WORD.w {: out("'" + w + "'"); return _symbol_w; :}
      | numexpr.n {: out("+" + n); return _symbol_n; :};
 numexpr = numexpr.m NUMBER.n {: return new Token(Terminals.NUMBER, Integer.valueOf(m.intValue() + n.intValue())); :}
      | NUMBER.m;
-*/
 exprs = expr | exprs expr;
 expr = NORMAL_CHAR.n {: return _symbol_n; :} | other.n;
 other = ESCAPE | NOWIKI_BLOCK_CLOSE | NEWLINE | BLANKS | COLON_SLASH | ITAL | NOWIKI_OPEN | NOWIKI_CLOSE | LINK_OPEN | LINK_CLOSE | IMAGE_OPEN | IMAGE_CLOSE | FORCED_LINEBREAK | EQUAL | PIPE | POUND | DASH | STAR | SLASH | EXTENSION;
+*/
