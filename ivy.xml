@@ -17,6 +17,8 @@
                 transitive="false"/>
     <dependency org="commons-io" name="commons-io" rev="2.0.1"
                 transitive="false"/>
+    <dependency org="commons-lang" name="commons-lang" rev="2.5"
+                transitive="false"/>
     <dependency org="de.jflex" name="jflex" rev="1.4.3"
                 transitive="false" conf="jflex->default"/>
     <dependency org="beaver" name="beaver" rev="0.9.7" transitive="false"

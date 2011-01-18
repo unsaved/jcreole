@@ -1,6 +1,7 @@
 %package "com.admc.play";
 
 %import "java.util.List";
+%import "org.apache.commons.lang.StringEscapeUtils";
 
 %embed {:
     private boolean validateOnly;
@@ -25,11 +26,6 @@
         return sb.toString();
     }
 
-    public static String xmlEscape(String s) {
-        return s.replace("<", "&lt;").replace(">", "&gt;");
-        // TODO:  Obviously complete the mappings.
-    }
-
     /**
      * Returns a single XML-washed String
      */
@@ -50,7 +46,7 @@
                         + t.value.getClass().getName());
             sb.append((t instanceof WashedToken)
                     ? ((WashedToken) t).getCleanString()
-                    : xmlEscape(t.getStringVal()));
+                    : StringEscapeUtils.escapeHtml(t.getStringVal()));
         }
         return sb;
     }
@@ -68,8 +64,8 @@ blocks = block.b+ {:
         :}
         |;  // This last allows for empty document
 block = BLOCK_PRE.text {:
-            return new WashedToken(
-                    "<pre>\n" + xmlEscape(text) + "\n</pre>\n");
+            return new WashedToken("<pre>\n"
+                    + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
         :}
         | frag.f+ END_PARA {:
             if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
@@ -77,7 +73,7 @@ block = BLOCK_PRE.text {:
             return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
         :};
 frag = INLINE_PRE.text {: return new WashedToken("<span class=\"pref\">"
-                    + xmlEscape(text) + "</span>");
+                    + StringEscapeUtils.escapeHtml(text) + "</span>");
         :}
         | TEXT
         | HARDSPACE {: return new WashedToken("&nbsp;"); :};
