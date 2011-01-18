@@ -1,5 +1,7 @@
 %package "com.admc.play";
 
+%import "java.util.List";
+
 %embed {:
     private boolean validateOnly;
     private StringBuilder sb = new StringBuilder();
@@ -11,40 +13,71 @@
         sb.append(s);
         sb.append('\n');
     }
+    /*  I believe our scanner will always provide Strings, so we'll never need
+     *  to write individual chars.
     public void out(char c) {
         if (validateOnly) return;
         sb.append(c);
         sb.append('\n');
     }
+    */
     public String getOutput() {
         return sb.toString();
     }
+
+    public static String xmlEscape(String s) {
+        return s.replace("<", "&lt;").replace(">", "&gt;");
+        // TODO:  Obviously complete the mappings.
+    }
+
+    /**
+     * Returns a single XML-washed String
+     */
+    public static StringBuilder concat(List inList) {
+        @SuppressWarnings("unchecked")
+        List<Symbol> symList = (List<Symbol>) inList;
+        Token t;
+        StringBuilder sb = new StringBuilder();
+        for (Symbol s : symList) {
+            if (!(s instanceof Token))
+                throw new IllegalStateException(
+                        "frag element not a Token but a "
+                        + s.getClass().getName());
+            t = (Token) s;
+            if (!(t instanceof WashedToken) && !(t.value instanceof String))
+                throw new IllegalStateException(
+                        "frag element value not a String but a "
+                        + t.value.getClass().getName());
+            sb.append((t instanceof WashedToken)
+                    ? ((WashedToken) t).getCleanString()
+                    : xmlEscape(t.getStringVal()));
+        }
+        return sb;
+    }
 :};
 
-%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, PARAGRAPH;
+%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, blocks, block, para = "String";
-
-//%left NUMBER;
-//%left WORD;
-
-// %typeof  NUMBER, expr = "Integer";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT = "String";
 
 %goal blocks;
 
 /* The grammar */
-blocks = block | blocks block;
-block = BLOCK_PRE | para PARAGRAPH;
-para = frag | para frag;
-frag = INLINE_PRE | TEXT | HARDSPACE;
-
-/*
-exprs = expr | exprs expr;
-expr = WORD.w {: out("'" + w + "'"); return _symbol_w; :}
-     | numexpr.n {: out("+" + n); return _symbol_n; :};
-numexpr = numexpr.m NUMBER.n {: return new Token(Terminals.NUMBER, Integer.valueOf(m.intValue() + n.intValue())); :}
-     | NUMBER.m;
-exprs = expr | exprs expr;
-expr = NORMAL_CHAR.n {: return _symbol_n; :} | other.n;
-other = ESCAPE | NOWIKI_BLOCK_CLOSE | NEWLINE | BLANKS | COLON_SLASH | ITAL | NOWIKI_OPEN | NOWIKI_CLOSE | LINK_OPEN | LINK_CLOSE | IMAGE_OPEN | IMAGE_CLOSE | FORCED_LINEBREAK | EQUAL | PIPE | POUND | DASH | STAR | SLASH | EXTENSION;
-*/
+blocks = block.b+ {:
+            return new WashedToken(concat(_list_b).toString());
+        :}
+        |;  // This last allows for empty document
+block = BLOCK_PRE.text {:
+            return new WashedToken(
+                    "<pre>\n" + xmlEscape(text) + "\n</pre>\n");
+        :}
+        | frag.f+ END_PARA {:
+            if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
+                _list_f.remove(f.length-1);
+            return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
+        :};
+frag = INLINE_PRE.text {: return new WashedToken("<span class=\"pref\">"
+                    + xmlEscape(text) + "</span>");
+        :}
+        | TEXT
+        | HARDSPACE {: return new WashedToken("&nbsp;"); :};

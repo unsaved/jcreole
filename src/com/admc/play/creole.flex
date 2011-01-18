@@ -13,15 +13,12 @@ import java.util.regex.Matcher;
 %extends beaver.Scanner
 %function nextToken
 %type Token
-%eofval{
-    return new Token(Terminals.EOF);
-%eofval}
 
 %{
     private static final Pattern BlockPrePattern =
-            Pattern.compile("\\Q{{{\\E\r?\n(.*?)\r?\n\\Q}}}");
+            Pattern.compile("(?s)\\Q{{{\\E\r?\n(.*?)\r?\n\\Q}}}\\E\r?\n");
     private static final Pattern InlinePrePattern =
-            Pattern.compile("\\Q{{{\\E(.*?)\\Q}}}");
+            Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static Token tok(short id) { return new Token(id); }
     private static Token tok(short id, String s) {
         return new Token(id, s);
@@ -29,23 +26,26 @@ import java.util.regex.Matcher;
 %}
 
 //%states TR
+%states PSTATE
+//%xstates HSTATE
 
-UTF_EOL = \r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085
+UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
 DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
+ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 %%
 
-^"{{{$" ~ {UTF_EOL}"}}}"$ {
+^("{{{"{UTF_EOL}) ~ ({UTF_EOL}"}}}"{UTF_EOL}) {
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
         throw new IllegalStateException(
-                "BLOCK_PRE text doesn't match our pattern: " + yytext());
+            "BLOCK_PRE text doesn't match our pattern: \"" + yytext() + '"');
     return tok(Terminals.BLOCK_PRE, m.group(1));
 }
-"{{{$" ~ "}}}" {
+"{{{" ~ "}}}" {
     Matcher m = InlinePrePattern.matcher(yytext());
     if (!m.matches())
         throw new IllegalStateException(
-                "INLINE_PRE text doesn't match our pattern: " + yytext());
+            "INLINE_PRE text doesn't match our pattern: \"" + yytext() + '"');
     return tok(Terminals.INLINE_PRE, m.group(1));
 }
 
@@ -82,19 +82,31 @@ DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
     return tok(Terminals.TEXT,
     yytext().substring(len - 2) + yytext().substring(len - 1));
 }
-^[ \t]*~---- {
+^[ \t]*"~"---- {
     int len = yytext().length();
     return tok(Terminals.TEXT, yytext().substring(len - 5) + "----");
 }
-^[ \t]*~"{{{" {
+^[ \t]*"~{{{" {
     int len = yytext().length();
     return tok(Terminals.TEXT, yytext().substring(len - 4) + "{{{");
 }
-^[ \t]*~"}}}" {
+^[ \t]*"~}}}" {
     int len = yytext().length();
     return tok(Terminals.TEXT, yytext().substring(len - 4) + "}}}");
 }
 //<TR> "~|" { return tok(Terminals.TEXT, "|"); }
-^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.PARAGRAPH); }
-\r {}
-<YYINITIAL> {DOT} { return tok(Terminals.TEXT, yytext()); }
+
+// In YYINITIAL only, transition to PSTATE upon non-blank line
+<YYINITIAL> {DOT} { yybegin(PSTATE); return tok(Terminals.TEXT, yytext()); }
+
+// In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
+<PSTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
+<PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { return tok(Terminals.END_PARA); }
+<PSTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
+
+\r {}  // Eat \rs in all inclusive states
+<YYINITIAL> \n {}  // Ignore newlines at root state.
+//\n { if (yytext().length() != 1) throw new IllegalStateException("Match length != 1 for '\\n'"); System.err.println("UNMATCHED Newline @ " + yyline + ':' + (yycolumn+1)); }
+//. { if (yytext().length() != 1) throw new IllegalStateException("Match length != 1 for '.'"); System.err.println("UNMATCHED: [" + yytext() + "] @ "+ yyline + ':' + (yycolumn+1)); }
+<PSTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
+<<EOF>> { return tok(Terminals.EOF); }

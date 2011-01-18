@@ -74,7 +74,10 @@
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.play.FlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
+      <!--
       <arg value="data/3.txt"/>
+      -->
+      <arg value="data/1.creole"/>
     </java>
   </target>
 
@@ -82,7 +85,10 @@
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.play.CreoleDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
-      <arg value="data/3.txt"/>
+      <!--
+      <arg value="data/mt.creole"/>
+      -->
+      <arg value="data/1.creole"/>
     </java>
   </target>
 

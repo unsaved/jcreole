@@ -1,0 +1,5 @@
+Make a general Beaver enhancement to write Terminals as a real enum.
+First iteration could just parse and replace class Terminals with enum
+Terminals.
+Final iteration would be overriding the Beaver class and method that actually
+writes Terminals.java.
