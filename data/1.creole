@@ -10,12 +10,24 @@ graph here!
 And here
 }}}
 seven a{{{~ n~ }}}d
+               =      aich t>w {{{nowadi Mean?}}}
 eight
 
 Reg ~ text
 still ~reg and now {{{ ~ escd
  escd ~
-   and yet more ~ escd here }}} and ~ back
+   and yet\\more ~ escd here }}} and ~ ba\\ck
 
 
-Two  Three
+Two  Escaped~\\line\\break Three
+
+Tide x ~x should never be special.  Either should tilde newline ~
+except for at end of table row lines (where it means line-continuation).
+
+Now for Horizontal lines,
+here should still be adding, and whammo
+             ----             
+Previous has tons of white space surrounging, next is clean.
+----
+---- And now with----dashes ---- interspersed ----
+done

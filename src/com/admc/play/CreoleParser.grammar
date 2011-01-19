@@ -37,12 +37,12 @@
         for (Symbol s : symList) {
             if (!(s instanceof Token))
                 throw new IllegalStateException(
-                        "frag element not a Token but a "
+                        "element not a Token but a "
                         + s.getClass().getName());
             t = (Token) s;
             if (!(t instanceof WashedToken) && !(t.value instanceof String))
                 throw new IllegalStateException(
-                        "frag element value not a String but a "
+                        "element value not a String but a "
                         + t.value.getClass().getName());
             sb.append((t instanceof WashedToken)
                     ? ((WashedToken) t).getCleanString()
@@ -52,9 +52,11 @@
     }
 :};
 
-%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA;
+%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
+%terminals H1, H2, H3, H4, H5, H6;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT = "String";
+%typeof H1, H2, H3, H4, H5, H6 = "String";
 
 %goal blocks;
 
@@ -63,17 +65,44 @@ blocks = block.b+ {:
             return new WashedToken(concat(_list_b).toString());
         :}
         |;  // This last allows for empty document
-block = BLOCK_PRE.text {:
-            return new WashedToken("<pre>\n"
-                    + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
+block = isoblock.f+ {:
+            return new WashedToken(concat(_list_f).toString());
         :}
-        | frag.f+ END_PARA {:
+        | inline.f+ END_PARA {:
             if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
                 _list_f.remove(f.length-1);
             return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
         :};
-frag = INLINE_PRE.text {: return new WashedToken("<span class=\"pref\">"
+inline = INLINE_PRE.text {:
+            return new WashedToken("<span class=\"pref\">"
                     + StringEscapeUtils.escapeHtml(text) + "</span>");
         :}
         | TEXT
-        | HARDSPACE {: return new WashedToken("&nbsp;"); :};
+        | HARDSPACE {: return new WashedToken("&nbsp;"); :}
+        | HARDLINE {: return new WashedToken("<br>\n"); :}
+        ;
+
+// These may not contain any inlines
+isoblock = HOR {: return new WashedToken("<hr>\n"); :}
+        | H1.text {: return new WashedToken("<h1>"
+                + StringEscapeUtils.escapeHtml(text) + "</h1>\n");
+        :}
+        | H2.text {: return new WashedToken("<h2>"
+                + StringEscapeUtils.escapeHtml(text) + "</h2>\n");
+        :}
+        | H3.text {: return new WashedToken("<h3>"
+                + StringEscapeUtils.escapeHtml(text) + "</h3>\n");
+        :}
+        | H4.text {: return new WashedToken("<h4>"
+                + StringEscapeUtils.escapeHtml(text) + "</h4>\n");
+        :}
+        | H5.text {: return new WashedToken("<h5>"
+                + StringEscapeUtils.escapeHtml(text) + "</h5>\n");
+        :}
+        | H6.text {: return new WashedToken("<h6>"
+                + StringEscapeUtils.escapeHtml(text) + "</h6>\n");
+        :}
+        | BLOCK_PRE.text {: return new WashedToken("<pre>\n"
+                + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
+        :}
+        ;
