@@ -88,7 +88,7 @@
       <!--
       <arg value="data/mt.creole"/>
       -->
-      <arg value="data/1.creole"/>
+      <arg value="data/2.creole"/>
     </java>
   </target>
 

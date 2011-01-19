@@ -1,10 +1,16 @@
 %package "com.admc.play";
 
 %import "java.util.List";
+%import "java.net.URL";
+%import "java.net.MalformedURLException";
 %import "org.apache.commons.lang.StringEscapeUtils";
 
 %embed {:
     private boolean validateOnly;
+    // TODO:  urlBase and pathBase need to be instance vars set by setter or
+    //        constructor param.
+    private String urlBase = "http://fake.com";
+    private String pathBase = "/contextRoot";
     private StringBuilder sb = new StringBuilder();
     public void setValidateOnly(boolean validateOnly) {
         this.validateOnly = validateOnly;
@@ -52,10 +58,10 @@
     }
 :};
 
-%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
+%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR, URL;
 %terminals H1, H2, H3, H4, H5, H6;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL = "String";
 %typeof H1, H2, H3, H4, H5, H6 = "String";
 
 %goal blocks;
@@ -80,6 +86,21 @@ inline = INLINE_PRE.text {:
         | TEXT
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}
         | HARDLINE {: return new WashedToken("<br>\n"); :}
+        | URL.text {:
+            int nullPos = text.indexOf('\0');
+            String label = (nullPos > -1) ? text.substring(0, nullPos) : text;
+            String url = (nullPos > -1) ? text.substring(nullPos + 1) : text;
+            if (url.length() > 0 && url.charAt(0) == '/') {
+                url = urlBase + url;
+            } else try {
+                new URL(url);
+            } catch (MalformedURLException mue) {
+                url = urlBase + pathBase + '/' +  url;
+            }
+            return new WashedToken("<a href=\""
+                + StringEscapeUtils.escapeHtml(url)
+                + "\">" + label + "<a>");
+        :}
         ;
 
 // These may not contain any inlines

@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
 DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
 ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
+S = [^ \t\f\n\r]
 %%
 
 ^("{{{"{UTF_EOL}) ~ ({UTF_EOL}"}}}"{UTF_EOL}) {
@@ -84,13 +85,12 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 "~ " { return tok(Terminals.HARDSPACE); }  // Going with HardSpace here
 // TODO:  I believe that these will cause the next token to inherit the ^:
 ^[ \t]*"~[*#=|]" {
-    int len = yytext().length();
+    int len = yylength();
     return tok(Terminals.TEXT,
     yytext().substring(len - 2) + yytext().substring(len - 1));
 }
 ^[ \t]*"~"---- {
-    int len = yytext().length();
-    return tok(Terminals.TEXT, yytext().substring(len - 5) + "----");
+    return tok(Terminals.TEXT, yytext().substring(yylength() - 5) + "----");
 }
 // Only remaining special case is for escaping line breaks in TRs with | or ~.
 // END of Escapes
@@ -100,8 +100,8 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 \r {}  // Eat \rs in all inclusive states
 <YYINITIAL> \n {}  // Ignore newlines at root state.
 <<EOF>> { return tok(Terminals.EOF); }
-//\n { if (yytext().length() != 1) throw new IllegalStateException("Match length != 1 for '\\n'"); System.err.println("UNMATCHED Newline @ " + yyline + ':' + (yycolumn+1)); }
-//. { if (yytext().length() != 1) throw new IllegalStateException("Match length != 1 for '.'"); System.err.println("UNMATCHED: [" + yytext() + "] @ "+ yyline + ':' + (yycolumn+1)); }
+//\n { if (yylength() != 1) throw new IllegalStateException("Match length != 1 for '\\n'"); System.err.println("UNMATCHED Newline @ " + yyline + ':' + (yycolumn+1)); }
+//. { if (yylength() != 1) throw new IllegalStateException("Match length != 1 for '.'"); System.err.println("UNMATCHED: [" + yytext() + "] @ "+ yyline + ':' + (yycolumn+1)); }
 
 
 // PSTATE (Paragaph) stuff
@@ -118,10 +118,24 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 <PSTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 
 
-// Misc Creole elements
+// Misc Creole Inline elements.  May occur inside of Paras, TRs, LIs
 \\\\ { return tok(Terminals.HARDLINE); }
-// The Block elements (which require special characters at beginning of line)
-// have a paired PSTATE rule above which will close a (possible PSTATE),
+// TODO:  Major freaking limitation of JFlex here.
+// Need look-behind (aka. trailing context) to check for \bhttp, etc. (Perlish).
+// I am violating Creole rules here and will not honor any markup inside the
+// URL.  I see no benefit to ever doing that.
+(("http")|("ftp")):"/"{S}+ { return tok(Terminals.URL, yytext()); }
+"[[" ~ "]]" {
+    // We delimit label from url with 0 char.
+    StringBuilder sb = new StringBuilder(yytext());
+    int pipeIndex = sb.indexOf("|");
+    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\0');
+    return tok(Terminals.URL, sb.substring(2, yylength()-2));
+}
+
+// Misc Creole Block elements
+// (which require special characters at beginning of line)
+// These have a paired PSTATE rule above which will close a (possible PSTATE),
 // preparing for the YYINITIAL state rules here.
 <YYINITIAL> ^[ \t]*= ~ {UTF_EOL} {
     yybegin(YYINITIAL);
