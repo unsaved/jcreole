@@ -1,0 +1,100 @@
+JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
+
+JCreole use extensions by coding <<...>> elements in their Creole text.
+
+DESIGN
+
+    Still under consideration, but though I "could" allow for setting element
+    IDs and HTML tag attributes, I think that purposefully not supporting
+    operations targeted to single HTML elements will encourage general and
+    re-usable layout management.
+    
+    As things are currently implemented, the user is forced to assign CSS
+    classes.  If the user intends to use the class for just one element-- no
+    harm done and it will work-- but the user may just find it useful that they
+    can re-use that same class elsewhere in the page.  The <<@ element further
+    encourages generalization further to use custom class names across
+    multiple pages and even multiple web sites.
+
+Definitions
+
+    [ = Normal (non-JCreole) block HTML tag (like H1, DIV)
+    < = Normal (non-JCreole) inline HTML tag (like I, SPAN)
+    ( = JCX block tag:  <div class="jcx...
+    { = JCX inline tag:  <span class="jcx...
+
+
+Elements by category
+--------------------
+
+CREATE ELEMENTS
+
+    <<(>>  Open a new JCX block element with '<div class="jcx">'.
+    <<{>>  Open a new JCX inline element with '<span class="jcx">'.
+
+ASSIGN A CSS CLASS TO A HTML ELEMENT
+
+    <<=[className>>
+        Add CSS class to the immediate containing non-JCX block element.
+    <<=<className>>
+        Add CSS class to the immediate containing non-JCX inline element.
+    <<=(className>>
+        Add CSS class to the immediate containing JCX block element.
+    <<={className>>
+        Add CSS class to the immediate containing JCX inline element.
+
+    Same as above, but with "-" instead of "=".  Target the preceding closed
+    element instead of the immediate containing element:
+
+    <<-[className>>
+        Add CSS class to the immediate containing non-JCX block element.
+    <<-<className>>
+        Add CSS class to the immediate containing non-JCX inline element.
+    <<-(className>>
+        Add CSS class to the immediate containing JCX block element.
+    <<-{className>>
+        Add CSS class to the immediate containing JCX inline element.
+
+    Same as above, but with "+".  Target the next
+    element instead of the immediate containing element:
+
+    <<+[className>>
+        Add CSS class to the immediate containing non-JCX block element.
+    <<+<className>>
+        Add CSS class to the immediate containing non-JCX inline element.
+    <<+(className>>
+        Add CSS class to the immediate containing JCX block element.
+    <<+{className>>
+        Add CSS class to the immediate containing JCX inline element.
+
+Define CSS styles
+
+    <<$ style line definitions...  >>  The aggregate of all <<$...>> element
+    contents will be inserted inside one
+        <style type="text/css" scoped="scoped">...</style>
+    element (preserving sequence) before the generated HTML content.
+    Using the style element "scoped" (i.e. outside of the HTML head section) is
+    out of spec for HTML before HTML 5, but it is supported by..
+    TODO:  Definitively test that this works with
+    IE6, IE7, FF3, Opera, Chrome, Konqueror.
+
+    <<@ CSS file path  >>  Link elements for all <<@...>> elements will be
+    inserted inside the page head (preserving sequence).
+    Each link tag will be of the form
+        <link rel="stylesheet type="text/css" href="..." />
+    TODO:  Definitley test this.  I have never tried scoped + standalone!
+
+Comments
+
+    <<# author comments... >>
+    Your comment text may not include the string ">>".
+    These contents will be entirely stripped.  I.e. they will not be visible as
+    HTML comments, or in any other way, in the generated HTML.
+
+    <<! HTML comments... >>
+    Your comment text may not include the strings "--" or ">>".
+    These will not be visible as HTML comments in the generated HTML.
+
+UNDER CONSIDERATION
+    <<:IntraWikiLink>>
+    Because plain IntraWikiLink is too susceptible to false positives.

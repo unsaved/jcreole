@@ -1,0 +1,8 @@
+This document describes non-compliance or compliance ambiguities of the JCreole implementation of Creole.
+
+Creole 1.0 spec:  http://www.wikicreole.org/wiki/Creole1.0
+
+
+Processing markup inside of header text is optional per the spec.  Currently we do not.  I intend to honor markup in header text it in a future iteration.
+
+I won't every auto-linkify CamelBack into local intra-wiki links.  Too easy for false positives.  Intention is to cover this same use case in a safe and compliant way with plugin <<:WikiLink>>.
