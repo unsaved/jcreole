@@ -75,7 +75,7 @@
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
-%terminals URL, IMAGE;
+%terminals URL, IMAGE, OLI, ULI, END_LI;
 %terminals H1, H2, H3, H4, H5, H6;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
@@ -95,7 +95,9 @@ block = isoblock.f+ {:
             if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
                 _list_f.remove(f.length-1);
             return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
-        :};
+        :}
+        | liblock.f+
+        ;
 inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"pref\">"
                     + StringEscapeUtils.escapeHtml(text) + "</span>");
@@ -155,3 +157,5 @@ isoblock = HOR {: return new WashedToken("<hr>\n"); :}
                 + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
         :}
         ;
+
+liblock = OLI | ULI | END_LI;

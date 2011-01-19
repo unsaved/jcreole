@@ -28,9 +28,7 @@ import java.util.regex.Matcher;
     }
 %}
 
-//%states TR
-%states PSTATE
-//%xstates HSTATE
+%states PSTATE, LISTATE
 
 UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
 DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
@@ -110,11 +108,10 @@ S = [^ \t\f\n\r]
 // In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
 <PSTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 <PSTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
-// End PSTATE to make way for another token:
+// End PSTATE to make way for another element:
 <PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 <PSTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 <PSTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.END_PARA);}
-
 <PSTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 
 
@@ -172,5 +169,18 @@ S = [^ \t\f\n\r]
     throw new IllegalArgumentException("'<<<' or '>>>' are reserved tokens");
 }
 
+
+// LISTATE (Paragaph) stuff
+// Transition to LISTATE from any stat other than LISTATE
+<YYINITIAL, PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+<LISTATE> ^[ \t]*#+ { return tok(Terminals.OLI); }
+<LISTATE> ^[ \t]*"*"+ { return tok(Terminals.ULI); }
+<LISTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
+<LISTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
+// End LISTATE to make way for another element:
+<LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.END_LI);}
+<LISTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
 
 //<TR> "~|" { return tok(Terminals.TEXT, "|"); }
