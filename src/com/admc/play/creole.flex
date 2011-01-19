@@ -112,7 +112,7 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 <PSTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
 // End PSTATE to make way for another token:
 <PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
-<PSTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); System.err.println("**Reverted**"); return tok(Terminals.END_PARA); }
+<PSTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 <PSTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.END_PARA);}
 
 <PSTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
@@ -141,7 +141,7 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
     throw new IllegalArgumentException(
             "Malformatted header command: " + yytext());
 }
-<YYINITIAL> ^[ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); System.err.println("***Horing***"); return tok(Terminals.HOR); }
+<YYINITIAL> ^[ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.HOR); }
 
 "<<<" | ">>>" {
     throw new IllegalArgumentException("'<<<' or '>>>' are reserved tokens");
