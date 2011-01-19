@@ -1,6 +1,8 @@
 %package "com.admc.play";
 
 %import "java.util.List";
+%import "java.util.regex.Pattern";
+%import "java.util.regex.Matcher";
 %import "java.net.URL";
 %import "java.net.MalformedURLException";
 %import "org.apache.commons.lang.StringEscapeUtils";
@@ -9,6 +11,9 @@
     private boolean validateOnly;
     // TODO:  urlBase and pathBase need to be instance vars set by setter or
     //        constructor param.
+    // TODO:  Think about whether this generous whitespace stripping is ok.
+    private static Pattern LabelPattern =
+            Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private String urlBase = "http://fake.com";
     private String pathBase = "/contextRoot";
     private StringBuilder sb = new StringBuilder();
@@ -56,12 +61,24 @@
         }
         return sb;
     }
+
+    private String absoluteUrl(String path) {
+        if (path.length() > 0 && path.charAt(0) == '/') {
+            return urlBase + path;
+        } else try {
+            new URL(path);
+        } catch (MalformedURLException mue) {
+            return urlBase + pathBase + '/' +  path;
+        }
+        return path;
+    }
 :};
 
-%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR, URL;
+%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
+%terminals URL, IMAGE;
 %terminals H1, H2, H3, H4, H5, H6;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
 %typeof H1, H2, H3, H4, H5, H6 = "String";
 
 %goal blocks;
@@ -88,18 +105,29 @@ inline = INLINE_PRE.text {:
         | HARDLINE {: return new WashedToken("<br>\n"); :}
         | URL.text {:
             int nullPos = text.indexOf('\0');
-            String label = (nullPos > -1) ? text.substring(0, nullPos) : text;
-            String url = (nullPos > -1) ? text.substring(nullPos + 1) : text;
-            if (url.length() > 0 && url.charAt(0) == '/') {
-                url = urlBase + url;
-            } else try {
-                new URL(url);
-            } catch (MalformedURLException mue) {
-                url = urlBase + pathBase + '/' +  url;
+            String url = StringEscapeUtils.escapeHtml(absoluteUrl(
+                    (nullPos > -1) ? text.substring(0, nullPos) : text));
+            String inLbl = (nullPos > -1) ? text.substring(nullPos + 1) : null;
+            String label = null;
+            if (inLbl == null) {
+                label = StringEscapeUtils.escapeHtml(text);
+            } else {
+                Matcher m = LabelPattern.matcher(inLbl);
+                label = m.matches()
+                    ? ("<img src=\""
+                            + StringEscapeUtils.escapeHtml(
+                            absoluteUrl(m.group(1))) + "\">")
+                    : StringEscapeUtils.escapeHtml(inLbl);
             }
-            return new WashedToken("<a href=\""
-                + StringEscapeUtils.escapeHtml(url)
-                + "\">" + label + "<a>");
+            return new WashedToken("<a href=\"" + url + "\">" + label + "</a>");
+        :}
+        | IMAGE.text {:
+            int nullPos = text.indexOf('\0');
+            String url = StringEscapeUtils.escapeHtml(absoluteUrl(
+                    (nullPos > -1) ? text.substring(0, nullPos) : text));
+            String alt = (nullPos > -1) ? text.substring(nullPos + 1) : null;
+            return new WashedToken("<img src=\"" + url
+                + ((alt == null) ? "" : ("\" alt=\"" + alt)) + "\">");
         :}
         ;
 

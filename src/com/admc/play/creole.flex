@@ -126,11 +126,22 @@ S = [^ \t\f\n\r]
 // URL.  I see no benefit to ever doing that.
 (("http")|("ftp")):"/"{S}+ { return tok(Terminals.URL, yytext()); }
 "[[" ~ "]]" {
+    // The optional 2nd half may in fact be a {{image}} instead of the target
+    // URL.  In that case, the parser will handle it.
     // We delimit label from url with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
     int pipeIndex = sb.indexOf("|");
     if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\0');
     return tok(Terminals.URL, sb.substring(2, yylength()-2));
+}
+"{{" ~ "}}" {
+    // N.b. we handle images inside of [[links]] in the awkwardly redundant
+    // way of parsing that out inside the parser instead of the scanner.
+    // We delimit url from alttext with 0 char.
+    StringBuilder sb = new StringBuilder(yytext());
+    int pipeIndex = sb.indexOf("|");
+    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\0');
+    return tok(Terminals.IMAGE, sb.substring(2, yylength()-2));
 }
 
 // Misc Creole Block elements

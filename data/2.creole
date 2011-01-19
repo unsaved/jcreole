@@ -1,3 +1,9 @@
 One http://cnn.com/story.html two.  Three [[ftp://pub.admc.com/lib-repos/file.jar]] four.
 
-Now a [[relative.link]] and a [[labelled|relative.link]].
+Now a [[relative.link]] and a [[relative.link|labelled link]].
+
+Three {{ftp://pub.admc.com/lib-repos/file.jar}} four.
+Now a {{relative.image}} and a {{relative.image|with alt text}}.
+
+And a combo with relatives: [[relative.link|{{relative.image}}]].\\
+And a combo with absolutes: [[http://cnn.com/home.html|{{http://admc.com/pic.gif}}}]].
