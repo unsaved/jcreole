@@ -21,7 +21,7 @@ still ~reg and now {{{ ~ escd
 
 Two  Escaped~\\line\\break Three
 
-Tide x ~x should never be special.  Either should tilde newline ~
+Tilde x ~x should never be special.  Either should tilde newline ~
 except for at end of table row lines (where it means line-continuation).
 
 Now for Horizontal lines,

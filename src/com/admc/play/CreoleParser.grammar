@@ -75,11 +75,12 @@
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
-%terminals URL, IMAGE, OLI, ULI, END_LI;
+%terminals URL, IMAGE, OLI, ULI, END_LI, FINAL_LI;
 %terminals H1, H2, H3, H4, H5, H6;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
 %typeof H1, H2, H3, H4, H5, H6 = "String";
+%typeof list = "WashedToken";
 
 %goal blocks;
 
@@ -88,6 +89,7 @@ blocks = block.b+ {:
             return new WashedToken(concat(_list_b).toString());
         :}
         |;  // This last allows for empty document
+
 block = isoblock.f+ {:
             return new WashedToken(concat(_list_f).toString());
         :}
@@ -96,10 +98,22 @@ block = isoblock.f+ {:
                 _list_f.remove(f.length-1);
             return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
         :}
-        | li inline.f+ END_LI {:
-            return new WashedToken("<li>" + concat(_list_f) + "</li>\n");
+        | list.l {:
+            return new WashedToken("<ul>" + l.getCleanString() + "</ul>\n");
         :}
         ;
+
+list     = li.l+ liel inline.f+ FINAL_LI {:
+            return new WashedToken(concat(_list_l) + "<li>" + concat(_list_f) + "</li>\n");
+            :}
+         | liel inline.f+ FINAL_LI {:
+            return new WashedToken("<li>" + concat(_list_f) + "</li>\n");
+            :};
+li       = liel inline.l+ END_LI {:
+            return new WashedToken("<li>" + concat(_list_l) + "</li>\n");
+            :};
+liel     = OLI | ULI;
+
 inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"pref\">"
                     + StringEscapeUtils.escapeHtml(text) + "</span>");
@@ -134,8 +148,6 @@ inline = INLINE_PRE.text {:
                 + ((alt == null) ? "" : ("\" alt=\"" + alt)) + "\">");
         :}
         ;
-
-li    = OLI | ULI;
 
 // These may not contain any inlines
 isoblock = HOR {: return new WashedToken("<hr>\n"); :}

@@ -39,11 +39,10 @@ S = [^ \t\f\n\r]
 // Force high-priorioty of these very short captures
 // len 1:
 \r {}  // Eat \rs in all inclusive states
+// Transition to LISTATE from any state other than LISTATE
 <YYINITIAL, PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
 // len >= 1:
-<PSTATE> ^([ \t]*{UTF_EOL})+ { System.err.println("-P"); yybegin(YYINITIAL); yypushback(1); return tok(Terminals.END_PARA); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
-<LISTATE> ^([ \t]*{UTF_EOL})+ { System.err.println("-L"); yybegin(YYINITIAL); yypushback(1); return tok(Terminals.END_LI); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
-
+<PSTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); yypushback(1); return tok(Terminals.END_PARA); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
 
 ^("{{{"{UTF_EOL}) ~ ({UTF_EOL}"}}}"{UTF_EOL}) {
     Matcher m = BlockPrePattern.matcher(yytext());
@@ -178,14 +177,15 @@ S = [^ \t\f\n\r]
 
 
 // LISTATE (Paragaph) stuff
-// Transition to LISTATE from any state other than LISTATE
 <LISTATE> ^[ \t]*#+ { return tok(Terminals.OLI); }
 <LISTATE> ^[ \t]*"*"+ { return tok(Terminals.ULI); }
 <LISTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
 // End LISTATE to make way for another element:
-<LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
-<LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
-<LISTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.END_LI);}
-<LISTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*[#*] { return tok(Terminals.END_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.FINAL_LI); }
+<LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.FINAL_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.FINAL_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return tok(Terminals.FINAL_LI);}
+<LISTATE> <<EOF>> { yybegin(YYINITIAL); return tok(Terminals.FINAL_LI); }
 
 //<TR> "~|" { return tok(Terminals.TEXT, "|"); }
