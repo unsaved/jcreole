@@ -36,6 +36,15 @@ ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 S = [^ \t\f\n\r]
 %%
 
+// Force high-priorioty of these very short captures
+// len 1:
+\r {}  // Eat \rs in all inclusive states
+<YYINITIAL, PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+// len >= 1:
+<PSTATE> ^([ \t]*{UTF_EOL})+ { System.err.println("-P"); yybegin(YYINITIAL); yypushback(1); return tok(Terminals.END_PARA); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
+<LISTATE> ^([ \t]*{UTF_EOL})+ { System.err.println("-L"); yybegin(YYINITIAL); yypushback(1); return tok(Terminals.END_LI); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
+
+
 ^("{{{"{UTF_EOL}) ~ ({UTF_EOL}"}}}"{UTF_EOL}) {
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
@@ -95,7 +104,6 @@ S = [^ \t\f\n\r]
 
 
 // General/Global stuff
-\r {}  // Eat \rs in all inclusive states
 <YYINITIAL> \n {}  // Ignore newlines at root state.
 <<EOF>> { return tok(Terminals.EOF); }
 //\n { if (yylength() != 1) throw new IllegalStateException("Match length != 1 for '\\n'"); System.err.println("UNMATCHED Newline @ " + yyline + ':' + (yycolumn+1)); }
@@ -106,7 +114,6 @@ S = [^ \t\f\n\r]
 // In YYINITIAL only, transition to PSTATE upon non-blank line
 <YYINITIAL> {DOT} { yybegin(PSTATE); return tok(Terminals.TEXT, yytext()); }
 // In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
-<PSTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
 <PSTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
 // End PSTATE to make way for another element:
 <PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_PARA); }
@@ -171,12 +178,10 @@ S = [^ \t\f\n\r]
 
 
 // LISTATE (Paragaph) stuff
-// Transition to LISTATE from any stat other than LISTATE
-<YYINITIAL, PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+// Transition to LISTATE from any state other than LISTATE
 <LISTATE> ^[ \t]*#+ { return tok(Terminals.OLI); }
 <LISTATE> ^[ \t]*"*"+ { return tok(Terminals.ULI); }
 <LISTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
-<LISTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
 // End LISTATE to make way for another element:
 <LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return tok(Terminals.END_LI); }
 <LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return tok(Terminals.END_LI); }

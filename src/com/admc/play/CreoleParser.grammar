@@ -96,7 +96,9 @@ block = isoblock.f+ {:
                 _list_f.remove(f.length-1);
             return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
         :}
-        | liblock.f+
+        | li inline.f+ END_LI {:
+            return new WashedToken("<li>" + concat(_list_f) + "</li>\n");
+        :}
         ;
 inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"pref\">"
@@ -133,6 +135,8 @@ inline = INLINE_PRE.text {:
         :}
         ;
 
+li    = OLI | ULI;
+
 // These may not contain any inlines
 isoblock = HOR {: return new WashedToken("<hr>\n"); :}
         | H1.text {: return new WashedToken("<h1>"
@@ -157,5 +161,3 @@ isoblock = HOR {: return new WashedToken("<hr>\n"); :}
                 + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
         :}
         ;
-
-liblock = OLI | ULI | END_LI;
