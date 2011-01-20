@@ -1,4 +1,4 @@
-package com.admc.play;
+package com.admc.jcreole;
 
 import beaver.Symbol;
 

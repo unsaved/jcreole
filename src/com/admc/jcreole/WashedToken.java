@@ -1,4 +1,4 @@
-package com.admc.play;
+package com.admc.jcreole;
 
 import beaver.Symbol;
 
@@ -14,6 +14,6 @@ public class WashedToken extends Token {
     }
 
     public String toString() {
-        return "$" + getId() + "/(" + cleanString + ')';
+        return cleanString;
     }
 }

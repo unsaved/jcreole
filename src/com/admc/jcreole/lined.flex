@@ -1,4 +1,4 @@
-package com.admc.play;
+package com.admc.jcreole;
 
 //enum TokenType { WHITESPACE, WORD };
 enum TokenType { BLANKLINE, LINE };

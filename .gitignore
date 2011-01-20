@@ -1,5 +1,6 @@
 /dist
-/classes
+/*classes
 /local*
 /tmp
 *.swp
+/test-reports

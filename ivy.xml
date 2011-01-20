@@ -11,6 +11,8 @@
           visibility="private"/>
     <conf name="beaver" description="Dependencies for running Beaver Generator"
           visibility="private"/>
+    <conf name="test" description="Dependencies for Unit Testing"
+          visibility="private" extends="run" />
   </configurations>
   <dependencies defaultconfmapping="baseconf->default">
     <dependency org="commons-logging" name="commons-logging" rev="1.1.1"
@@ -31,5 +33,7 @@
       <artifact name="beaver-rt" type="jar"
              url="http://pub.admc.com/lib-repos/beaver-rt-0.9.7.jar"/> 
     </dependency>
+    <dependency org="junit" name="junit" rev="4.8.2"
+                transitive="false" conf="test->default"/>
   </dependencies>
 </ivy-module>

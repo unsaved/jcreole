@@ -1,4 +1,4 @@
-package com.admc.play;
+package com.admc.jcreole;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;

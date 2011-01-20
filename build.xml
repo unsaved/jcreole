@@ -39,17 +39,17 @@
     <mkdir dir="tmp/derived-src"/>
     <!-- Unfortunately task is so careless that it returns success status no
       -  matter what.  Therefore we have to check for ourselves. -->
-    <delete file="tmp/derived-src/com/admc/play/CreoleParser.java"/>
-    <beaver file='src/com/admc/play/CreoleParser.grammar' reportActions="yes"
+    <delete file="tmp/derived-src/com/admc/jcreole/CreoleParser.java"/>
+    <beaver file='src/com/admc/jcreole/CreoleParser.grammar' reportActions="yes"
             destdir="tmp/derived-src" exportTerminals='yes'/>
     <available property="beaver.success" type="file"
-            file="tmp/derived-src/com/admc/play/CreoleParser.java"/>
+            file="tmp/derived-src/com/admc/jcreole/CreoleParser.java"/>
     <fail unless="beaver.success" message="Beaver failed"/>
   </target>
 
   <target name="jflex" description="run JFlex" depends="beaver, -jflex-setup">
     <mkdir dir="tmp/derived-src"/>
-    <jflex file="src/com/admc/play/creole.flex" destdir="tmp/derived-src"
+    <jflex file="src/com/admc/jcreole/creole.flex" destdir="tmp/derived-src"
            verbose="${jflex.debug}" nobak="true" />
   </target>
 
@@ -72,7 +72,7 @@
 
   <target name="run-scanner" description="run scanner" depends="compile">
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.play.FlexDriver" classpath="classes"
+    <java classname="com.admc.jcreole.FlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <!--
       <arg value="data/3.txt"/>
@@ -83,12 +83,12 @@
 
   <target name="run" description="run Beaver parser" depends="compile">
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.play.CreoleDriver" classpath="classes"
+    <java classname="com.admc.jcreole.CreoleDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <!--
       <arg value="data/mt.creole"/>
       -->
-      <arg value="data/3.creole"/>
+      <arg value="test-data/para/trivial.creole"/>
     </java>
   </target>
 
@@ -107,5 +107,56 @@
         <equals arg1="" arg2="${tabbedFiles}"/>
       </not></condition>
     </fail>
+  </target>
+
+  <target name="test-compile" description="compile Test sources"
+          depends="compile">
+    <ivy:cachepath conf="test" pathid="test.ivyrefid"/>
+    <mkdir dir="test-classes"/>
+    <javac srcdir="test-src" classpath="classes"
+           destdir="test-classes" classpathref="test.ivyrefid"
+           source="${javac.sourceVersion}" target="${javac.targetVersion}"
+           deprecation="${javac.deprecation}" debug="${javac.debug}">
+      <compilerarg value="-Xlint"/>
+    </javac>
+  </target>
+
+  <target name="unittest" description="Execute unit tests"
+          depends="test-compile">
+    <ivy:cachepath conf="test" pathid="test.refid"/>
+    <mkdir dir="tmp/rawtestoutput"/>
+    <junit printsummary="true" failureproperty="junit.failure">
+      <!-- N.b. use failureproperty instead of haltonfailure, because if we use
+           the former, we will get no detailed report about the failure.
+           If the test fails, the fail element below will still assure that
+           the Ant run will exit with error status.
+      -->
+      <classpath refid="test.refid"/>
+      <classpath path="classes:test-classes"/>
+      <!-- Ant provides several ways to set the classpath.  The critical thing
+           is just that the final classpath for the junit task must include
+           the junit-4.x jar file, the test classes, and all classes referred
+           to directly or indirectly by your test classes.  -->
+
+      <batchtest todir="tmp/rawtestoutput">
+        <fileset dir="test-classes"/>
+        <formatter type="xml"/>
+      </batchtest>
+      <!-- In the unlikely case that you just have a single test class,
+           use a test element like this instead of the batchtest element
+           above:   <test name='com.admc.jamama.smtp.SMTPTest'/>
+           You can nest the formatter inside it, just like batchtest.
+      -->
+
+      <!-- You can use sysproperty elements to pass configuration settings
+           to your test classes, or to appplication classes they will run:
+     <sysproperty key="targetserver.test" value="mercedes"/>
+     -->
+    </junit>
+    <junitreport todir="tmp">
+      <fileset dir="tmp/rawtestoutput"/>
+      <report todir="test-reports"/>
+    </junitreport>
+    <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
   </target>
 </project>
