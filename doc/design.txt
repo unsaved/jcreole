@@ -1,0 +1,30 @@
+See the file "extensions.txt" about design of Plugins/Extensions.
+
+
+ENCODING AND CHARACTERS
+
+We deal with UTF-8 encoding.  If you want to use some other encoding for your wiki software, then JCreole is not the tool for you.
+Similarly, we "write" line delimiters only as \n.  We never write \r's.
+
+To accommodate serving huge text documents like books, the parser does allow carriage returns (\r) for all constructors, even though parsing would be more efficient and simple if we did not.
+You may use the high-capacity CroleParser(Reader) constructor only if you are sure that the input contains no input characters other than \r, \n, \t.
+The justification is that the prohibited control characters have no business being in HTML documents.
+You may instantiate your own Reader filter to assure this on your own, but it could be difficult to do so without losing the benefit of low-level caching.
+(If you do implement a char-by-char filtering Reader that is high performance and has no capacity limit, send it to me and I'll incorporate it and greatly simplify the constructors, factories and the scanner and parser code.
+
+Based on the previous constraint, the parser and scanner run with the assumption that input contains no control characters (excepting \r, \n, \t).
+[NOTE:  The following text is speculative.  Not certain of implementation yet.
+May well achieve the same purpose with some Commons Lang features.]
+We leverage this for tactics such as temporarily implanting control characters into our output buffer to mark points of interest that we need to remember.
+
+ANGLE BRACKETS
+
+Users may code < and > in their Creole input, of course, and those characters will be translated to &lt; and &gt;.
+For security reasons, the only way that a Creole document author can get a < or > directly into output is by using the plugin directive supplied for that purpose.
+
+CHARACTER ENTITIES
+
+Entities of the form &[a-zA-Z0-9]+; are passed from Creole input to output unadulterated.
+(That expression is in Regexp. format, not BNF).
+See the values in the "Entity Name" columns in the tables at http://www.w3schools.com/tags/ref_entities.asp for the many entities that you can use.
+Considering whether to allow escaping this behavior like "~&lt;" to have output write "&amp;lt;", but not doing so for now since that would violate the Creole 1.0 spec.

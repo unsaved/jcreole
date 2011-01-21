@@ -1,8 +1,17 @@
 JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
-JCreole use extensions by coding <<...>> elements in their Creole text.
+Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
+
+I call the individual <<X>> commands that are available "Plugin Directives".
+(I don't call them "elements" in order to eliminate ambiguity because of the resemblance to XML Elements).
+
 
 DESIGN
+
+    Some (or possibly all) extensions are enabled/disabled at the Scanner
+    instance level.  This can be used, for example, to prevent "comment"
+    authors from altering style, or to only allow authorized users to pass
+    through HTML directly.
 
     Still under consideration, but though I "could" allow for setting element
     IDs and HTML tag attributes, I think that purposefully not supporting
@@ -24,8 +33,18 @@ Definitions
     { = JCX inline tag:  <span class="jcx...
 
 
-Elements by category
---------------------
+Plugin Directives by category
+-----------------------------
+
+ANGLE BRACKETS
+
+    << < >>  Translates directly to plain < in the output HTML.
+    << > >>  Translates directly to plain < in the output HTML.
+
+    Without use of this directive, occurrence of < or > in input documents
+    will be translated to "&lt;" and "&gt;" accordingly.
+    Note the white space that is required around the "<" and ">" in order to
+    distinguish them from the "<<" or ">>".
 
 CREATE ELEMENTS
 
