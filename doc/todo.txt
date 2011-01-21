@@ -1,5 +1,24 @@
-Make a general Beaver enhancement to write Terminals as a real enum.
-First iteration could just parse and replace class Terminals with enum
-Terminals.
-Final iteration would be overriding the Beaver class and method that actually
-writes Terminals.java.
+SHORT TERM
+
+Move URL tests to new url/link, url/image, url/both, url/multi.
+
+Prevent expansion of URLs after ^ and [0-9a-zA-Z].
+
+License.
+
+Move project to Github.
+
+-------------------------------------------------------------------------------
+
+LONG TERM
+
+Branch Beaver and do some major re-design.
+    Write Terminals as a real enum.
+    Fix the anti-OO way that beaver.Symbol must be overridden.
+    Change label-variable behavior to be consistent.  Don't have the semantics
+     and type of the generated variable entirely dependent upon something else.
+     Generated variable "x" for "expr.x" should always be the same damned thing.
+    Use more rigorous type-checking for ArrayList usage.
+    Fix bugs where . operating behavior differs from + in unintended and bad
+     ways.
+    Use Generics.
