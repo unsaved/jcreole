@@ -1,0 +1,24 @@
+A second paragraph with a hard line\\ and some
+more text.
+    ----
+That line should have inserted a paragraph break too.
+
+Fourth paragraph {{{inline ~ \\ nowiki}}}}}. And
+a more text here too.
+----x
+Above is not legal line.
+{{{
+~ \\ un-
+parsed
+
+   with two escaped }}}s
+ }}}
+here.
+}}}
+{{{
+~ \\ un-
+parsed
+
+   data
+here
+}}}
