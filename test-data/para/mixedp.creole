@@ -1,0 +1,6 @@
+Two words
+and two more words
+Two words\\hardline + trailing hardline \\
+and second line
+and third line with \\hardline and ~ hard space.
+and {{{inline nowiki || ~ here}}}.

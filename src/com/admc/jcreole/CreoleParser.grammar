@@ -9,6 +9,7 @@
 
 %embed {:
     private boolean validateOnly;
+    private boolean wrote;  // Just used to write block-separating blank lines
     // TODO:  urlBase and pathBase need to be instance vars set by setter or
     //        constructor param.
     // TODO:  Think about whether this generous whitespace stripping is ok.
@@ -72,6 +73,12 @@
         }
         return path;
     }
+
+    private WashedToken blockToken(String s) {
+        if (wrote) return new WashedToken("\n" + s);
+        wrote = true;
+        return new WashedToken(s);
+    }
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
@@ -91,15 +98,15 @@ blocks = block.b+ {:
         |;  // This last allows for empty document
 
 block = isoblock.f+ {:
-            return new WashedToken(concat(_list_f).toString());
+            return blockToken(concat(_list_f).toString());
         :}
         | inline.f+ END_PARA {:
             if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
                 _list_f.remove(f.length-1);
-            return new WashedToken("<p>\n" + concat(_list_f) + "\n</p>\n");
+            return blockToken("<p>" + concat(_list_f) + "</p>\n");
         :}
         | list.l {:
-            return new WashedToken("<ul>" + l.getCleanString() + "</ul>\n");
+            return blockToken("<ul>" + l.getCleanString() + "</ul>\n");
         :}
         ;
 
@@ -115,12 +122,14 @@ li       = liel inline.l+ END_LI {:
 liel     = OLI | ULI;
 
 inline = INLINE_PRE.text {:
-            return new WashedToken("<span class=\"pref\">"
+            return new WashedToken("<span class=\"jcreole_pref\">"
                     + StringEscapeUtils.escapeHtml(text) + "</span>");
         :}
         | TEXT
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}
-        | HARDLINE {: return new WashedToken("<br>\n"); :}
+        // For hardline we do not write a \n.  If user wants a \n in addition
+        // to the <br>, they should write "<br>\n".
+        | HARDLINE {: return new WashedToken("<br>"); :}
         | URL.text {:
             int nullPos = text.indexOf('\0');
             String url = StringEscapeUtils.escapeHtml(absoluteUrl(

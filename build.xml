@@ -1,4 +1,4 @@
-<project name='jcreole' default='run' xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name='jcreole' default='parse' xmlns:ivy="antlib:org.apache.ivy.ant">
 
   <property file="local.properties"/>
   <property file="app.properties"/>
@@ -55,6 +55,7 @@
 
   <target name="clean" description="Clean">
     <delete dir="dist"/>
+    <delete dir="test-classes"/>
     <delete dir="classes"/>
     <delete dir="tmp/derived-src"/>
   </target>
@@ -70,25 +71,27 @@
     </javac>
   </target>
 
-  <target name="run-scanner" description="run scanner" depends="compile">
+  <target name="scanner" description="run scanner" depends="compile">
+    <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.FlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <!--
       <arg value="data/3.txt"/>
       -->
-      <arg value="data/3.creole"/>
+      <arg value="${creolepath}"/>
     </java>
   </target>
 
-  <target name="run" description="run Beaver parser" depends="compile">
+  <target name="parse" description="run Beaver parser" depends="compile">
+    <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.CreoleDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <!--
       <arg value="data/mt.creole"/>
       -->
-      <arg value="test-data/para/trivial.creole"/>
+      <arg value="${creolepath}"/>
     </java>
   </target>
 
