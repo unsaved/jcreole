@@ -2,6 +2,13 @@ package com.admc.jcreole;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.CharSequenceReader;
 
 %%
 %class CreoleScanner
@@ -28,6 +35,45 @@ import java.util.regex.Matcher;
     }
 
     private int pausingState;
+
+    /**
+     * Static factory method.
+     *
+     * @param doClean If true will silently remove illegal input characters.
+     *                If false, will throw if encounter any illegal input char.
+     */
+    public static CreoleScanner newCreoleScanner(
+            File inFile, boolean doClean) throws IOException {
+        return newCreoleScanner(
+                new StringBuilder(FileUtils.readFileToString(inFile, "UTF-8")),
+                doClean);
+    }
+
+    /**
+     * Static factory method.
+     *
+     * Pass a StringBuilder containing any characters and we'll clean or
+     * throw illegal characters depending on the doClean specification.
+     *
+     * @param doClean If true will silently remove illegal input characters.
+     *                If false, will throw if encounter any illegal input char.
+     */
+    public static CreoleScanner newCreoleScanner(
+            StringBuilder sb, boolean doClean) throws IOException {
+        List<Integer> badIndexes = new ArrayList<Integer>();
+        char c;
+        for (int i = sb.length() - 1; i >= 0; i--) {
+            c = sb.charAt(i);
+            if (c != '\n' && c != '\r' && Character.isISOControl(c)) {
+                if (doClean) sb.deleteCharAt(i);
+                else badIndexes.add(badIndexes.size(), Integer.valueOf(i));
+            }
+        }
+        if (badIndexes.size() > 0)
+            throw new IllegalArgumentException(
+                    "Illegal char(s) at following positions: " + badIndexes);
+        return new CreoleScanner(new CharSequenceReader(sb));
+    }
 %}
 
 %states PSTATE, LISTATE, ESCURL
@@ -52,14 +98,14 @@ NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
     if (!m.matches())
         throw new IllegalStateException(
             "BLOCK_PRE text doesn't match our pattern: \"" + yytext() + '"');
-    return tok(Terminals.BLOCK_PRE, m.group(1));
+    return tok(Terminals.BLOCK_PRE, m.group(1).replaceAll("\r", ""));
 }
 "{{{" ~ ("}"* "}}}") {
     Matcher m = InlinePrePattern.matcher(yytext());
     if (!m.matches())
         throw new IllegalStateException(
             "INLINE_PRE text doesn't match our pattern: \"" + yytext() + '"');
-    return tok(Terminals.INLINE_PRE, m.group(1));
+    return tok(Terminals.INLINE_PRE, m.group(1).replaceAll("\r", ""));
 }
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
@@ -141,7 +187,7 @@ NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
     // We delimit label from url with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
     int pipeIndex = sb.indexOf("|");
-    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\0');
+    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\f');
     return tok(Terminals.URL, sb.substring(2, yylength()-2));
 }
 "{{" ~ "}}" {
@@ -150,7 +196,7 @@ NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
     // We delimit url from alttext with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
     int pipeIndex = sb.indexOf("|");
-    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\0');
+    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\f');
     return tok(Terminals.IMAGE, sb.substring(2, yylength()-2));
 }
 

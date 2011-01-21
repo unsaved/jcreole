@@ -1,13 +1,5 @@
 SHORT TERM
 
-Find out how to HTML/Unicode/Hex/Octal/Decimal-escape binary ASCIIs like \f.
-What about backspace, bell?
-CharUtils.isAsciiControl() or similar + CharUtils.unicodeEscaped(ch).
-Definitively test that CharUtils.isAsciiControl() returns true for vals <= 
-See http://www.w3schools.com/TAGS/ref_ascii.asp
-
-Determine definitively whether 
-
 Add location-indication (pass along yyline/yycol or whatever to Beaver).
 
 Move URL tests to new url/link, url/image, url/both, url/multi.
@@ -17,6 +9,8 @@ Prevent expansion of URLs after ^ and [0-9a-zA-Z].
 License.
 
 Move project to Github.
+
+Implement and publish a trivial sandbox webapp.
 
 -------------------------------------------------------------------------------
 

@@ -1,11 +1,11 @@
 %package "com.admc.jcreole";
 
-%import "java.util.List";
-%import "java.util.regex.Pattern";
-%import "java.util.regex.Matcher";
 %import "java.net.URL";
 %import "java.net.MalformedURLException";
 %import "org.apache.commons.lang.StringEscapeUtils";
+%import "java.util.regex.Pattern";
+%import "java.util.List";
+%import "java.util.regex.Matcher";
 
 %embed {:
     private boolean validateOnly;
@@ -31,6 +31,7 @@
     public void setValidateOnly(boolean validateOnly) {
         this.validateOnly = validateOnly;
     }
+
     public void out(String s) {
         if (validateOnly) return;
         sb.append(s);
@@ -72,6 +73,7 @@
 
     /**
      * Returns a single XML-washed String
+     * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
      */
     public static StringBuilder concat(List inList) {
         @SuppressWarnings("unchecked")
@@ -90,7 +92,7 @@
                         + t.value.getClass().getName());
             sb.append((t instanceof WashedToken)
                     ? ((WashedToken) t).getCleanString()
-                    : StringEscapeUtils.escapeHtml(t.getStringVal()));
+                    : clean(t.getStringVal()));
         }
         return sb;
     }
@@ -112,6 +114,17 @@
         if (wrote) return new WashedToken("\n" + s);
         wrote = true;
         return new WashedToken(s);
+    }
+
+    /**
+     * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
+     *
+     * Preserves &...; entities in input but otherwise applies new entities to
+     * escape special HTML characters.
+     */
+    public static String clean(String s) {
+        return StringEscapeUtils.escapeHtml(s.replaceAll("&(?=\\w+;)", "\b"))
+                .replace('\b', '&');
     }
 :};
 
@@ -157,7 +170,7 @@ liel     = OLI | ULI;
 
 inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"jcreole_pref\">"
-                    + StringEscapeUtils.escapeHtml(text) + "</span>");
+                    + clean(text) + "</span>");
         :}
         | TEXT
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}
@@ -165,41 +178,42 @@ inline = INLINE_PRE.text {:
         // to the <br>, they should write "<br>\n".
         | HARDLINE {: return new WashedToken("<br>"); :}
         | URL.text {:
-            int nullPos = text.indexOf('\0');
+            int delimPos = text.indexOf('\f');
+            String inLbl = (delimPos > -1)
+                         ? text.substring(delimPos + 1) : null;
+            String urlText = (delimPos > -1)
+                           ? text.substring(0, delimPos) : text;
             String url = null;
             Matcher matcher = (text.startsWith("http:")
                     || text.startsWith("https:")
                     || text.startsWith("ftp:")) ? null
-                    : IntraWikiPattern.matcher(text);
+                    : IntraWikiPattern.matcher(urlText);
             if (matcher != null && matcher.matches()) {
                 if (intraWikiMapper == null)
                     throw new IllegalArgumentException(
                             "Intra-wiki links not supported");
                 url = intraWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
+System.err.println("Wiki URL -> (" + url + ')');
             } else {
-                url = StringEscapeUtils.escapeHtml(absoluteUrl(
-                    (nullPos > -1) ? text.substring(0, nullPos) : text));
+                url = clean(absoluteUrl(urlText));
             }
-            String inLbl = (nullPos > -1) ? text.substring(nullPos + 1) : null;
             String label = null;
             if (inLbl == null) {
-                label = StringEscapeUtils.escapeHtml(text);
+                label = clean(text);
             } else {
                 Matcher m = LabelPattern.matcher(inLbl);
                 label = m.matches()
-                    ? ("<img src=\""
-                            + StringEscapeUtils.escapeHtml(
-                            absoluteUrl(m.group(1))) + "\">")
-                    : StringEscapeUtils.escapeHtml(inLbl);
+                    ? ("<img src=\"" + clean( absoluteUrl(m.group(1))) + "\">")
+                    : clean(inLbl);
             }
             return new WashedToken("<a href=\"" + url + "\">" + label + "</a>");
         :}
         | IMAGE.text {:
-            int nullPos = text.indexOf('\0');
-            String url = StringEscapeUtils.escapeHtml(absoluteUrl(
-                    (nullPos > -1) ? text.substring(0, nullPos) : text));
-            String alt = (nullPos > -1) ? text.substring(nullPos + 1) : null;
+            int delimPos = text.indexOf('\f');
+            String url = clean(absoluteUrl(
+                    (delimPos > -1) ? text.substring(0, delimPos) : text));
+            String alt = (delimPos > -1) ? text.substring(delimPos + 1) : null;
             return new WashedToken("<img src=\"" + url
                 + ((alt == null) ? "" : ("\" alt=\"" + alt)) + "\">");
         :}
@@ -207,26 +221,14 @@ inline = INLINE_PRE.text {:
 
 // These may not contain any inlines
 isoblock = HOR {: return blockToken("<hr>\n"); :}
-        | H1.text {: return blockToken("<h1>"
-                + StringEscapeUtils.escapeHtml(text) + "</h1>\n");
-        :}
-        | H2.text {: return blockToken("<h2>"
-                + StringEscapeUtils.escapeHtml(text) + "</h2>\n");
-        :}
-        | H3.text {: return blockToken("<h3>"
-                + StringEscapeUtils.escapeHtml(text) + "</h3>\n");
-        :}
-        | H4.text {: return blockToken("<h4>"
-                + StringEscapeUtils.escapeHtml(text) + "</h4>\n");
-        :}
-        | H5.text {: return blockToken("<h5>"
-                + StringEscapeUtils.escapeHtml(text) + "</h5>\n");
-        :}
-        | H6.text {: return blockToken("<h6>"
-                + StringEscapeUtils.escapeHtml(text) + "</h6>\n");
-        :}
+        | H1.text {: return blockToken("<h1>" + clean(text) + "</h1>\n"); :}
+        | H2.text {: return blockToken("<h2>" + clean(text) + "</h2>\n"); :}
+        | H3.text {: return blockToken("<h3>" + clean(text) + "</h3>\n"); :}
+        | H4.text {: return blockToken("<h4>" + clean(text) + "</h4>\n"); :}
+        | H5.text {: return blockToken("<h5>" + clean(text) + "</h5>\n"); :}
+        | H6.text {: return blockToken("<h6>" + clean(text) + "</h6>\n"); :}
         | BLOCK_PRE.text {: return blockToken("<pre>\n"
-                + StringEscapeUtils.escapeHtml(
+                + clean(
                 text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
                 // The replace here is for allowing ^}}} inside of pref block.
                 // Spec says to do this for all " }}}", but that is
