@@ -124,8 +124,10 @@
     </javac>
   </target>
 
-  <target name="unittest" description="Execute unit tests"
+  <target name="test" description="Execute unit tests"
           depends="test-compile">
+    <!-- If add integration tests, then rename this target to "unittest" or
+         similar, to make it distinctive. -->
     <ivy:cachepath conf="test" pathid="test.refid"/>
     <mkdir dir="tmp/rawtestoutput"/>
     <junit printsummary="true" failureproperty="junit.failure">

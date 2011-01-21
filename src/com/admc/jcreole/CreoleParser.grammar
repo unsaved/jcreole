@@ -15,9 +15,19 @@
     // TODO:  Think about whether this generous whitespace stripping is ok.
     private static Pattern LabelPattern =
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
-    private String urlBase = "http://fake.com";
-    private String pathBase = "/contextRoot";
+    private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
+    private String urlBase;
+    private String pathBase;
     private StringBuilder sb = new StringBuilder();
+    // Following is just for testing.
+    // Before use this class in a real product, remove the assignment so it
+    // will default to null, thereby disabling intra-wiki linking.
+    // (Integrators will the use the setter to enable intra-wiki linking).
+    private IntraWikiMapper intraWikiMapper = new IntraWikiMapper() {
+        public String toPath(String wikiName, String wikiPage) {
+            return "{" + wikiName + '/' + wikiPage + '}';
+        }
+    };
     public void setValidateOnly(boolean validateOnly) {
         this.validateOnly = validateOnly;
     }
@@ -36,6 +46,28 @@
     */
     public String getOutput() {
         return sb.toString();
+    }
+
+    public void setIntraWikiMapper(IntraWikiMapper intraWikiMapper) {
+        this.intraWikiMapper = intraWikiMapper;
+    }
+
+    /**
+     * Use this method and setPathBase to absolutize link and image URLs.
+     * It is usually better to let HTML behavior absolutize these as it is
+     * designed to do.
+     */
+    public void setUrlBase(String urlBase) {
+        this.urlBase = urlBase;
+    }
+
+    /**
+     * Use this method and setUrlBase to absolutize link and image URLs.
+     * It is usually better to let HTML behavior absolutize these as it is
+     * designed to do.
+     */
+    public void setPathBase(String pathBase) {
+        this.pathBase = pathBase;
     }
 
     /**
@@ -64,12 +96,14 @@
     }
 
     private String absoluteUrl(String path) {
+        if (urlBase == null && pathBase == null) return path;
         if (path.length() > 0 && path.charAt(0) == '/') {
             return urlBase + path;
         } else try {
             new URL(path);
         } catch (MalformedURLException mue) {
-            return urlBase + pathBase + '/' +  path;
+            return ((urlBase == null) ? "" : urlBase)
+                    + ((pathBase == null) ? "" : pathBase) + '/' +  path;
         }
         return path;
     }
@@ -98,7 +132,7 @@ blocks = block.b+ {:
         |;  // This last allows for empty document
 
 block = isoblock.f+ {:
-            return blockToken(concat(_list_f).toString());
+            return new WashedToken(concat(_list_f).toString());
         :}
         | inline.f+ END_PARA {:
             if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
@@ -132,8 +166,21 @@ inline = INLINE_PRE.text {:
         | HARDLINE {: return new WashedToken("<br>"); :}
         | URL.text {:
             int nullPos = text.indexOf('\0');
-            String url = StringEscapeUtils.escapeHtml(absoluteUrl(
+            String url = null;
+            Matcher matcher = (text.startsWith("http:")
+                    || text.startsWith("https:")
+                    || text.startsWith("ftp:")) ? null
+                    : IntraWikiPattern.matcher(text);
+            if (matcher != null && matcher.matches()) {
+                if (intraWikiMapper == null)
+                    throw new IllegalArgumentException(
+                            "Intra-wiki links not supported");
+                url = intraWikiMapper.toPath(
+                        matcher.group(1), matcher.group(2));
+            } else {
+                url = StringEscapeUtils.escapeHtml(absoluteUrl(
                     (nullPos > -1) ? text.substring(0, nullPos) : text));
+            }
             String inLbl = (nullPos > -1) ? text.substring(nullPos + 1) : null;
             String label = null;
             if (inLbl == null) {
@@ -159,26 +206,31 @@ inline = INLINE_PRE.text {:
         ;
 
 // These may not contain any inlines
-isoblock = HOR {: return new WashedToken("<hr>\n"); :}
-        | H1.text {: return new WashedToken("<h1>"
+isoblock = HOR {: return blockToken("<hr>\n"); :}
+        | H1.text {: return blockToken("<h1>"
                 + StringEscapeUtils.escapeHtml(text) + "</h1>\n");
         :}
-        | H2.text {: return new WashedToken("<h2>"
+        | H2.text {: return blockToken("<h2>"
                 + StringEscapeUtils.escapeHtml(text) + "</h2>\n");
         :}
-        | H3.text {: return new WashedToken("<h3>"
+        | H3.text {: return blockToken("<h3>"
                 + StringEscapeUtils.escapeHtml(text) + "</h3>\n");
         :}
-        | H4.text {: return new WashedToken("<h4>"
+        | H4.text {: return blockToken("<h4>"
                 + StringEscapeUtils.escapeHtml(text) + "</h4>\n");
         :}
-        | H5.text {: return new WashedToken("<h5>"
+        | H5.text {: return blockToken("<h5>"
                 + StringEscapeUtils.escapeHtml(text) + "</h5>\n");
         :}
-        | H6.text {: return new WashedToken("<h6>"
+        | H6.text {: return blockToken("<h6>"
                 + StringEscapeUtils.escapeHtml(text) + "</h6>\n");
         :}
-        | BLOCK_PRE.text {: return new WashedToken("<pre>\n"
-                + StringEscapeUtils.escapeHtml(text) + "\n</pre>\n");
+        | BLOCK_PRE.text {: return blockToken("<pre>\n"
+                + StringEscapeUtils.escapeHtml(
+                text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+                // The replace here is for allowing ^}}} inside of pref block.
+                // Spec says to do this for all " }}}", but that is
+                // unnecessarily liberal since no escaping is needed except
+                // for "^ }}}".
         :}
         ;

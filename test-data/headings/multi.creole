@@ -1,0 +1,4 @@
+==Two words
+=Three words here=====
+   ===  This with whitespace all around  =      
+====== \\ For now we process no formatting inside headings \\ {{{x}}}

@@ -63,7 +63,10 @@ public class CreoleParseTest {
             retVal = new CreoleParser().parse(new CreoleScanner(
                     new FileInputStream(creoleFile)));
         } catch (Exception e) {
-            fail("Failed to parse '" + creoleFile + "': " + e);
+            AssertionError ae =
+                    new AssertionError("Failed to parse '" + creoleFile + "'");
+            ae.initCause(e);
+            throw ae;
         }
         FileUtils.writeStringToFile(htmlFile,
                 ((retVal == null) ? ""

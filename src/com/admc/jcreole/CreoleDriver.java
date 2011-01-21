@@ -13,6 +13,6 @@ public class CreoleDriver {
         CreoleParser p = new CreoleParser();
         // p.setValidateOnly(true);
         Object retVal = p.parse(scanner);
-        System.out.print((retVal == null) ? "<NULL>\n" : retVal);
+        System.out.print((retVal == null) ? "<NULL>\n" : ("[" + retVal + ']'));
     }
 }

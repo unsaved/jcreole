@@ -26,14 +26,17 @@ import java.util.regex.Matcher;
     private static Token tok(short id, String s) {
         return new Token(id, s);
     }
+
+    private int pausingState;
 %}
 
-%states PSTATE, LISTATE
+%states PSTATE, LISTATE, ESCURL
 
 UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
 DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
 ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 S = [^ \t\f\n\r]
+NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 %%
 
 // Force high-priorioty of these very short captures
@@ -51,7 +54,7 @@ S = [^ \t\f\n\r]
             "BLOCK_PRE text doesn't match our pattern: \"" + yytext() + '"');
     return tok(Terminals.BLOCK_PRE, m.group(1));
 }
-"{{{" ~ "}}}" {
+"{{{" ~ ("}"* "}}}") {
     Matcher m = InlinePrePattern.matcher(yytext());
     if (!m.matches())
         throw new IllegalStateException(
@@ -111,6 +114,7 @@ S = [^ \t\f\n\r]
 
 // PSTATE (Paragaph) stuff
 // In YYINITIAL only, transition to PSTATE upon non-blank line
+<ESCURL> {DOT} { yybegin(pausingState); return tok(Terminals.TEXT, yytext()); }
 <YYINITIAL> {DOT} { yybegin(PSTATE); return tok(Terminals.TEXT, yytext()); }
 // In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
 <PSTATE> {ALLBUTR} { return tok(Terminals.TEXT, yytext()); }
@@ -127,7 +131,10 @@ S = [^ \t\f\n\r]
 // Need look-behind (aka. trailing context) to check for \bhttp, etc. (Perlish).
 // I am violating Creole rules here and will not honor any markup inside the
 // URL.  I see no benefit to ever doing that.
-(("http")|("ftp")):"/"{S}+ { return tok(Terminals.URL, yytext()); }
+// First, trick to toggle to ignore-URL mode.
+"~" / (https|http|ftp):"/"{S}*{NOPUNC} { pausingState = yystate(); yybegin(ESCURL);}
+<PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NOPUNC} { return tok(Terminals.URL, yytext()); }
+// Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
     // URL.  In that case, the parser will handle it.
