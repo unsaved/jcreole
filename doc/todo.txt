@@ -4,6 +4,8 @@ Add location-indication (pass along yyline/yycol or whatever to Beaver).
 
 Move URL tests to new url/link, url/image, url/both, url/multi.
 
+Add tests for character entities.
+
 Prevent expansion of URLs after ^ and [0-9a-zA-Z].
 
 License.
