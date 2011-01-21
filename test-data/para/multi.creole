@@ -3,29 +3,12 @@ Two more words.
 
 A second paragraph with a hard line\\ and some
 more text.
+    ----
+That line should have inserted a paragraph break too.
 
-Third paragraph {{{inline ~ \\ nowiki}}}}}. And
+Fourth paragraph {{{inline ~ \\ nowiki}}}}}. And
 a more text here too.
-
-
-
-Fourth paragraph with links.  First escaped bare URLs ~http://cnn.com/x.html
-and ~ftp://pub.admc.com.\\
-Now live bare URLs with trailing punctuation that should not be linked:
-http://cnn.com/x.html? and ftp://pub.admc.com.
-And then [[rela~ tive.html]] link and [[rel.html|labelled \\ ~ rel link]]
-(notice that markup not formatted in link or URL).
-Finally [[http://abso~ lute./x.html]] link and [[ftp://abso/~blaine|labelled \\ ~ abs. link]].
-
-Fifth paragaph is for images.
-{{rela~ tive.jpg}} image and {{rel.png|labelled \\ ~ rel image}}
-(notice that markup not formatted in link or URL).
-...and {{http://abso~ lute./x.jpg}} image and {{ftp://abso/~blaine|alted \\ ~ abs. image}}.\\
-Finally, the linked
-[[rel.html|{{rela~ tive.jpg}}]]
- [[ftp://abso/~blaine|{{ftp://abso/~blaine|alted \\ ~ abs. image}}]].
 ----x
 Above is not legal line, but interposing a horzontal line next
 (with embedded spaces) next
     ----    
-Sixth paragraph demonstrates [[wiki~ :li:nk|labelled]] and unlabelled [[wiki:li:nk]]s.

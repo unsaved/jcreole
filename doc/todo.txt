@@ -1,12 +1,16 @@
 SHORT TERM
 
-Add location-indication (pass along yyline/yycol or whatever to Beaver).
-
-Move URL tests to new url/link, url/image, url/both, url/multi.
-
-Add tests for character entities.
+Add numerical param to Token.  Use that for URL/Image delims and for header levels.
 
 Prevent expansion of URLs after ^ and [0-9a-zA-Z].
+
+Do bold & italic.
+
+Add location-indication (pass along yyline/yycol or whatever to Beaver).
+
+Implement lists.
+
+Implement tables.
 
 License.
 

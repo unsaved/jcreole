@@ -69,8 +69,7 @@ public class CreoleParseTest {
             throw ae;
         }
         FileUtils.writeStringToFile(htmlFile,
-                ((retVal == null) ? ""
-                                  : (((WashedToken) retVal).getCleanString()))
+                ((retVal == null) ? "" : (((WashedToken) retVal).toString()))
                 , "UTF-8");
         assertTrue("From '" + creoleFile + "':  '" + htmlFile
                 + "' != '" + htmlExpectFile + "'",

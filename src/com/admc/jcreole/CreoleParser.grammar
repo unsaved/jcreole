@@ -18,7 +18,6 @@
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private String urlBase;
     private String pathBase;
-    private StringBuilder sb = new StringBuilder();
     // Following is just for testing.
     // Before use this class in a real product, remove the assignment so it
     // will default to null, thereby disabling intra-wiki linking.
@@ -30,23 +29,6 @@
     };
     public void setValidateOnly(boolean validateOnly) {
         this.validateOnly = validateOnly;
-    }
-
-    public void out(String s) {
-        if (validateOnly) return;
-        sb.append(s);
-        sb.append('\n');
-    }
-    /*  I believe our scanner will always provide Strings, so we'll never need
-     *  to write individual chars.
-    public void out(char c) {
-        if (validateOnly) return;
-        sb.append(c);
-        sb.append('\n');
-    }
-    */
-    public String getOutput() {
-        return sb.toString();
     }
 
     public void setIntraWikiMapper(IntraWikiMapper intraWikiMapper) {
@@ -73,28 +55,29 @@
 
     /**
      * Returns a single XML-washed String
+     *
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
+     * The specified List must be either all WashedTokens or all non-washed
+     * Tokens.  No mixing.
      */
-    public static StringBuilder concat(List inList) {
-        @SuppressWarnings("unchecked")
-        List<Symbol> symList = (List<Symbol>) inList;
-        Token t;
+    public static StringBuilder joinWashedTokens(List<WashedToken> wtList) {
         StringBuilder sb = new StringBuilder();
-        for (Symbol s : symList) {
-            if (!(s instanceof Token))
-                throw new IllegalStateException(
-                        "element not a Token but a "
-                        + s.getClass().getName());
-            t = (Token) s;
-            if (!(t instanceof WashedToken) && !(t.value instanceof String))
-                throw new IllegalStateException(
-                        "element value not a String but a "
-                        + t.value.getClass().getName());
-            sb.append((t instanceof WashedToken)
-                    ? ((WashedToken) t).getCleanString()
-                    : clean(t.getStringVal()));
-        }
+        for (WashedToken t : wtList) sb.append(t.toString());
         return sb;
+    }
+
+    /**
+     * Returns a single XML-washed String
+     *
+     * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
+     * The specified List must be either all WashedTokens or all non-washed
+     * Tokens.  No mixing.
+     */
+    public static WashedToken mkWashedToken(List<String> sList) {
+        //@SuppressWarnings("unchecked")
+        StringBuilder sb = new StringBuilder();
+        for (String s : sList) sb.append(s);
+        return new WashedToken(clean(sb.toString()));
     }
 
     private String absoluteUrl(String path) {
@@ -140,31 +123,33 @@
 
 /* The grammar */
 blocks = block.b+ {:
-            return new WashedToken(concat(_list_b).toString());
+            return new WashedToken(joinWashedTokens(_list_b).toString());
         :}
         |;  // This last allows for empty document
 
 block = isoblock.f+ {:
-            return new WashedToken(concat(_list_f).toString());
+            return new WashedToken(joinWashedTokens(_list_f).toString());
         :}
         | inline.f+ END_PARA {:
-            if (((Symbol) _list_f.get(f.length-1)).value.equals("\n"))
-                _list_f.remove(f.length-1);
-            return blockToken("<p>" + concat(_list_f) + "</p>\n");
+            StringBuilder b = joinWashedTokens(_list_f);
+            int lastI = b.length() - 1;
+            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            return blockToken("<p>" + b + "</p>\n");
         :}
-        | list.l {:
-            return blockToken("<ul>" + l.getCleanString() + "</ul>\n");
-        :}
+        | list.l {: return blockToken("<ul>" + l + "</ul>\n"); :}
         ;
 
 list     = li.l+ liel inline.f+ FINAL_LI {:
-            return new WashedToken(concat(_list_l) + "<li>" + concat(_list_f) + "</li>\n");
+            return new WashedToken(joinWashedTokens(_list_l).toString()
+                    + "<li>" + joinWashedTokens(_list_f) + "</li>\n");
             :}
          | liel inline.f+ FINAL_LI {:
-            return new WashedToken("<li>" + concat(_list_f) + "</li>\n");
+            return new WashedToken(
+                    "<li>" + joinWashedTokens(_list_f) + "</li>\n");
             :};
 li       = liel inline.l+ END_LI {:
-            return new WashedToken("<li>" + concat(_list_l) + "</li>\n");
+            return new WashedToken(
+                    "<li>" + joinWashedTokens(_list_l) + "</li>\n");
             :};
 liel     = OLI | ULI;
 
@@ -172,7 +157,7 @@ inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"jcreole_pref\">"
                     + clean(text) + "</span>");
         :}
-        | TEXT
+        | TEXT.f+ {: return mkWashedToken((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}
         // For hardline we do not write a \n.  If user wants a \n in addition
         // to the <br>, they should write "<br>\n".
@@ -194,7 +179,6 @@ inline = INLINE_PRE.text {:
                             "Intra-wiki links not supported");
                 url = intraWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
-System.err.println("Wiki URL -> (" + url + ')');
             } else {
                 url = clean(absoluteUrl(urlText));
             }
@@ -204,7 +188,7 @@ System.err.println("Wiki URL -> (" + url + ')');
             } else {
                 Matcher m = LabelPattern.matcher(inLbl);
                 label = m.matches()
-                    ? ("<img src=\"" + clean( absoluteUrl(m.group(1))) + "\">")
+                    ? ("<img src=\"" + clean(absoluteUrl(m.group(1))) + "\">")
                     : clean(inLbl);
             }
             return new WashedToken("<a href=\"" + url + "\">" + label + "</a>");
@@ -213,7 +197,8 @@ System.err.println("Wiki URL -> (" + url + ')');
             int delimPos = text.indexOf('\f');
             String url = clean(absoluteUrl(
                     (delimPos > -1) ? text.substring(0, delimPos) : text));
-            String alt = (delimPos > -1) ? text.substring(delimPos + 1) : null;
+            String alt = (delimPos > -1)
+                    ? clean(text.substring(delimPos + 1)) : null;
             return new WashedToken("<img src=\"" + url
                 + ((alt == null) ? "" : ("\" alt=\"" + alt)) + "\">");
         :}

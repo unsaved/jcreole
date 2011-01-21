@@ -1,0 +1,13 @@
+Plain links.  First escaped bare URLs ~http://cnn.com/x.html
+and ~ftp://pub.admc.com.\\
+Now live bare URLs with trailing punctuation that should not be linked:
+http://cnn.com/x.html? and ftp://pub.admc.com.
+And then [[rela~ tive.html]] link and [[rel.html|labelled \\ ~ rel link]]
+(notice that markup not formatted in link or URL).
+Finally [[http://abso~ lute./x.html]] link and [[ftp://abso/~blaine|labelled \\ ~ abs. link]].
+
+w/ Image.
+[[rel.html|{{rela~ tive.jpg}}]]
+ [[ftp://abso/~blaine|{{ftp://abso/~blaine|alted \\ ~ abs. image}}]].
+
+And then there are [[wiki~ :li:nk|labelled]] and unlabelled [[wiki:li:nk]]s.

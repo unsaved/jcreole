@@ -1,0 +1,7 @@
+{{rela~ tive.jpg}} image and {{rel.png|labelled \\ ~ rel image}}
+(notice that markup not formatted in link or URL).
+...and {{http://abso~ lute./x.jpg}} image and {{ftp://abso/~blaine|alted \\ ~ abs. image}}.\\
+
+And linked
+[[rel.html|{{rela~ tive.jpg}}]]
+ [[ftp://abso/~blaine|{{ftp://abso/~blaine|alted \\ ~ abs. image}}]].

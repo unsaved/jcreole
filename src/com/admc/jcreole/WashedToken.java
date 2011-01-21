@@ -9,10 +9,6 @@ public class WashedToken extends Token {
         cleanString = s;
     }
 
-    public String getCleanString() {
-        return cleanString;
-    }
-
     public String toString() {
         return cleanString;
     }
