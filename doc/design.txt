@@ -17,10 +17,11 @@ Based on the previous constraint, the parser and scanner run with the assumption
 May well achieve the same purpose with some Commons Lang features.]
 We leverage this for tactics such as temporarily implanting control characters into our output buffer to mark points of interest that we need to remember.
 
-ANGLE BRACKETS
+DIRECT HTML
 
-Users may code < and > in their Creole input, of course, and those characters will be translated to &lt; and &gt;.
-For security reasons, the only way that a Creole document author can get a < or > directly into output is by using the plugin directive supplied for that purpose.
+Users may code <, ", etc. in their Creole input, of course, and those characters will be translated to &lt; and &quot;, etc.
+For security reasons, the only way that a Creole document author can get the real characters <, ", etc., directly into output is by using the <<~...>> plugin supplied for that purpose.
+
 
 CHARACTER ENTITIES
 

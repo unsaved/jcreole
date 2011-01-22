@@ -38,13 +38,20 @@ Plugin Directives by category
 
 ANGLE BRACKETS
 
-    << < >>  Translates directly to plain < in the output HTML.
-    << > >>  Translates directly to plain < in the output HTML.
+    <<~...>> Direct HTML content.
 
-    Without use of this directive, occurrence of < or > in input documents
-    will be translated to "&lt;" and "&gt;" accordingly.
-    Note the white space that is required around the "<" and ">" in order to
-    distinguish them from the "<<" or ">>".
+    Even Nowiki does not let you enter HTML into a web page, because of the
+    real danger of either unintentionally or intentionally invoking dynamic
+    content, breaking HTML DOM structure, etc.  For example, if double-quotes
+    are not escaped, there are many different ways that you could accidentally
+    unbalance the quotes, easily effecting otherwise unrelated JavaScript (and
+    depending on server-side technology integration, even server-side
+    scripting).
+
+    BEWARE that inside of <<~!...>>, you are responsible for the consquences of
+    missing the very strict requirements of CSS, HTML, JavaScript, or whatever
+    you code in there.
+
 
 CREATE ELEMENTS
 
