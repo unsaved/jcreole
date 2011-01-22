@@ -1,9 +1,13 @@
 package com.admc.jcreole;
 
-public class CreoleParseException extends beaver.Scanner.Exception {
+/**
+ * Must make this a RuntimeException.   If extend Beaver's Exception as they
+ * intend, then am stuck with Beaver's fantastically incompetent error-handling.
+ */
+public class CreoleParseException extends RuntimeException {
     static final long serialVersionUID = 8504782268721814533L;
 
-    private int offset;
+    private int offset, line, column;
 
     /* I keep vacillating about whether to store 0-based offsets of 1-based
      * offsets.  Sticking with the scanner-side convention for now.
@@ -18,7 +22,9 @@ public class CreoleParseException extends beaver.Scanner.Exception {
     }
 
     public CreoleParseException(String msg, int offset, int line, int column) {
-        super(line, column, msg);
+        super(msg);
+        this.line = line;
+        this.column = column;
         this.offset = offset;
     }
 

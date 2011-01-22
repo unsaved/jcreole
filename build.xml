@@ -67,7 +67,9 @@
            destdir="classes" classpathref="build.ivyrefid"
            source="${javac.sourceVersion}" target="${javac.targetVersion}"
            deprecation="${javac.deprecation}" debug="${javac.debug}">
+       <!--
       <compilerarg value="-Xlint"/>
+       -->
     </javac>
   </target>
 

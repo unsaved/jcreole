@@ -1,7 +1,5 @@
 SHORT TERM
 
-Add negative unit tests.
-
 Implement lists.
 
 Implement tables.

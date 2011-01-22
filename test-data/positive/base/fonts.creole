@@ -25,3 +25,7 @@ And should have reverted again.
 Now some staggering.  **bold**  //italic// plain **bold** //italic// plain **bold** //italic// **bold** //italic//.  Now leave bold and toggle italics.  **bold //both// bold //both//**.  Inverted with inverted ending and starting sequence:  //**both** italic **both of 'em** italic **both** now only italic//.  But now, leave them **both //set on.
 
 And everything should be reverted.
+
+Some indecision...one ** ** ** two // // // three 
+
+And back

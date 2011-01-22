@@ -239,7 +239,7 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 
 "<<<" | ">>>" {
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",
-    yychar, yyline, yycolumn);
+            yychar, yyline, yycolumn);
 }
 
 

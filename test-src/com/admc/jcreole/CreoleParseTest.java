@@ -20,6 +20,9 @@ public class CreoleParseTest {
     private static File pCreoleInRoot = new File("test-data/positive");
     private static File pWorkOutRoot = new File("tmp/test-work/positive");
     private static final String pCreoleInRootPath = pCreoleInRoot.getPath();
+    private static File nCreoleInRoot = new File("test-data/negative");
+    private static File nWorkOutRoot = new File("tmp/test-work/negative");
+    private static final String nCreoleInRootPath = nCreoleInRoot.getPath();
     private static String FSEP = System.getProperty("file.separator");
 
     public CreoleParseTest(File creoleFile,
@@ -35,8 +38,13 @@ public class CreoleParseTest {
         if (!pCreoleInRoot.isDirectory())
             throw new IllegalStateException(
                     "Dir missing: " + pCreoleInRoot.getAbsolutePath());
+        if (!nCreoleInRoot.isDirectory())
+            throw new IllegalStateException(
+                    "Dir missing: " + nCreoleInRoot.getAbsolutePath());
         if (pWorkOutRoot.exists()) FileUtils.deleteDirectory(pWorkOutRoot);
         pWorkOutRoot.mkdir();
+        if (nWorkOutRoot.exists()) FileUtils.deleteDirectory(nWorkOutRoot);
+        nWorkOutRoot.mkdir();
         List<Object[]> params = new ArrayList<Object[]>();
         File eFile;
         for (File f : FileUtils.listFiles(
@@ -56,6 +64,20 @@ public class CreoleParseTest {
                 Boolean.TRUE
             });
         }
+        String name;
+        for (File f : FileUtils.listFiles(
+                nCreoleInRoot, new String[] { "creole" }, true)) {
+            name = f.getName().replaceFirst("\\..*", "") + ".html";
+            params.add(new Object[] {
+                f, null,
+                new File(nWorkOutRoot,
+                f.getParentFile().equals(nCreoleInRoot)
+                ? name
+                : (f.getParent().substring(nCreoleInRootPath.length())
+                        + FSEP + name)),
+                Boolean.FALSE
+            });
+        }
         return params;
     }
 
@@ -66,6 +88,7 @@ public class CreoleParseTest {
             retVal = new CreoleParser().parse(new CreoleScanner(
                     new FileInputStream(creoleFile)));
         } catch (Exception e) {
+            if (!shouldSucceed) return;  // A ok.  No output file to write.
             AssertionError ae =
                     new AssertionError("Failed to parse '" + creoleFile + "'");
             ae.initCause(e);
@@ -74,6 +97,8 @@ public class CreoleParseTest {
         FileUtils.writeStringToFile(htmlFile,
                 ((retVal == null) ? "" : (((WashedToken) retVal).toString()))
                 , "UTF-8");
+        if (!shouldSucceed)
+            fail("Should have failed, but generated '" + htmlFile + "'");
         assertTrue("From '" + creoleFile + "':  '" + htmlFile
                 + "' != '" + htmlExpectFile + "'",
             FileUtils.contentEquals(htmlExpectFile, htmlFile));
