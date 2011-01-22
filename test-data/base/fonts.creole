@@ -1,0 +1,27 @@
+**Zebra** thing **going** on** here **.
+
+Turn on **but never
+turn off.
+
+This should have reverted back to normal font.
+
+Off **on** off **on leave on
+
+And should have reverted again.
+
+Repeating with italics now.  //Zebra// thing //going// on// here //.
+
+Turn on //but never
+turn off.
+
+This should have reverted back to normal font.
+
+Off //on// off //on leave on
+
+And should have reverted again.
+
+----
+
+Now some staggering.  **bold**  //italic// plain **bold** //italic// plain **bold** //italic// **bold** //italic//.  Now leave bold and toggle italics.  **bold //both// bold //both//**.  Inverted with inverted ending and starting sequence:  //**both** italic **both of 'em** italic **both** now only italic//.  But now, leave them **both //set on.
+
+And everything should be reverted.

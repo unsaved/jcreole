@@ -1,6 +1,6 @@
 SHORT TERM
 
-Do bold & italic.
+Add negative unit tests.
 
 Implement lists.
 
