@@ -170,6 +170,13 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 // In YYINITIAL only, transition to PSTATE upon non-blank line
 <ESCURL> {DOT} { yybegin(pausingState); return newToken(Terminals.TEXT, yytext()); }
 <YYINITIAL> {DOT} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
+// Following case prevent falsely identified URLs by skipping the strings if
+// they are internal to a word.
+<YYINITIAL, PSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    pausingState = PSTATE;
+    yybegin(ESCURL);
+    return newToken(Terminals.TEXT, yytext());
+}
 // In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
 <PSTATE> {ALLBUTR} { return newToken(Terminals.TEXT, yytext()); }
 // End PSTATE to make way for another element:

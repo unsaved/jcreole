@@ -1,7 +1,5 @@
 SHORT TERM
 
-Prevent expansion of URLs after ^ and [0-9a-zA-Z].
-
 Do bold & italic.
 
 Implement lists.
