@@ -174,9 +174,13 @@ inline = INLINE_PRE.text {:
                     || text.startsWith("ftp:")) ? null
                     : IntraWikiPattern.matcher(urlText);
             if (matcher != null && matcher.matches()) {
-                if (intraWikiMapper == null)
-                    throw new IllegalArgumentException(
-                            "Intra-wiki links not supported");
+                if (intraWikiMapper == null) {
+                    Token badToken = (Token) _symbol_text;
+                    throw new IllegalStateException(
+                            "Intra-wiki links not supported.  @line/col. "
+                            + (badToken.getLine()+1)
+                            + ':' + (badToken.getColumn()+1));
+                }
                 url = intraWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
             } else {

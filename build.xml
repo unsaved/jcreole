@@ -164,4 +164,16 @@
     </junitreport>
     <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
   </target>
+
+  <target name="serialver" depends="compile"
+          description="generate Java serial version">
+    <fail unless="className" message="Property 'className required"/>
+    <ivy:cachefileset conf="build" setid="bundle.refid"/>
+    <pathconvert property="cPath" refid="bundle.refid"/>
+    <exec executable="serialver" failonerror="true">
+      <arg value="-classpath"/>
+      <arg value="classes${path.separator}${cPath}"/>
+      <arg value="${className}"/>
+    </exec>
+  </target>
 </project>

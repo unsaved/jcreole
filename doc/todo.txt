@@ -1,12 +1,10 @@
 SHORT TERM
 
-Add numerical param to Token.  Use that for URL/Image delims and for header levels.
+Use numerical Token param for URL/Image delims and for header levels.
 
 Prevent expansion of URLs after ^ and [0-9a-zA-Z].
 
 Do bold & italic.
-
-Add location-indication (pass along yyline/yycol or whatever to Beaver).
 
 Implement lists.
 

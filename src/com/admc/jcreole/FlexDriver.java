@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.FileInputStream;
 
 public class FlexDriver {
-    public static void main(String[] sa) throws IOException {
+    public static void main(String[] sa)
+            throws IOException, CreoleParseException {
         if (sa.length != 1)
             throw new IllegalArgumentException(
                     "SYNTAX: java com.admc.play.FlexDriver data.file");

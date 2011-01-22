@@ -3,22 +3,39 @@ package com.admc.jcreole;
 import beaver.Symbol;
 
 public class Token extends Symbol {
-    public Token(short i, Object o) {
-        super(i, o);
-        throw new RuntimeException(
-                "Unsupported Token value type: " + o.getClass().getName());
-    }
+    private int offset, line, column, intParam;
+
+    /* I keep vacillating about whether to store 0-based offsets of 1-based
+     * offsets.  Sticking with the scanner-side convention for now.
+     */
+    public int getOffset() { return offset; }
+    public int getLine() { return line; }
+    public int getColumn() { return column; }
+    public int getIntParam() { return intParam; }
+
     public Token(short i) {
-        super(i);
+        this(i, null);
     }
-    public Token(short i, Character c) {
-        super(i, c);
-    }
-    public Token(short i, Integer iger) {
-        super(i, iger);
-    }
+
     public Token(short i, String s) {
         super(i, s);
+    }
+
+    public Token(short i, String s,
+            int offset, int line, int column, int intParam) {
+        this(i, s);
+        this.offset = offset;
+        this.line = line;
+        this.column = column;
+        this.intParam = intParam;
+    }
+
+    public Token(short i, String s, int offset, int line, int column) {
+        this(i, s, offset, line, column, 0);
+    }
+
+    public Token(short i, int offset, int line, int column) {
+        this(i, null, offset, line, column, 0);
     }
 
     public String toString() {
