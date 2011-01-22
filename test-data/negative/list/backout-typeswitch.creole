@@ -1,0 +1,4 @@
+# ordered lvl 1
+** illegal switch to non-ordered lvl 2
+### ordered lvl 3
+* switch to level 1 but to wrong type

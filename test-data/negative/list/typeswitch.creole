@@ -1,0 +1,2 @@
+# ordered
+* illegal switch to non-ordered

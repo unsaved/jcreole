@@ -137,15 +137,28 @@
             } else if (liToken.getLevel() < curLevel) {
                 for (int hiLevel = curLevel;
                         hiLevel > liToken.getLevel(); hiLevel--)
-                    sb.append(spaces(liToken.getLevel()) + "</"
+                    sb.append(spaces(hiLevel-1) + "</"
                             + ((levelTypeMap.remove(Integer.valueOf(hiLevel))
                             == '#') ? "ol" : "ul") + ">\n");
+                if (liToken.getType() !=
+                        levelTypeMap.get(liToken.getLevel()).charValue())
+                    throw new IllegalStateException(
+                            "Illegal type transition.  @line:col "
+                            + (liToken.getLine()+1)
+                            + ':' + (1+liToken.getColumn()));
             } else if (liToken.getLevel() == curLevel) {
-                // Intentionally empty
+                // All we do in this case is to validate the type.
+                if (liToken.getType() != levelTypeMap.get(curLevel).charValue())
+                    throw new IllegalStateException(
+                            "Illegal type transition.  @line:col "
+                            + (liToken.getLine()+1)
+                            + ':' + (1+liToken.getColumn()));
             } else {
                 throw new IllegalStateException(
                         "Illegal transition from list level "
-                        + curLevel + " to " + liToken.getLevel());
+                        + curLevel + " to " + liToken.getLevel()
+                        + ".  @line:col " + (1+liToken.getLine())
+                        + ':' + (1+liToken.getColumn()));
             }
             sb.append(spaces(liToken.getLevel()) + "<li>"
                     + liToken.getContent() + "</li>\n");
@@ -170,7 +183,7 @@
 
     Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
 
-    private static final Stirng INDENT_STRING = "  ";
+    private static final String INDENT_STRING = "  ";
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
