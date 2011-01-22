@@ -29,6 +29,7 @@ public class CreoleParseException extends RuntimeException {
     }
 
     public String getMessage() {
-        return super.getMessage() + " @line:col " + (line+1) + ':' + (column+1);
+        return String.format("%s  @line:col %d:%d",
+                super.getMessage(), line + 1, column + 1);
     }
 }

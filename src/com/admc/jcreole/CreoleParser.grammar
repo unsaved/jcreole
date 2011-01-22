@@ -217,10 +217,10 @@ inline = INLINE_PRE.text {:
                     : IntraWikiPattern.matcher(urlText);
             if (matcher != null && matcher.matches()) {
                 if (intraWikiMapper == null) {
-                    throw new IllegalStateException(
-                            "Intra-wiki links not supported.  @line/col. "
-                            + (token.getLine()+1)
-                            + ':' + (token.getColumn()+1));
+                    throw new IllegalStateException(String.format(
+                    "%s  @line:col %d:%d",
+                        "Intra-wiki links not supported.",
+                        token.getLine() + 1, token.getColumn() + 1));
                 }
                 url = intraWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
