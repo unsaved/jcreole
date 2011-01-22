@@ -89,7 +89,7 @@ UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
 DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
 ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
 S = [^ \t\f\n\r]
-NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
+NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 %%
 
 // Force high-priorioty of these very short captures
@@ -186,26 +186,24 @@ NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 // I am violating Creole rules here and will not honor any markup inside the
 // URL.  I see no benefit to ever doing that.
 // First, trick to toggle to ignore-URL mode.
-"~" / (https|http|ftp):"/"{S}*{NOPUNC} { pausingState = yystate(); yybegin(ESCURL);}
-<PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NOPUNC} { return newToken(Terminals.URL, yytext()); }
+"~" / (https|http|ftp):"/"{S}*{NONPUNC} { pausingState = yystate(); yybegin(ESCURL);}
+<PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.URL, yytext()); }
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
     // URL.  In that case, the parser will handle it.
     // We delimit label from url with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
-    int pipeIndex = sb.indexOf("|");
-    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\f');
-    return newToken(Terminals.URL, sb.substring(2, yylength()-2));
+    return newToken(Terminals.URL,
+            sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 "{{" ~ "}}" {
     // N.b. we handle images inside of [[links]] in the awkwardly redundant
     // way of parsing that out inside the parser instead of the scanner.
     // We delimit url from alttext with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
-    int pipeIndex = sb.indexOf("|");
-    if (pipeIndex > 2) sb.setCharAt(pipeIndex, '\f');
-    return newToken(Terminals.IMAGE, sb.substring(2, yylength()-2));
+    return newToken(Terminals.IMAGE,
+            sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 
 // Misc Creole Block elements
@@ -220,17 +218,12 @@ NOPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
             "Header line text doesn't match our pattern: \"" + yytext() + '"',
             yychar, yyline, yycolumn);
     String headerText = m.group(2);
-    switch (m.group(1).length()) {
-        case 1: return newToken(Terminals.H1, headerText);
-        case 2: return newToken(Terminals.H2, headerText);
-        case 3: return newToken(Terminals.H3, headerText);
-        case 4: return newToken(Terminals.H4, headerText);
-        case 5: return newToken(Terminals.H5, headerText);
-        case 6: return newToken(Terminals.H6, headerText);
-    }
-    throw new CreoleParseException(
-            "Malformatted header command: " + yytext(),
-            yychar, yyline, yycolumn);
+    int hLevel = m.group(1).length();
+    if (hLevel < 1 || hLevel > 6)
+        throw new CreoleParseException(
+                "Unexpected level for Heading command: " + yytext(),
+                yychar, yyline, yycolumn);
+    return newToken(Terminals.HEADING, headerText, hLevel);
 }
 <YYINITIAL> ^[ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.HOR); }
 

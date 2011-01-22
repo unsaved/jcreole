@@ -113,10 +113,9 @@
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, OLI, ULI, END_LI, FINAL_LI;
-%terminals H1, H2, H3, H4, H5, H6;
+%terminals HEADING;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
-%typeof H1, H2, H3, H4, H5, H6 = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, HEADING = "String";
 %typeof list = "WashedToken";
 
 %goal blocks;
@@ -163,7 +162,8 @@ inline = INLINE_PRE.text {:
         // to the <br>, they should write "<br>\n".
         | HARDLINE {: return new WashedToken("<br>"); :}
         | URL.text {:
-            int delimPos = text.indexOf('\f');
+            Token token = (Token) _symbol_text;
+            int delimPos = token.getIntParam();
             String inLbl = (delimPos > -1)
                          ? text.substring(delimPos + 1) : null;
             String urlText = (delimPos > -1)
@@ -175,11 +175,10 @@ inline = INLINE_PRE.text {:
                     : IntraWikiPattern.matcher(urlText);
             if (matcher != null && matcher.matches()) {
                 if (intraWikiMapper == null) {
-                    Token badToken = (Token) _symbol_text;
                     throw new IllegalStateException(
                             "Intra-wiki links not supported.  @line/col. "
-                            + (badToken.getLine()+1)
-                            + ':' + (badToken.getColumn()+1));
+                            + (token.getLine()+1)
+                            + ':' + (token.getColumn()+1));
                 }
                 url = intraWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
@@ -198,7 +197,8 @@ inline = INLINE_PRE.text {:
             return new WashedToken("<a href=\"" + url + "\">" + label + "</a>");
         :}
         | IMAGE.text {:
-            int delimPos = text.indexOf('\f');
+            Token token = (Token) _symbol_text;
+            int delimPos = token.getIntParam();
             String url = clean(absoluteUrl(
                     (delimPos > -1) ? text.substring(0, delimPos) : text));
             String alt = (delimPos > -1)
@@ -210,12 +210,11 @@ inline = INLINE_PRE.text {:
 
 // These may not contain any inlines
 isoblock = HOR {: return blockToken("<hr>\n"); :}
-        | H1.text {: return blockToken("<h1>" + clean(text) + "</h1>\n"); :}
-        | H2.text {: return blockToken("<h2>" + clean(text) + "</h2>\n"); :}
-        | H3.text {: return blockToken("<h3>" + clean(text) + "</h3>\n"); :}
-        | H4.text {: return blockToken("<h4>" + clean(text) + "</h4>\n"); :}
-        | H5.text {: return blockToken("<h5>" + clean(text) + "</h5>\n"); :}
-        | H6.text {: return blockToken("<h6>" + clean(text) + "</h6>\n"); :}
+        | HEADING.text {:
+            int hLevel = ((Token) (_symbol_text)).getIntParam();
+            return blockToken("<h" + hLevel + '>'
+                    + clean(text) + "</h" + hLevel + ">\n");
+        :}
         | BLOCK_PRE.text {: return blockToken("<pre>\n"
                 + clean(
                 text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");

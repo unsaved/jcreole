@@ -1,7 +1,5 @@
 SHORT TERM
 
-Use numerical Token param for URL/Image delims and for header levels.
-
 Prevent expansion of URLs after ^ and [0-9a-zA-Z].
 
 Do bold & italic.

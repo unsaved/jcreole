@@ -3,7 +3,8 @@ package com.admc.jcreole;
 import beaver.Symbol;
 
 public class Token extends Symbol {
-    private int offset, line, column, intParam;
+    public static final int UNSET = -1;
+    private int offset = UNSET, line = UNSET, column = UNSET, intParam = UNSET;
 
     /* I keep vacillating about whether to store 0-based offsets of 1-based
      * offsets.  Sticking with the scanner-side convention for now.
@@ -31,11 +32,11 @@ public class Token extends Symbol {
     }
 
     public Token(short i, String s, int offset, int line, int column) {
-        this(i, s, offset, line, column, 0);
+        this(i, s, offset, line, column, UNSET);
     }
 
     public Token(short i, int offset, int line, int column) {
-        this(i, null, offset, line, column, 0);
+        this(i, null, offset, line, column, UNSET);
     }
 
     public String toString() {
