@@ -5,9 +5,12 @@
 %import "org.apache.commons.lang.StringEscapeUtils";
 %import "java.util.regex.Pattern";
 %import "java.util.List";
+%import "java.util.Map";
+%import "java.util.HashMap";
 %import "java.util.regex.Matcher";
 %import "java.util.Deque";
 %import "java.util.ArrayDeque";
+%import "java.util.Collections";
 
 %embed {:
     private boolean validateOnly;
@@ -119,15 +122,63 @@
         public String toString() { return tagName; }
     }
 
+    public WashedToken newListNest(List<LiToken> liTokenList) {
+        StringBuilder sb = new StringBuilder();
+        int curLevel = 0;
+        Map<Integer, Character> levelTypeMap =
+                new HashMap<Integer, Character>();
+        for (LiToken liToken : liTokenList) {
+            if (liToken.getLevel() == curLevel + 1) {
+                sb.append(spaces(liToken.getLevel()-1)
+                        + '<' + ((liToken.getType() == '#') ? "ol" : "ul")
+                        + ">\n");
+                levelTypeMap.put(Integer.valueOf(liToken.getLevel()),
+                        Character.valueOf(liToken.getType()));
+            } else if (liToken.getLevel() < curLevel) {
+                for (int hiLevel = curLevel;
+                        hiLevel > liToken.getLevel(); hiLevel--)
+                    sb.append(spaces(liToken.getLevel()) + "</"
+                            + ((levelTypeMap.remove(Integer.valueOf(hiLevel))
+                            == '#') ? "ol" : "ul") + ">\n");
+            } else if (liToken.getLevel() == curLevel) {
+                // Intentionally empty
+            } else {
+                throw new IllegalStateException(
+                        "Illegal transition from list level "
+                        + curLevel + " to " + liToken.getLevel());
+            }
+            sb.append(spaces(liToken.getLevel()) + "<li>"
+                    + liToken.getContent() + "</li>\n");
+            curLevel = liToken.getLevel();
+        }
+        for (int hiLevel = curLevel; hiLevel > 0; hiLevel--)
+            sb.append(spaces(hiLevel-1) + "</"
+                    + ((levelTypeMap.remove(Integer.valueOf(hiLevel))
+                    == '#') ? "ol" : "ul") + ">\n");
+        return new WashedToken(sb.toString());
+    }
+
+    /**
+     * TODO:  I just wrote this to get it working now.
+     * Can very likely be done much more efficiently and/or elegantly.
+     */
+    public static String spaces(int num) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < num; i++) sb.append(INDENT_STRING);
+        return sb.toString();
+    }
+
     Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
+
+    private static final Stirng INDENT_STRING = "  ";
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
-%terminals URL, IMAGE, OLI, ULI, END_LI, FINAL_LI;
+%terminals URL, IMAGE, LI, END_LI, FINAL_LI;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, HEADING = "String";
-%typeof list = "WashedToken";
+%typeof listnest = "WashedToken";
 
 %goal blocks;
 
@@ -149,22 +200,28 @@ block = isoblock.f+ {:
                 b.append("</" + fontModeStack.removeFirst() + '>');
             return blockToken("<p>" + b + "</p>\n");
         :}
-        | list.l {: return blockToken("<ul>" + l + "</ul>\n"); :}
+        | listnest.l {: return blockToken(l.toString()); :}
         ;
 
-list     = li.l+ liel inline.f+ FINAL_LI {:
-            return new WashedToken(joinWashedTokens(_list_l).toString()
-                    + "<li>" + joinWashedTokens(_list_f) + "</li>\n");
+listnest = lastli.llitem {:
+                // A single <li> list.
+                // Not useful in final docs, but definitely useful for drafts.
+                return newListNest(Collections.singletonList((LiToken) llitem));
             :}
-         | liel inline.f+ FINAL_LI {:
-            return new WashedToken(
-                    "<li>" + joinWashedTokens(_list_f) + "</li>\n");
+         | li.litem+ lastli.llitem {:
+                List<LiToken> liTokens = (List<LiToken>) _list_litem;
+                liTokens.add((LiToken) llitem);
+                return newListNest(liTokens);
             :};
-li       = liel inline.l+ END_LI {:
-            return new WashedToken(
-                    "<li>" + joinWashedTokens(_list_l) + "</li>\n");
+li       = liel.li inline.l+ END_LI {:
+                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString());
+                return li;
             :};
-liel     = OLI | ULI;
+lastli   = liel.li inline.l+ FINAL_LI {:
+                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString());
+                return li;
+            :};
+liel     = LI.listart {: return new LiToken((Token) listart); :};
 
 inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"jcreole_pref\">"

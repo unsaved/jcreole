@@ -30,6 +30,8 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern HeaderPattern =
             Pattern.compile("\\s*(=+)(.*?)(?:=+\\s*)?\r?\n");
+    private static final Pattern ListLevelPattern =
+            Pattern.compile("\\s*([#*]+)");
 
     private Token newToken(short id) {
         return new Token(id, null, yychar, yyline, yycolumn);
@@ -41,7 +43,7 @@ import org.apache.commons.io.input.CharSequenceReader;
         return new Token(id, s, yychar, yyline, yycolumn, intParam);
     }
 
-    private int pausingState;
+    private int pausingState, listLevel;
 
     /**
      * Static factory method.
@@ -244,11 +246,17 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 
 
 // LISTATE (Paragaph) stuff
-<LISTATE> ^[ \t]*#+ { return newToken(Terminals.OLI); }
-<LISTATE> ^[ \t]*"*"+ { return newToken(Terminals.ULI); }
+<LISTATE> ^[ \t]*((#+)|("*"+)) {
+    Matcher m = ListLevelPattern.matcher(yytext());
+    m.matches();
+    return newToken(Terminals.LI,
+            Character.toString(m.group(1).charAt(0)), m.group(1).length());
+}
 <LISTATE> {ALLBUTR} { return newToken(Terminals.TEXT, yytext()); }
 // End LISTATE to make way for another element:
-<LISTATE> {UTF_EOL} / [ \t]*[#*] { return newToken(Terminals.END_LI); }
+<LISTATE> {UTF_EOL} / [ \t]*[#*] {
+    return newToken(Terminals.END_LI, null, listLevel);
+}
 <LISTATE> {UTF_EOL} / [ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
