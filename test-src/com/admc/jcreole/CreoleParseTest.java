@@ -16,44 +16,47 @@ import org.apache.commons.io.FileUtils;
 @RunWith(value = Parameterized.class)
 public class CreoleParseTest {
     private File creoleFile, htmlExpectFile, htmlFile;
-    private static File creoleInRoot = new File("test-data");
-    private static File workOutRoot = new File("tmp/testwork");
-    private static final String creoleInRootPath = creoleInRoot.getPath();
+    private boolean shouldSucceed;
+    private static File pCreoleInRoot = new File("test-data/positive");
+    private static File pWorkOutRoot = new File("tmp/test-work/positive");
+    private static final String pCreoleInRootPath = pCreoleInRoot.getPath();
     private static String FSEP = System.getProperty("file.separator");
 
-    public CreoleParseTest(
-            File creoleFile, File htmlExpectFile, File htmlFile) {
+    public CreoleParseTest(File creoleFile,
+            File htmlExpectFile, File htmlFile, Boolean doSucceed) {
         this.creoleFile = creoleFile;
         this.htmlExpectFile = htmlExpectFile;
         this.htmlFile = htmlFile;
+        shouldSucceed = doSucceed.booleanValue();
     }
 
     @Parameters
-    public static List<File[]> creoleFiles() throws IOException {
-        if (!creoleInRoot.isDirectory())
+    public static List<Object[]> creoleFiles() throws IOException {
+        if (!pCreoleInRoot.isDirectory())
             throw new IllegalStateException(
-                    "Dir missing: " + creoleInRoot.getAbsolutePath());
-        if (workOutRoot.exists()) FileUtils.deleteDirectory(workOutRoot);
-        workOutRoot.mkdir();
-        List<File[]> fileParams = new ArrayList<File[]>();
+                    "Dir missing: " + pCreoleInRoot.getAbsolutePath());
+        if (pWorkOutRoot.exists()) FileUtils.deleteDirectory(pWorkOutRoot);
+        pWorkOutRoot.mkdir();
+        List<Object[]> params = new ArrayList<Object[]>();
         File eFile;
         for (File f : FileUtils.listFiles(
-                creoleInRoot, new String[] { "creole" }, true)) {
+                pCreoleInRoot, new String[] { "creole" }, true)) {
             eFile = new File(f.getParentFile(),
                     f.getName().replaceFirst("\\..*", "") + ".html");
             if (!eFile.isFile())
                 throw new IOException("Missing expect file: "
                         + eFile.getAbsolutePath());
-            fileParams.add(new File[] {
+            params.add(new Object[] {
                 f, eFile,
-                new File(workOutRoot,
-                f.getParentFile().equals(creoleInRoot)
+                new File(pWorkOutRoot,
+                f.getParentFile().equals(pCreoleInRoot)
                 ? eFile.getName()
-                : (f.getParent().substring(creoleInRootPath.length())
-                        + FSEP + eFile.getName())
-            )});
+                : (f.getParent().substring(pCreoleInRootPath.length())
+                        + FSEP + eFile.getName())),
+                Boolean.TRUE
+            });
         }
-        return fileParams;
+        return params;
     }
 
     @org.junit.Test
