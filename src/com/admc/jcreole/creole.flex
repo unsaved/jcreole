@@ -170,8 +170,12 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 // In YYINITIAL only, transition to PSTATE upon non-blank line
 <ESCURL> {DOT} { yybegin(pausingState); return newToken(Terminals.TEXT, yytext()); }
 <YYINITIAL> {DOT} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
-// Following case prevent falsely identified URLs by skipping the strings if
-// they are internal to a word.
+<YYINITIAL> "//" { yybegin(PSTATE); return newToken(Terminals.EM_TOGGLE); }
+<YYINITIAL> "**" { yybegin(PSTATE); return newToken(Terminals.STRONG_TOGGLE); }
+// Following case prevent falsely identified URLs by no attempting to link if
+// URL is internal to a word.
+// Whenever a bare URL occurs in a position where it wouldn't be linked, the
+// user must escape the "//" with ~, or the parser will abort.
 <YYINITIAL, PSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
     pausingState = PSTATE;
     yybegin(ESCURL);
@@ -179,6 +183,8 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 }
 // In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
 <PSTATE> {ALLBUTR} { return newToken(Terminals.TEXT, yytext()); }
+<PSTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
+<PSTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
 // End PSTATE to make way for another element:
 <PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
 <PSTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
@@ -188,12 +194,9 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 
 // Misc Creole Inline elements.  May occur inside of Paras, TRs, LIs
 \\\\ { return newToken(Terminals.HARDLINE); }
-// TODO:  Major freaking limitation of JFlex here.
-// Need look-behind (aka. trailing context) to check for \bhttp, etc. (Perlish).
 // I am violating Creole rules here and will not honor any markup inside the
-// URL.  I see no benefit to ever doing that.
-// First, trick to toggle to ignore-URL mode.
-"~" / (https|http|ftp):"/"{S}*{NONPUNC} { pausingState = yystate(); yybegin(ESCURL);}
+// URL that we are linking.  I see no benefit to ever doing that.
+"~" (https|http|ftp):"/"{S}*{NONPUNC} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext().substring(1)); }
 <PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.URL, yytext()); }
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {

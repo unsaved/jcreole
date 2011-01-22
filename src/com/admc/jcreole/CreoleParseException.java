@@ -12,6 +12,11 @@ public class CreoleParseException extends beaver.Scanner.Exception {
     public int getLine() { return line; }
     public int getColumn() { return column; }
 
+    public CreoleParseException(String msg, Token sourceToken) {
+        this(msg, sourceToken.getOffset(),
+                sourceToken.getLine(), sourceToken.getColumn());
+    }
+
     public CreoleParseException(String msg, int offset, int line, int column) {
         super(line, column, msg);
         this.offset = offset;

@@ -1,5 +1,5 @@
-Plain links.  First escaped bare URLs ~http://cnn.com/x.html
-and ~ftp://pub.admc.com.\\
+Plain links.  First escaped bare URLs http:~//cnn.com/x.html
+and ftp:~//pub.admc.com.\\
 Now live bare URLs with trailing punctuation that should not be linked:
 http://cnn.com/x.html? and ftp://pub.admc.com.
 And then [[rela~ tive.html]] link and [[rel.html|labelled \\ ~ rel link]]
