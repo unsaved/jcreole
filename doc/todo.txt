@@ -1,6 +1,6 @@
 SHORT TERM
 
-Implement tables.
+Add unit tests for tables.
 
 License.
 
