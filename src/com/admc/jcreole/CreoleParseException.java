@@ -16,20 +16,19 @@ public class CreoleParseException extends RuntimeException {
     public int getLine() { return line; }
     public int getColumn() { return column; }
 
+    public CreoleParseException(beaver.Parser.Exception e) {
+        super(e);
+    }
+
     public CreoleParseException(String msg, Token sourceToken) {
         this(msg, sourceToken.getOffset(),
                 sourceToken.getLine(), sourceToken.getColumn());
     }
 
     public CreoleParseException(String msg, int offset, int line, int column) {
-        super(msg);
+        super(String.format("%s.  @line:col %d:%d", msg, line + 1, column + 1));
         this.line = line;
         this.column = column;
         this.offset = offset;
-    }
-
-    public String getMessage() {
-        return String.format("%s  @line:col %d:%d",
-                super.getMessage(), line + 1, column + 1);
     }
 }

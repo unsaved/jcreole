@@ -6,6 +6,10 @@ more text.
     ----
 That line should have inserted a paragraph break too.
 
+    Another  
+ paragraph  
+   with lotsa white space 
+
 Fourth paragraph {{{inline ~ \\ nowiki}}}}}. And
 a more text here too.
 ----x

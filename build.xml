@@ -54,6 +54,7 @@
   </target>
 
   <target name="clean" description="Clean">
+    <delete dir="tmp/stage"/>
     <delete dir="dist"/>
     <delete dir="test-classes"/>
     <delete dir="classes"/>
@@ -67,7 +68,7 @@
            destdir="classes" classpathref="build.ivyrefid"
            source="${javac.sourceVersion}" target="${javac.targetVersion}"
            deprecation="${javac.deprecation}" debug="${javac.debug}">
-       <!--
+      <!--
       <compilerarg value="-Xlint"/>
        -->
     </javac>
@@ -78,9 +79,6 @@
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.FlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
-      <!--
-      <arg value="data/3.txt"/>
-      -->
       <arg value="${creolepath}"/>
     </java>
   </target>
@@ -90,9 +88,44 @@
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.CreoleParseDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
-      <!--
-      <arg value="data/mt.creole"/>
-      -->
+      <arg value="${creolepath}"/>
+    </java>
+  </target>
+
+  <target name="jar" description="Build Jar deliverable" depends="compile">
+    <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
+    <pathconvert property="jar.cp" pathsep=" " refid="run.ivyrefid"
+                 setonempty="false">
+      <mapper>
+        <regexpmapper from=".*/(.*)" to="\1" handledirsep="true"/>
+      </mapper>
+    </pathconvert>
+    <mkdir dir="dist"/>
+    <property name="builder" value="${user.name}"/>
+    <jar destfile="dist/${ant.project.name}-${version}.jar" filesonly="true"
+         duplicate="fail" basedir="classes">
+      <fileset dir="resources" excludes="**/.*"/>
+      <manifest>
+        <attribute name="Main-Class" value="com.admc.jcreole.JCreole"/>
+        <attribute name="Class-Path" value="${jar.cp}"/>
+        <attribute name="Specification-Title" value="Creole"/>
+        <attribute name="Specification-Version" value="1.0"/>
+        <attribute name="Specification-Vendor" value="WMS Workshop"/>
+        <attribute name="Implementation-Title" value="JCreole"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="${builder}"/>
+      </manifest>
+      <metainf dir="doc" includes="LICENSE.txt"/>
+    </jar>
+  </target>
+
+  <target name="html" description="Generate HTML" depends="stage">
+    <fail unless="creolepath" message="Property 'creolepath' is required"/>
+    <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
+    <java jar="tmp/stage/jcreole-${version}.jar"
+          classpathref="run.ivyrefid" failonerror="true" fork="true">
+      <arg value="-o"/>
+      <arg value="tmp/generated.html"/>
       <arg value="${creolepath}"/>
     </java>
   </target>
@@ -165,6 +198,15 @@
       <report todir="test-reports"/>
     </junitreport>
     <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
+  </target>
+
+  <target name="stage" depends="jar" description="Set up stage area">
+    <delete dir="tmp/stage"/>
+    <ivy:cachefileset conf="build" setid="bundle.refid"/>
+    <copy todir="tmp/stage" flatten="true">
+      <fileset refid="bundle.refid"/>
+      <fileset file="dist/${ant.project.name}-${version}.jar"/>
+    </copy>
   </target>
 
   <target name="serialver" depends="compile"

@@ -105,15 +105,35 @@ S = [^ \t\f\n]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 %%
 
+// WARNING!!
+// ** Be careful of effects of pushback on ^.
+// ** If you don't push back all characters after the line-break, you will
+// ** lose the ability to match ^.
+
 // Force high-priorioty of these very short captures
 // len 1:
 // Transition to LISTATE from any state other than LISTATE
-<YYINITIAL> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
-<YYINITIAL> ^[ \t]*[|] { yypushback(1); yybegin(TABLESTATE); }
-<PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); return newToken(Terminals.END_PARA); }
-<PSTATE> ^[ \t]*[|] { yypushback(1); yybegin(TABLESTATE); return newToken(Terminals.END_PARA); }
+<YYINITIAL> ^[ \t]+ / "**" { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
+<YYINITIAL> ^[ \t]*[#] / [^#] {
+    yybegin(LISTATE);
+    return newToken(Terminals.LI, "#", 1);
+}
+<YYINITIAL> ^[ \t]*[*] / [^*] {
+    yybegin(LISTATE);
+    return newToken(Terminals.LI, "*", 1);
+}
+<LISTATE> ^[ \t]*((#+)|("*"+)) {
+    Matcher m = ListLevelPattern.matcher(yytext());
+    m.matches();
+    yybegin(LISTATE);
+    return newToken(Terminals.LI,
+            Character.toString(m.group(1).charAt(0)), m.group(1).length());
+}
+<YYINITIAL> ^[ \t]*[|] { yypushback(yylength()); yybegin(TABLESTATE); }
+<PSTATE> ^[ \t]*[#*] { yypushback(yylength()); yybegin(LISTATE); return newToken(Terminals.END_PARA); }
+<PSTATE> ^[ \t]*[|] { yypushback(yylength()); yybegin(TABLESTATE); return newToken(Terminals.END_PARA); }
 // len >= 1:
-<PSTATE> ^([ \t]*\n)+ { yybegin(YYINITIAL); yypushback(1); return newToken(Terminals.END_PARA); }
+<PSTATE> ^([ \t]*\n)+ { yybegin(YYINITIAL); yypushback(yylength()); return newToken(Terminals.END_PARA); }
 <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
 <TABLESTATE> \n / [ \t]*[^|] { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
@@ -121,12 +141,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 <LISTATE> \n / [ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> \n / [ \t]*"|" { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> \n / [ \t]*[#*] { return newToken(Terminals.END_LI, null, listLevel); }
-<LISTATE> ^[ \t]*((#+)|("*"+)) {
-    Matcher m = ListLevelPattern.matcher(yytext());
-    m.matches();
-    return newToken(Terminals.LI,
-            Character.toString(m.group(1).charAt(0)), m.group(1).length());
-}
+<TABLESTATE> ^[ \t]*"|=" { return newToken(Terminals.CELL, null, 1); }
+  // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
 
 ^("{{{"\n) ~ (\n"}}}"\n) {
@@ -246,10 +262,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
     // URL.  In that case, the parser will handle it.
     // We delimit label from url with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
     return newToken(Terminals.URL,
             sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 "{{" ~ "}}" {
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
     // N.b. we handle images inside of [[links]] in the awkwardly redundant
     // way of parsing that out inside the parser instead of the scanner.
     // We delimit url from alttext with 0 char.

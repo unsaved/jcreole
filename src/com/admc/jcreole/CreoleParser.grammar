@@ -141,23 +141,17 @@
                             == '#') ? "ol" : "ul").append(">\n");
                 if (liToken.getType() !=
                         levelTypeMap.get(liToken.getLevel()).charValue())
-                    throw new IllegalStateException(
-                            "Illegal type transition.  @line:col "
-                            + (liToken.getLine()+1)
-                            + ':' + (1+liToken.getColumn()));
+                    throw new CreoleParseException(
+                            "Illegal type transition", liToken);
             } else if (liToken.getLevel() == curLevel) {
                 // All we do in this case is to validate the type.
                 if (liToken.getType() != levelTypeMap.get(curLevel).charValue())
-                    throw new IllegalStateException(
-                            "Illegal type transition.  @line:col "
-                            + (liToken.getLine()+1)
-                            + ':' + (1+liToken.getColumn()));
+                    throw new CreoleParseException(
+                            "Illegal type transition", liToken);
             } else {
-                throw new IllegalStateException(
+                throw new CreoleParseException(
                         "Illegal transition from list level "
-                        + curLevel + " to " + liToken.getLevel()
-                        + ".  @line:col " + (1+liToken.getLine())
-                        + ':' + (1+liToken.getColumn()));
+                        + curLevel + " to " + liToken.getLevel(), liToken);
             }
             sb.append(indent(liToken.getLevel())).append("<li>")
                     .append(liToken.getContent()).append("</li>\n");
@@ -320,7 +314,10 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
             if (bCells != null) {
                 sb.append(indent(1)).append("<tbody>");
                 for (int r = 0; r < bCells.length; r++) {
-                    sb.append('\n').append(indent(2)).append("<tr> ");
+                    sb.append('\n').append(indent(2))
+                        .append("<tr class=\"jcreole_")
+                        .append((r == 2 * (r/2)) ? "even" : "odd")
+                        .append("\"> ");
                     for (int c = 0; c < bCells[r].length; c++) {
                         sb.append("<t").append(isHead[r][c] ? 'h' : 'd');
                         if (c + 1 == bCells[r].length) {
@@ -385,10 +382,8 @@ inline = INLINE_PRE.text {:
                 return new WashedToken("</em>");
             }
             if (fontModeStack.contains(FontMode.EMPHASIZED))
-                throw new IllegalStateException(
-                        "Font presentations modes are tangled.  "
-                        + (token.getLine()+1)
-                        + ':' + (token.getColumn()+1));
+                throw new CreoleParseException(
+                        "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.EMPHASIZED);
             return new WashedToken("<em>");
         :}
@@ -399,10 +394,8 @@ inline = INLINE_PRE.text {:
                 return new WashedToken("</strong>");
             }
             if (fontModeStack.contains(FontMode.STRONG))
-                throw new IllegalStateException(
-                        "Font presentations modes are tangled.  "
-                        + (token.getLine()+1)
-                        + ':' + (token.getColumn()+1));
+                throw new CreoleParseException(
+                        "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.STRONG);
             return new WashedToken("<strong>");
         :}

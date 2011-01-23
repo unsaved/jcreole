@@ -6,20 +6,20 @@ breaks both in code and HTML.
 and a {{http://cnn.com/img.jpg|labelled image}}\\~
 both of which span the entire table.
 
-|=header1|=header2
-|row1col1|row1col2
-|row2col1|row2col2
+    |=header1|=  header2
+ |row1col1|row1col2
+    |row2col1|row2col2
 ==header here
 |=head line-breaks~
 **only** in //code|=head line-breaks\\**only** in //HTML|
 |row1col1 has a http://bare/link and ~http://un/escaped |row1col2\\ ~
 breaks both in code and HTML.
-|row2col1 has an {{unlabelled image}}\\~
+  |row2col1 has an {{unlabelled image}}\\~
 and a {{http://cnn.com/img.jpg|labelled image}}\\~
 both of which span the entire table.
 *a list
 |=header1|=header2
-|row1col1|row1col2
+    |row1col1|row1col2
 |row2col1|row2col2
 
 para

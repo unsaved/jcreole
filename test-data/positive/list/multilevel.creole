@@ -1,14 +1,14 @@
-#ordered item #1
+    #ordered item #1
 #ordered item #2
-**unordered item #2/A
-**unordered item #2/B
-###ordered item #2/B/1
+ **unordered item #2/A
+  **unordered item #2/B
+   ###ordered item #2/B/1
 ###ordered item #2/B/2
 #ordered item #3
 **unordered item #3/A
-**unordered item #3/B
-***unordered item #3/B/1
-***unordered item #3/B/2
+   **unordered item #3/B
+  ***unordered item #3/B/1
+ ***unordered item #3/B/2
 **unordered item #3/C
 **unordered item #3/D
 ###ordered item #3/D/1
