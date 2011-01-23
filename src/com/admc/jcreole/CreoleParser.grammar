@@ -62,8 +62,7 @@
      * Returns a single XML-washed String
      *
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
-     * The specified List must be either all WashedTokens or all non-washed
-     * Tokens.  No mixing.
+     * The specified List must be all WashedTokens.
      */
     public static StringBuilder joinWashedTokens(List<WashedToken> wtList) {
         StringBuilder sb = new StringBuilder();
@@ -75,8 +74,7 @@
      * Returns a single XML-washed String
      *
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
-     * The specified List must be either all WashedTokens or all non-washed
-     * Tokens.  No mixing.
+     * The specified List must be either all non-washed Tokens.
      */
     public static WashedToken mkWashedToken(List<String> sList) {
         //@SuppressWarnings("unchecked")
@@ -223,12 +221,32 @@ block = isoblock.f+ {:
         ;
 
 table = lastrow {: return new WashedToken("<table/>\n"); :}
-      | row+ lastrow {: return new WashedToken("<table/>\n"); :}
+      | row.rs+ lastrow.lr {:
+            int cols = -1;
+            _list_rs.add(lr);
+            String[][] cells = new String[_list_rs.size()][];
+            int i = -1, j;
+            for (Symbol rSym : (List<Symbol>) _list_rs) {
+                //System.err.println("rSym/v #" + (++i) + " isa " + rSym.value.getClass().getName());
+                cells[++i] = new String[((List) rSym.value).size()];
+                if (cells[i].length > cols)
+                    cols = cells[i].length;
+                j = -1;
+                for (Symbol cTok : (ArrayList<WashedToken>) rSym.value)
+                    cells[i][++j] = cTok.toString();
+            }
+System.err.println("Table is " + cells.length + " rows x " + cols + " columns");
+            for (int r = 0; r < cells.length; r++)
+                for (int c = 0; c < cells[r].length; c++)
+                    System.out.println("Cell " + r + 'x' + c + ": " + cells[r][c]);
+            return new WashedToken("<table/>\n");
+        :}
       ;
 
-row   = cell+ END_ROW;
-lastrow   = cell+ FINAL_ROW;
-cell  = CELL inline+;
+row   = cell.c+ END_ROW;
+lastrow   = cell.c+ FINAL_ROW;
+cell  = CELL inline.l+ {: return new WashedToken(
+                    joinWashedTokens(_list_l).toString() + fontCaps()); :};
 
 listnest = lastli.llitem {:
                 // A single <li> list.
