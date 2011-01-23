@@ -308,7 +308,8 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                         if (c + 1 == hCells[r].length) {
                             unfilledCells = cols - hCells[r].length;
                             if (unfilledCells > 0)
-                                sb.append(" colspan=\"" + unfilledCells + '"');
+                                sb.append(" colspan=\""
+                                + (1+unfilledCells) + '"');
                         }
                         sb.append('>').append(hCells[r][c]).append("</th>");
                     }
@@ -325,7 +326,8 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                         if (c + 1 == bCells[r].length) {
                             unfilledCells = cols - bCells[r].length;
                             if (unfilledCells > 0)
-                                sb.append(" colspan=\"" + unfilledCells + '"');
+                                sb.append(" colspan=\""
+                                + (1+unfilledCells) + '"');
                         }
                         sb.append('>').append(bCells[r][c]).append("</t")
                                 .append(isHead[r][c] ? 'h' : 'd').append('>');
