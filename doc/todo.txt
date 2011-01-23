@@ -1,6 +1,7 @@
 SHORT TERM
 
-Add unit tests for tables.
+Make main public class, incl. ability to spit out a full HTML page using basic
+boilerplate framing.
 
 License.
 

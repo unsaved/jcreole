@@ -4,6 +4,16 @@ more text.
 That line should have inserted a paragraph break too.
 #A trivial list
 
+|=head line-breaks~
+**only** in //code|=head line-breaks\\**only** in //HTML|
+|row1col1 has a http://bare/link and ~http://un/escaped |row1col2\\ ~
+breaks both in code and HTML.
+|row2col1 has an {{unlabelled image}}\\~
+and a {{http://cnn.com/img.jpg|labelled image}}\\~
+both of which span the entire table.
+
+#Another trivial list
+
 #Ordered list
   ## with nesting
     ### and yet more nesting
