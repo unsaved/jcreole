@@ -33,6 +33,13 @@ Definitions
     { = JCX inline tag:  <span class="jcx...
 
 
+Misc.
+-----
+
+Ids are automatically created for each heading.  (They can, of course, be
+used externally and within the page like [#autoId] or [#autoId|label].
+
+
 Plugin Directives by category
 -----------------------------
 

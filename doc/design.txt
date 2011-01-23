@@ -3,19 +3,12 @@ See the file "extensions.txt" about design of Plugins/Extensions.
 
 ENCODING AND CHARACTERS
 
-We deal with UTF-8 encoding.  If you want to use some other encoding for your wiki software, then JCreole is not the tool for you.
-Similarly, we "write" line delimiters only as \n.  We never write \r's.
+We deal with UTF-8 encoding.  If you want to use some other encoding for your wiki software, then JCreole is not the tool for you.  Similarly, we "write" line delimiters only as \n.  We never write \r's.
 
-To accommodate serving huge text documents like books, the parser does allow carriage returns (\r) for all constructors, even though parsing would be more efficient and simple if we did not.
-You may use the high-capacity CroleParser(Reader) constructor only if you are sure that the input contains no input characters other than \r, \n, \t.
-The justification is that the prohibited control characters have no business being in HTML documents.
-You may instantiate your own Reader filter to assure this on your own, but it could be difficult to do so without losing the benefit of low-level caching.
-(If you do implement a char-by-char filtering Reader that is high performance and has no capacity limit, send it to me and I'll incorporate it and greatly simplify the constructors, factories and the scanner and parser code.
+You must either supply a stream that has no control characters other than \r and tabs (\t) (... and this means no \r carriage returns), or use the new* static factory methods to strip them from your input.  It would multiplied the complexity of the scanner greatly to have to accommodate the other characters.
+If you will be serving huge documents like books, you may instantiate your own Reader filter to assure this on your own, but it could be difficult to do so without losing the benefit of low-level caching.
+(If you do implement a char-by-char filtering Reader that is high performance and has no capacity limit, send it to me and I'll incorporate it and remove the limitations described here).
 
-Based on the previous constraint, the parser and scanner run with the assumption that input contains no control characters (excepting \r, \n, \t).
-[NOTE:  The following text is speculative.  Not certain of implementation yet.
-May well achieve the same purpose with some Commons Lang features.]
-We leverage this for tactics such as temporarily implanting control characters into our output buffer to mark points of interest that we need to remember.
 
 DIRECT HTML
 
