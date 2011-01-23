@@ -195,7 +195,7 @@
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
-%terminals URL, IMAGE, LI, END_LI, FINAL_LI;
+%terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, HEADING = "String";
@@ -219,7 +219,16 @@ block = isoblock.f+ {:
             return blockToken("<p>" + b + fontCaps() + "</p>\n");
         :}
         | listnest.l {: return blockToken(l.toString()); :}
+        | table.t {: return blockToken(t.toString()); :}
         ;
+
+table = lastrow {: return new WashedToken("<table/>\n"); :}
+      | row+ lastrow {: return new WashedToken("<table/>\n"); :}
+      ;
+
+row   = cell+ END_ROW;
+lastrow   = cell+ FINAL_ROW;
+cell  = CELL inline+;
 
 listnest = lastli.llitem {:
                 // A single <li> list.
@@ -231,6 +240,7 @@ listnest = lastli.llitem {:
                 liTokens.add((LiToken) llitem);
                 return newListNest(liTokens);
             :};
+
 li       = liel.li inline.l+ END_LI {:
                 ((LiToken) li).setContent(joinWashedTokens(_list_l).toString()
                         + fontCaps());

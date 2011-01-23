@@ -101,7 +101,7 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 %}
 
-%states PSTATE, LISTATE, ESCURL
+%states PSTATE, LISTATE, ESCURL, TABLESTATE
 
 S = [^ \t\f\n]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
@@ -111,10 +111,17 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 // len 1:
 // Transition to LISTATE from any state other than LISTATE
 <YYINITIAL> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+<YYINITIAL> ^[ \t]*[|] { yypushback(1); yybegin(TABLESTATE); }
 <PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); return newToken(Terminals.END_PARA); }
+<PSTATE> ^[ \t]*[|] { yypushback(1); yybegin(TABLESTATE); return newToken(Terminals.END_PARA); }
 // len >= 1:
 <PSTATE> ^([ \t]*\n)+ { yybegin(YYINITIAL); yypushback(1); return newToken(Terminals.END_PARA); }
+<TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
+<TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
+<TABLESTATE> \n / [ \t]*[^|] { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
+<TABLESTATE> \n / [ \t]*[|] { return newToken(Terminals.END_ROW, null, listLevel); }
 <LISTATE> \n / [ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+<LISTATE> \n / [ \t]*"|" { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> \n / [ \t]*[#*] { return newToken(Terminals.END_LI, null, listLevel); }
 <LISTATE> ^[ \t]*((#+)|("*"+)) {
     Matcher m = ListLevelPattern.matcher(yytext());
@@ -122,6 +129,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
 }
+<TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
 
 ^("{{{"\n) ~ (\n"}}}"\n) {
     Matcher m = BlockPrePattern.matcher(yytext());
@@ -210,10 +218,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
+<TABLESTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    pausingState = TABLESTATE;
+    yybegin(ESCURL);
+    return newToken(Terminals.TEXT, yytext());
+}
 // In PSTATE we write TEXT tokens until we encounter a blank line
 <PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
-<PSTATE, LISTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
-<PSTATE, LISTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
+<PSTATE, LISTATE, TABLESTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
+<PSTATE, LISTATE, TABLESTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
 // End PSTATE to make way for another element:
 <PSTATE> \n / ("{{{" \n) { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
 <PSTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
@@ -227,7 +240,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 // URL that we are linking.  I see no benefit to ever doing that.
 <YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~" (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.TEXT, yytext().substring(1)); }
-<PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.URL, yytext()); }
+<PSTATE, LISTATE, TABLESTATE> (https|http|ftp):"/"{S}*{NONPUNC} {
+    return newToken(Terminals.URL, yytext()); }
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
@@ -281,5 +295,13 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 <LISTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 <LISTATE> \n / [ \t]*----[ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI);}
 <LISTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+// Would this last not defeat sending proper EOF to the parser?
 
-//<TR> "~|" { return newToken(Terminals.TEXT, "|"); }
+// TABLE stuff
+<TABLESTATE> "~|" { return newToken(Terminals.TEXT, "|"); }
+<TABLESTATE> "|" { return newToken(Terminals.CELL); }
+<TABLESTATE> . { return newToken(Terminals.TEXT, yytext()); }
+<TABLESTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
+// I believe that the following can only be called if very last thing in file,
+// since above we have captured both "\n\s*[|]" and "\n\s*[^|]".
+<TABLESTATE> \n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
