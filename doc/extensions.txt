@@ -63,7 +63,12 @@ ANGLE BRACKETS
 CREATE ELEMENTS
 
     <<(>>  Open a new JCX block element with '<div class="jcx">'.
+    <<)>>  Close the previously opened div with '</div>'.
     <<{>>  Open a new JCX inline element with '<span class="jcx">'.
+    <<}>>  Close the previously opened span with '</span>.
+
+    You should obviously always pair <<(>>...<<)>> and <<{>>...<<}>>.
+
 
 ASSIGN A CSS CLASS TO A HTML ELEMENT
 
