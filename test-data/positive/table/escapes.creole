@@ -1,0 +1,4 @@
+|=header1~|=escaped header content|=header2
+|~=td content starts with equal|=really has th content
+|row2col1~
+|row2col2

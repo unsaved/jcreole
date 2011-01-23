@@ -297,6 +297,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 
 // TABLE stuff
 <TABLESTATE> "~|" { return newToken(Terminals.TEXT, "|"); }
+<TABLESTATE> "|~" / = { return newToken(Terminals.CELL, null); }
 <TABLESTATE> "|=" { return newToken(Terminals.CELL, null, 1); }
   // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> "|" { return newToken(Terminals.CELL); }
