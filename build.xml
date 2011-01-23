@@ -88,7 +88,7 @@
   <target name="parse" description="run Beaver parser" depends="compile">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.jcreole.CreoleDriver" classpath="classes"
+    <java classname="com.admc.jcreole.CreoleParseDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <!--
       <arg value="data/mt.creole"/>
