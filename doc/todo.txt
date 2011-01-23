@@ -1,5 +1,12 @@
 SHORT TERM
 
+Add unit tests
+    DOS EOL test
+    No closing line-delimiter
+
+FAILING UNIT TESTS
+    list/mixed
+
 Implement lists.
 
 Implement tables.

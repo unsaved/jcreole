@@ -73,7 +73,7 @@
     </javac>
   </target>
 
-  <target name="scanner" description="run scanner" depends="compile">
+  <target name="scan" description="run scanner" depends="compile">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.FlexDriver" classpath="classes"

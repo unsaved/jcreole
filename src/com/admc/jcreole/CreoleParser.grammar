@@ -183,6 +183,14 @@
 
     Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
 
+    public StringBuilder fontCaps() {
+        StringBuilder b = new StringBuilder();
+        FontMode fm;
+        while (fontModeStack.peekFirst() != null)
+            b.append("</" + fontModeStack.removeFirst() + '>');
+        return b;
+    }
+
     private static final String INDENT_STRING = "  ";
 :};
 
@@ -208,10 +216,7 @@ block = isoblock.f+ {:
             StringBuilder b = joinWashedTokens(_list_f);
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            FontMode fm;
-            while (fontModeStack.peekFirst() != null)
-                b.append("</" + fontModeStack.removeFirst() + '>');
-            return blockToken("<p>" + b + "</p>\n");
+            return blockToken("<p>" + b + fontCaps() + "</p>\n");
         :}
         | listnest.l {: return blockToken(l.toString()); :}
         ;
@@ -227,11 +232,13 @@ listnest = lastli.llitem {:
                 return newListNest(liTokens);
             :};
 li       = liel.li inline.l+ END_LI {:
-                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString());
+                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString()
+                        + fontCaps());
                 return li;
             :};
 lastli   = liel.li inline.l+ FINAL_LI {:
-                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString());
+                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString()
+                        + fontCaps());
                 return li;
             :};
 liel     = LI.listart {: return new LiToken((Token) listart); :};

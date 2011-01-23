@@ -1,10 +1,10 @@
 # ordered lvl 1
-** illegal switch to non-ordered lvl 2
+** switch to non-ordered lvl 2
 ### ordered lvl 3
 # Legal reversion to level 1
 
 # ordered lvl 1.  Numbering reverts back to 1
-** illegal switch to non-ordered lvl 2
+** switch to non-ordered lvl 2
 ### ordered lvl 3
 # Legal reversion to level 1
 

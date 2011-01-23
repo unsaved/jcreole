@@ -25,11 +25,11 @@ import org.apache.commons.io.input.CharSequenceReader;
 
 %{
     private static final Pattern BlockPrePattern =
-            Pattern.compile("(?s)\\Q{{{\\E\r?\n(.*?)\r?\n\\Q}}}\\E\r?\n");
+            Pattern.compile("(?s)\\Q{{{\\E\n(.*?)\n\\Q}}}\\E\n");
     private static final Pattern InlinePrePattern =
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
-    private static final Pattern HeaderPattern =
-            Pattern.compile("\\s*(=+)(.*?)(?:=+\\s*)?\r?\n");
+    private static final Pattern HeadingPattern =
+            Pattern.compile("\\s*(=+)(.*?)(?:=+\\s*)?\n");
     private static final Pattern ListLevelPattern =
             Pattern.compile("\\s*([#*]+)");
 
@@ -60,12 +60,17 @@ import org.apache.commons.io.input.CharSequenceReader;
 
     /**
      * Static factory method.
+     * This method will always silently filter out \r's.
+     * The doClean parameter says what to do about control characters other
+     * than \r (silently filtered) and \n and tabs (allowed and retained).
      *
-     * Pass a StringBuilder containing any characters and we'll clean or
-     * throw illegal characters depending on the doClean specification.
-     *
+     * @param sb StringBuilder containing any characters that we will filter
+     *           and/or validate.
      * @param doClean If true will silently remove illegal input characters.
      *                If false, will throw if encounter any illegal input char.
+     * @throws IllegalArgumentException if doClean is set to false and
+     *         control character(s) other than \n, \r, \t are found in the
+     *         StringBuilder.
      */
     public static CreoleScanner newCreoleScanner(
             StringBuilder sb, boolean doClean) throws IOException {
@@ -73,50 +78,62 @@ import org.apache.commons.io.input.CharSequenceReader;
         char c;
         for (int i = sb.length() - 1; i >= 0; i--) {
             c = sb.charAt(i);
-            if (c != '\n' && c != '\r' && Character.isISOControl(c)) {
-                if (doClean) sb.deleteCharAt(i);
-                else badIndexes.add(badIndexes.size(), Integer.valueOf(i));
+            switch (c) {
+              case '\r':
+                sb.deleteCharAt(i);
+              case '\n':
+              case '\t':
+                continue;
             }
+            if (!Character.isISOControl(c)) continue;
+            if (doClean) sb.deleteCharAt(i);
+            else badIndexes.add(badIndexes.size(), Integer.valueOf(i));
         }
         if (badIndexes.size() > 0)
             throw new IllegalArgumentException(
-                    "Illegal char(s) at following positions: " + badIndexes);
+                    "Illegal input char(s) at following positions: "
+                    + badIndexes);
         return new CreoleScanner(new CharSequenceReader(sb));
     }
 %}
 
 %states PSTATE, LISTATE, ESCURL
 
-UTF_EOL = (\r|\n|\r\n|\u2028|\u2029|\u000B|\u000C|\u0085)
-DOT = [^\n\r]  // For some damned reason JFlex's "." does not exclude \r.
-ALLBUTR = [^\r]  // For some damned reason JFlex's "." does not exclude \r.
-S = [^ \t\f\n\r]
-NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
+S = [^ \t\f\n]
+NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 %%
 
 // Force high-priorioty of these very short captures
 // len 1:
-\r {}  // Eat \rs in all inclusive states
 // Transition to LISTATE from any state other than LISTATE
-<YYINITIAL, PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+<YYINITIAL> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); }
+<PSTATE> ^[ \t]*[#*] { yypushback(1); yybegin(LISTATE); return newToken(Terminals.END_PARA); }
 // len >= 1:
-<PSTATE> ^([ \t]*{UTF_EOL})+ { yybegin(YYINITIAL); yypushback(1); return newToken(Terminals.END_PARA); }  // TODO:  Pushback 1 or 2 depending on EOL chars.
+<PSTATE> ^([ \t]*\n)+ { yybegin(YYINITIAL); yypushback(1); return newToken(Terminals.END_PARA); }
+<LISTATE> \n / [ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+<LISTATE> \n / [ \t]*[#*] { return newToken(Terminals.END_LI, null, listLevel); }
+<LISTATE> ^[ \t]*((#+)|("*"+)) {
+    Matcher m = ListLevelPattern.matcher(yytext());
+    m.matches();
+    return newToken(Terminals.LI,
+            Character.toString(m.group(1).charAt(0)), m.group(1).length());
+}
 
-^("{{{"{UTF_EOL}) ~ ({UTF_EOL}"}}}"{UTF_EOL}) {
+^("{{{"\n) ~ (\n"}}}"\n) {
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "BLOCK_PRE text doesn't match our pattern: \"" + yytext() + '"',
-            yychar, yyline, yycolumn);
-    return newToken(Terminals.BLOCK_PRE, m.group(1).replaceAll("\r", ""));
+            "BLOCK_PRE text doesn't match our block noWiki pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
+    return newToken(Terminals.BLOCK_PRE, m.group(1));
 }
 "{{{" ~ ("}"* "}}}") {
     Matcher m = InlinePrePattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "INLINE_PRE text doesn't match our pattern: \"" + yytext() + '"',
-            yychar, yyline, yycolumn);
-    return newToken(Terminals.INLINE_PRE, m.group(1).replaceAll("\r", ""));
+            "INLINE_PRE text doesn't match our inline noWiki pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
+    return newToken(Terminals.INLINE_PRE, m.group(1));
 }
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
@@ -150,13 +167,14 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 "~~" { return newToken(Terminals.TEXT, "~"); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 // TODO:  I believe that these will cause the next token to inherit the ^:
-^[ \t]*"~[*#=|]" {
+^[ \t]*"~"[*#=|] {
     int len = yylength();
     return newToken(Terminals.TEXT,
-    yytext().substring(len - 2) + yytext().substring(len - 1));
+            yytext().substring(0, len - 2) + yytext().substring(len - 1));
 }
 ^[ \t]*"~"---- {
-    return newToken(Terminals.TEXT, yytext().substring(yylength() - 5) + "----");
+    return newToken(Terminals.TEXT,
+            yytext().substring(0, yylength() - 5) + "----");
 }
 // Only remaining special case is for escaping line breaks in TRs with | or ~.
 // END of Escapes
@@ -170,8 +188,8 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 
 // PSTATE (Paragaph) stuff
 // In YYINITIAL only, transition to PSTATE upon non-blank line
-<ESCURL> {DOT} { yybegin(pausingState); return newToken(Terminals.TEXT, yytext()); }
-<YYINITIAL> {DOT} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
+<ESCURL> . { yybegin(pausingState); return newToken(Terminals.TEXT, yytext()); }
+<YYINITIAL> . { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
 <YYINITIAL> "//" { yybegin(PSTATE); return newToken(Terminals.EM_TOGGLE); }
 <YYINITIAL> "**" { yybegin(PSTATE); return newToken(Terminals.STRONG_TOGGLE); }
 // Following case prevent falsely identified URLs by no attempting to link if
@@ -183,14 +201,19 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
-// In PSTATE we write TEXT tokens (incl. \r) until we encounter a blank line
-<PSTATE> {ALLBUTR} { return newToken(Terminals.TEXT, yytext()); }
-<PSTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
-<PSTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
+<LISTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    pausingState = LISTATE;
+    yybegin(ESCURL);
+    return newToken(Terminals.TEXT, yytext());
+}
+// In PSTATE we write TEXT tokens until we encounter a blank line
+<PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
+<PSTATE, LISTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
+<PSTATE, LISTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
 // End PSTATE to make way for another element:
-<PSTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
-<PSTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
-<PSTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.END_PARA);}
+<PSTATE> \n / ("{{{" \n) { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
+<PSTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
+<PSTATE> \n / [ \t]*----[ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.END_PARA);}
 <PSTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
 
 
@@ -198,7 +221,8 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 \\\\ { return newToken(Terminals.HARDLINE); }
 // I am violating Creole rules here and will not honor any markup inside the
 // URL that we are linking.  I see no benefit to ever doing that.
-"~" (https|http|ftp):"/"{S}*{NONPUNC} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext().substring(1)); }
+<YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~" (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.TEXT, yytext().substring(1)); }
 <PSTATE, LISTATE> (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.URL, yytext()); }
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
@@ -222,13 +246,12 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 // (which require special characters at beginning of line)
 // These have a paired PSTATE rule above which will close a (possible PSTATE),
 // preparing for the YYINITIAL state rules here.
-<YYINITIAL> ^[ \t]*= ~ {UTF_EOL} {
-    yybegin(YYINITIAL);
-    Matcher m = HeaderPattern.matcher(yytext());
+<YYINITIAL> ^[ \t]*= ~ \n {
+    Matcher m = HeadingPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "Header line text doesn't match our pattern: \"" + yytext() + '"',
-            yychar, yyline, yycolumn);
+            "Header line text doesn't match our Heading pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
     String headerText = m.group(2);
     int hLevel = m.group(1).length();
     if (hLevel < 1 || hLevel > 6)
@@ -237,7 +260,7 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
                 yychar, yyline, yycolumn);
     return newToken(Terminals.HEADING, headerText, hLevel);
 }
-<YYINITIAL> ^[ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.HOR); }
+<YYINITIAL> ^[ \t]*----[ \t]*\n { return newToken(Terminals.HOR); }
 
 "<<<" | ">>>" {
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",
@@ -245,22 +268,14 @@ NONPUNC = [^ \t\f\n\r,.?!:;\"']  // Allowed last character of URLs.
 }
 
 
-// LISTATE (Paragaph) stuff
-<LISTATE> ^[ \t]*((#+)|("*"+)) {
-    Matcher m = ListLevelPattern.matcher(yytext());
-    m.matches();
-    return newToken(Terminals.LI,
-            Character.toString(m.group(1).charAt(0)), m.group(1).length());
-}
-<LISTATE> {ALLBUTR} { return newToken(Terminals.TEXT, yytext()); }
+// LISTATE stuff
+<LISTATE> . { return newToken(Terminals.TEXT, yytext()); }
+<LISTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
+<LISTATE> \n { }  // Ignore if last char in file
 // End LISTATE to make way for another element:
-<LISTATE> {UTF_EOL} / [ \t]*[#*] {
-    return newToken(Terminals.END_LI, null, listLevel);
-}
-<LISTATE> {UTF_EOL} / [ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> {UTF_EOL} / ("{{{" {UTF_EOL}) { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> {UTF_EOL} / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> {UTF_EOL} / [ \t]*----[ \t]*{UTF_EOL} { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI);}
+<LISTATE> \n / ("{{{" \n) { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+<LISTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+<LISTATE> \n / [ \t]*----[ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI);}
 <LISTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 
 //<TR> "~|" { return newToken(Terminals.TEXT, "|"); }

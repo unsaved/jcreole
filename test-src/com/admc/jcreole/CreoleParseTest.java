@@ -85,8 +85,8 @@ public class CreoleParseTest {
     public void parseTest() throws IOException {
         Object retVal = null;
         try {
-            retVal = new CreoleParser().parse(new CreoleScanner(
-                    new FileInputStream(creoleFile)));
+            retVal = new CreoleParser().parse(CreoleScanner.newCreoleScanner(
+                    creoleFile, false));
         } catch (Exception e) {
             if (!shouldSucceed) return;  // A ok.  No output file to write.
             AssertionError ae =
