@@ -2,6 +2,20 @@ A second paragraph with a hard line\\ and some
 more text.
     ----
 That line should have inserted a paragraph break too.
+#A trivial list
+
+#Ordered list
+  ## with nesting
+    ### and yet more nesting
+    with extra line
+    ### {{{**and//unformatted}}} text\\and hardbreak.
+  ##reverting a level
+
+A short para
+  ~**graph
+== interrupted by a heading
+  more //para//graph
+  ==interrupted by more heading=====
 
 Fourth paragraph {{{inline ~ \\ nowiki}}}}}. And
 a more text here too.

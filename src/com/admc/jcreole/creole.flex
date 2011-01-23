@@ -63,6 +63,8 @@ import org.apache.commons.io.input.CharSequenceReader;
      * This method will always silently filter out \r's.
      * The doClean parameter says what to do about control characters other
      * than \r (silently filtered) and \n and tabs (allowed and retained).
+     * It also silently appends a single newline to the buffer if it doesn't
+     * end with one.
      *
      * @param sb StringBuilder containing any characters that we will filter
      *           and/or validate.
@@ -93,6 +95,8 @@ import org.apache.commons.io.input.CharSequenceReader;
             throw new IllegalArgumentException(
                     "Illegal input char(s) at following positions: "
                     + badIndexes);
+        //if (sb.length() > 0 && sb.charAt(sb.length()-1) != '\n')
+            //sb.append('\n');
         return new CreoleScanner(new CharSequenceReader(sb));
     }
 %}
