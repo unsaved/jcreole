@@ -4,6 +4,7 @@ See the file "extensions.txt" about design of Plugins/Extensions.
 ENCODING AND CHARACTERS
 
 We deal with UTF-8 encoding.  If you want to use some other encoding for your wiki software, then JCreole is not the tool for you.  Similarly, we "write" line delimiters only as \n.  We never write \r's.
+As JCreole output will usually be combined with other material to generate HTML page, you should definitely do a '.replace("\n", "\r\n")' if the other content uses DOS line separators.
 
 You must either supply a stream that has no control characters other than \r and tabs (\t) (... and this means no \r carriage returns), or use the new* static factory methods to strip them from your input.  It would multiplied the complexity of the scanner greatly to have to accommodate the other characters.
 If you will be serving huge documents like books, you may instantiate your own Reader filter to assure this on your own, but it could be difficult to do so without losing the benefit of low-level caching.
