@@ -21,6 +21,9 @@ import beaver.Symbol;
 
 /**
  * A Parser token specifically marked as being HTML-safe.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 class WashedToken extends Token {
     private final String cleanString;

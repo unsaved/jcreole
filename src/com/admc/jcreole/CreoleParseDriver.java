@@ -25,6 +25,9 @@ import java.io.File;
  *
  * This does not generate entire HTML pages, but just the HTML fragment
  * corresponding to the input Creole Wikitext.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 public class CreoleParseDriver {
     /**

@@ -22,6 +22,8 @@ package com.admc.jcreole;
  * Implement one of these and use the CreoleParser setter to use it.
  *
  * @see CreoleParser#setIntraWikiMapper(IntraWikiMapper)
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 public interface IntraWikiMapper {
     public String toPath(String wikiName, String wikiPage);

@@ -30,6 +30,9 @@ package com.admc.jcreole;
  * input has carriage returns, because they are stripped out before the
  * offsets are counted.
  * <p>
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 public class CreoleParseException extends RuntimeException {
     static final long serialVersionUID = 8504782268721814533L;

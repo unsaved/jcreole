@@ -26,6 +26,9 @@ import java.io.File;
  * decipher the specifications in the *.flex file.
  * If you do know that, it can be immensely useful for troubleshooting and for
  * adding new capabilities.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 public class JFlexDriver {
     /**

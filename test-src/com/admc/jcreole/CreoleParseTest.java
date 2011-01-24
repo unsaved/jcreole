@@ -31,6 +31,12 @@ import static org.junit.Assert.*;
 import org.apache.commons.io.FileUtils;
 
 @RunWith(value = Parameterized.class)
+/**
+ * A JUnit unit test.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
+ */
 public class CreoleParseTest {
     private File creoleFile, htmlExpectFile, htmlFile;
     private boolean shouldSucceed;

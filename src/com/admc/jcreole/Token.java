@@ -21,6 +21,9 @@ import beaver.Symbol;
 
 /**
  * JCreole-specific scanner and parser symbol.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 class Token extends Symbol {
     public static final int UNSET = -1;

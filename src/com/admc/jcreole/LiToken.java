@@ -21,6 +21,9 @@ import beaver.Symbol;
 
 /**
  * Parser Token especially for List Items.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 class LiToken extends Token {
     private char type;

@@ -37,6 +37,8 @@ import org.apache.commons.logging.LogFactory;
  *
  * @see CreoleScanner
  * @see CreoleParser
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.0
  */
 public class JCreole {
     private static Log log = LogFactory.getLog(JCreole.class);
