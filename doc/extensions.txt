@@ -1,5 +1,11 @@
 JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
+
+****************************************************************************
+***   THESE FEATURES ARE NOT IMPLEMENTED YET!!!!
+****************************************************************************
+Coming soon!
+
 Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
 
 I call the individual <<X>> commands that are available "Plugin Directives".
