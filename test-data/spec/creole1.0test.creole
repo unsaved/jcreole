@@ -1,3 +1,5 @@
+<<# Blaine Simpson has noted his modifications to the supplied Test Cases
+with comments like this in the text below>>
 = Top-level heading (1)
 == This a test for creole 0.1 (2)
 === This is a Subheading (3)
@@ -65,9 +67,11 @@ up to five levels
 **** 4
 ***** 5
 
-* You can have
+<<# Using \\ for hard line-breaks.  IMO it would be idiotic to have list item
+contents break entirely differently from para contents, for no reason at all. >>
+* You can have\\
 multiline list items
-* this is a second multiline
+* this is a second multiline\\
 list item
 
 You can use nowiki syntax if you would like do stuff like this:
@@ -98,7 +102,7 @@ a tilde escapes itself: ~~xxx
 
 This should be a flower with the ALT text "this is a flower" if your wiki supports ALT text on images:
 
-{{Red-Flower.jpg|here is a red flower}}
+{{Red_Flower.jpg|here is a red flower}}
 
 === Creole 0.4 ===
 
@@ -107,7 +111,7 @@ Tables are done like this:
 |=header col1|=header col2| 
 |col1|col2| 
 |you         |can         | 
-|also        |align\\ it. | 
+|links       |[[http://www.wikicreole.org|Should work]]| 
 
 You can format an address by simply forcing linebreaks:
 

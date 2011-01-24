@@ -161,6 +161,9 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
             + yytext() + '"', yychar, yyline, yycolumn);
     return newToken(Terminals.INLINE_PRE, m.group(1));
 }
+"<<"[^<] ~ ">>" {}  // PLUGIN: Author comment
+                    // The [^<] is an attempt to make this capture shorter
+                    // lengths than a <<<>>>.
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
 // plus to change space into nbsp and to escape table row breaks according to
