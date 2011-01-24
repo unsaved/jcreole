@@ -2,7 +2,10 @@ package com.admc.jcreole;
 
 import beaver.Symbol;
 
-public class Token extends Symbol {
+/**
+ * JCreole-specific scanner and parser symbol.
+ */
+class Token extends Symbol {
     public static final int UNSET = -1;
     private int offset = UNSET, line = UNSET, column = UNSET, intParam = UNSET;
 

@@ -1,8 +1,18 @@
 package com.admc.jcreole;
 
 /**
- * Must make this a RuntimeException.   If extend Beaver's Exception as they
+ * Exception detected by the JCreole system.
+ * Note that in most cases you can use the getters for offset/line/column to
+ * find out where the problem is the input.
+ * <p>
+ * Had to make this a RuntimeException.   If extend Beaver's Exception as they
  * intend, then am stuck with Beaver's fantastically incompetent error-handling.
+ * </p> <p>
+ * Note that the source locations reported are 0-based, not 1-based, and that
+ * the reported numbers will be skewed (to higher/smaller locations) if your
+ * input has carriage returns, because they are stripped out before the
+ * offsets are counted.
+ * <p>
  */
 public class CreoleParseException extends RuntimeException {
     static final long serialVersionUID = 8504782268721814533L;

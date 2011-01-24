@@ -2,7 +2,10 @@ package com.admc.jcreole;
 
 import beaver.Symbol;
 
-public class LiToken extends Token {
+/**
+ * Parser Token especially for List Items.
+ */
+class LiToken extends Token {
     private char type;
     private String content;
 

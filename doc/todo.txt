@@ -1,7 +1,5 @@
 SHORT TERM
 
-Add zip target.
-
 License.
 
 Move project to Github.

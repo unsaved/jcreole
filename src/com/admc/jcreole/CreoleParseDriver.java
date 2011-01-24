@@ -3,12 +3,21 @@ package com.admc.jcreole;
 import java.io.IOException;
 import java.io.File;
 
+/**
+ * Runs the Parser.
+ *
+ * This does not generate entire HTML pages, but just the HTML fragment
+ * corresponding to the input Creole Wikitext.
+ */
 public class CreoleParseDriver {
+    /**
+     * Run with no parameters to see the syntax banner.
+     */
     public static void main(String[] sa)
             throws IOException, beaver.Parser.Exception {
         if (sa.length != 1)
             throw new IllegalArgumentException(
-                    "SYNTAX: java com.admc.play.CreoleParseDriver file.creole");
+                "SYNTAX: java com.admc.jcreole.CreoleParseDriver file.creole");
         CreoleScanner scanner =
                 CreoleScanner.newCreoleScanner(new File(sa[0]), false);
                 // Change 'false' to 'true' to silently strip bad input chars.

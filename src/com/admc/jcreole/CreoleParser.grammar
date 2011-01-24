@@ -13,7 +13,6 @@
 %import "java.util.Collections";
 
 %embed {:
-    private boolean validateOnly;
     private boolean wrote;  // Just used to write block-separating blank lines
     // TODO:  urlBase and pathBase need to be instance vars set by setter or
     //        constructor param.
@@ -32,10 +31,13 @@
             return "{" + wikiName + '/' + wikiPage + '}';
         }
     };
-    public void setValidateOnly(boolean validateOnly) {
-        this.validateOnly = validateOnly;
-    }
 
+    /**
+     * Assign a mapper from wiki page names to actual paths or URLs to the
+     * pages.
+     *
+     * @see IntraWikiMapper
+     */
     public void setIntraWikiMapper(IntraWikiMapper intraWikiMapper) {
         this.intraWikiMapper = intraWikiMapper;
     }
@@ -176,7 +178,7 @@
 
     Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
 
-    public StringBuilder fontCaps() {
+    private StringBuilder fontCaps() {
         StringBuilder b = new StringBuilder();
         FontMode fm;
         while (fontModeStack.peekFirst() != null)

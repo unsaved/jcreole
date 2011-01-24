@@ -77,7 +77,7 @@
   <target name="scan" description="run scanner" depends="compile">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.jcreole.FlexDriver" classpath="classes"
+    <java classname="com.admc.jcreole.JFlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <arg value="${creolepath}"/>
     </java>
@@ -120,20 +120,24 @@
   </target>
 
   <target name="html" description="Generate HTML" depends="stage">
+    <property name="htmlout.path" value="tmp/generated.html"/>
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java jar="tmp/stage/jcreole-${version}.jar"
           classpathref="run.ivyrefid" failonerror="true" fork="true">
       <arg value="-o"/>
-      <arg value="tmp/generated.html"/>
+      <arg value="${htmlout.path}"/>
       <arg value="${creolepath}"/>
     </java>
+    <echo>HTML written to '${htmlout.path}'.
+If the document includes relative links, you'll need to
+copy the resources accordingly.</echo>
   </target>
 
   <target name="constrain-tabs" description="Ensure no tabs in text files">
     <pathconvert property="tabbedFiles" pathsep=",">
-      <fileset dir="content" excludes="**/.*"
-               includes="**/*.css, **/*.js, **/*.jsp, **/*.html">
+      <fileset dir="test-data" excludes="**/.*"
+               includes="**/*.css, **/*.js, **/*.jsp, **/*.html, **/*.creole">
         <contains text="&#9;"/>
       </fileset>
       <fileset dir="." excludes="**/.*" includes="*src/**, doc/**">
@@ -219,5 +223,66 @@
       <arg value="classes${path.separator}${cPath}"/>
       <arg value="${className}"/>
     </exec>
+  </target>
+
+  <target name="dist" description="Build binary distribution zip file"
+          depends="stage, condl-javadoc">
+    <zip destfile="dist/${ant.project.name}-${version}.zip"
+         filesonly="true" whenempty="fail">
+      <zipfileset prefix="${ant.project.name}-${version}"
+                  dir="tmp/stage" excludes="**/.*"/>
+      <zipfileset prefix="${ant.project.name}-${version}"
+                  dir="." excludes="**/.*" includes="doc/**"/>
+      <zipfileset prefix="${ant.project.name}-${version}"
+                  dir="dist" excludes="**/.*" includes="apidocs/**"/>
+    </zip>
+  </target>
+
+  <target name="src-dist" description="Build source distribution zip file"
+          depends="condl-javadoc">
+    <mkdir dir="dist"/>
+    <zip destfile="dist/${ant.project.name}-${version}-src.zip"
+         filesonly="true" whenempty="fail">
+      <zipfileset prefix="${ant.project.name}-${version}"
+                  dir="." excludes="**/.*" includes="
+        app.properties, boot-libs/**, build.xml, ivy*,
+        resources/**, src/**, test-data/**, doc/**, *-src/**
+      "/>
+      <zipfileset prefix="${ant.project.name}-${version}"
+                  dir="dist" excludes="**/.*" includes="apidocs/**"/>
+    </zip>
+  </target>
+
+  <target name="condl-javadoc" unless="javadoc.skip"
+          description="Generates the Java API if necessary">
+     <dependset>
+       <srcfileset dir="src" excludes="**/.*"/>
+       <targetfileset dir="dist/apidocs"/>
+     </dependset>
+     <available file="dist/apidocs" type="dir" property="javadoc.skip"/>
+     <antcall target="javadoc"/>
+  </target>
+
+  <target name="javadoc" depends="jflex" unless="javadoc.skip"
+          description="Generates the Java API documentation at 'dist/apidocs'">
+    <ivy:cachepath conf="build" pathid="build.ivyrefid"/>
+    <delete dir="dist/apidocs"/>
+    <mkdir dir="dist/apidocs"/>
+    <javadoc packagenames="com.admc.*"
+             classpathref="build.ivyrefid"
+             sourcepath="src:tmp/derived-src"
+             docencoding="UTF-8"
+             charset="UTF-8"
+             destdir="dist/apidocs"
+             author="true"
+             version="true"
+             public="true"
+             use="true"
+             failonerror="true"
+             windowtitle="${ant.project.name} API, JCreole , v. ${version}"
+             doctitle="${ant.project.name}"
+             bottom="Apache 2.0 License">
+      <link href="http://download.oracle.com/javaee/6/api/"/>
+    </javadoc>
   </target>
 </project>

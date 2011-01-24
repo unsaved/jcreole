@@ -50,7 +50,10 @@ public class JCreole {
      * Any long-running program should use one of the lower-level methods.
      * </p>
      *
-     * @throws if can not generate output, or if the run generates 0 output.
+     * @throws IOException for any I/O problem that makes it impossible to
+     *         satisfy the request.
+     * @throws CreoleParseException
+     *         if can not generate output, or if the run generates 0 output.
      *         If the problem is due to input formatting, in most cases you
      *         will get a CreoleParseException, which is a RuntimException, and
      *         CreoleParseException has getters for locations in the source
