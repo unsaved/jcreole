@@ -133,6 +133,12 @@ Comments
     Your comment text may not include the strings "--" or ">>".
     These will not be visible as HTML comments in the generated HTML.
 
+TOC
+
+    <<^>>
+    (The character "^" is tentative.  Accepting suggestions.).
+    Insert a little TOC table or list, with hyperlinks to all headings.
+
 UNDER CONSIDERATION
     <<:IntraWikiLink>>
     Because plain IntraWikiLink is too susceptible to false positives.

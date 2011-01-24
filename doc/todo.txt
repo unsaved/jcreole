@@ -1,8 +1,15 @@
 SHORT TERM
 
+Add zip target.
+
+Update extensions file to note that those things have not been done!
+
 License.
 
 Move project to Github.
+
+Consider how to allow author to specify link target, or at least whether to
+open in-page or out-of-page.
 
 Implement and publish a trivial sandbox webapp.
 
