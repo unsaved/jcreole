@@ -207,10 +207,10 @@
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
-%terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL;
+%terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, HEADING = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
 %typeof listnest = "WashedToken";
 
 %goal blocks;
@@ -232,6 +232,14 @@ block = isoblock.f+ {:
         :}
         | listnest.l {: return blockToken(l.toString()); :}
         | table.t {: return blockToken(t.toString()); :}
+        | HEADING.h inline.f+ END_H {:
+            int hLevel = ((Token) (h)).getIntParam();
+            StringBuilder b = joinWashedTokens(_list_f);
+            //int lastI = b.length() - 1;
+            //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            return blockToken("<h" + hLevel + '>'
+                    + b + fontCaps() + "</h" + hLevel + ">\n");
+        :}
         ;
 
 table = lastrow {: return new WashedToken("<table/>\n"); :}
@@ -467,11 +475,6 @@ inline = INLINE_PRE.text {:
 
 // These may not contain any inlines
 isoblock = HOR {: return blockToken("<hr>\n"); :}
-        | HEADING.text {:
-            int hLevel = ((Token) (_symbol_text)).getIntParam();
-            return blockToken("<h" + hLevel + '>'
-                    + clean(text) + "</h" + hLevel + ">\n");
-        :}
         | BLOCK_PRE.text {: return blockToken("<pre>\n"
                 + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
                 // The replace here is for allowing ^}}} inside of pref block.

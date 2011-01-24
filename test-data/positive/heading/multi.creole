@@ -1,4 +1,5 @@
 ==Two words
+~==Escaped heading
 =Three words here=====
    ===  This with whitespace all around  =      
-====== \\ For now we process no formatting inside headings \\ {{{x}}}
+====== \\ Now we process formatting inside headings \\ {{{x}}}

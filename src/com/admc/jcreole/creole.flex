@@ -45,8 +45,6 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)\\Q{{{\\E\n(.*?)\n\\Q}}}\\E\n");
     private static final Pattern InlinePrePattern =
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
-    private static final Pattern HeadingPattern =
-            Pattern.compile("\\s*(=+)(.*?)(?:=+\\s*)?\n");
     private static final Pattern ListLevelPattern =
             Pattern.compile("\\s*([#*]+)");
 
@@ -116,10 +114,10 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 %}
 
-%states PSTATE, LISTATE, ESCURL, TABLESTATE
+%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE
 
 S = [^ \t\f\n]
-NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
+NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 %%
 
 // WARNING!!
@@ -130,7 +128,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 // Force high-priorioty of these very short captures
 // len 1:
 // Transition to LISTATE from any state other than LISTATE
-<YYINITIAL> ^[ \t]+ / "**" { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
+<YYINITIAL> ^[ \t]+ / "**" {
+    yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext());
+}
 <YYINITIAL> ^[ \t]*[#] / [^#] {
     yybegin(LISTATE);
     return newToken(Terminals.LI, "#", 1);
@@ -146,18 +147,49 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
 }
-<YYINITIAL> ^[ \t]*[|] { yypushback(yylength()); yybegin(TABLESTATE); }
-<PSTATE> ^[ \t]*[#*] { yypushback(yylength()); yybegin(LISTATE); return newToken(Terminals.END_PARA); }
-<PSTATE> ^[ \t]*[|] { yypushback(yylength()); yybegin(TABLESTATE); return newToken(Terminals.END_PARA); }
-// len >= 1:
-<PSTATE> ^([ \t]*\n)+ { yybegin(YYINITIAL); yypushback(yylength()); return newToken(Terminals.END_PARA); }
+<YYINITIAL> ^[ \t]*=+ {
+    yypushback(yylength());
+    yybegin(HEADSTATE);
+}
+<YYINITIAL> ^[ \t]*[|] {
+    yypushback(yylength());
+    yybegin(TABLESTATE);
+}
+<PSTATE> ^[ \t]*[#*] {
+    yypushback(yylength());
+    yybegin(LISTATE);
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> ^[ \t]*[|] {
+    yypushback(yylength());
+    yybegin(TABLESTATE);
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> ^([ \t]*\n)+ {
+    yybegin(YYINITIAL);
+    yypushback(yylength());
+    return newToken(Terminals.END_PARA);
+}
 <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
-<TABLESTATE> \n / [ \t]*[^|] { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
-<TABLESTATE> \n / [ \t]*[|] { return newToken(Terminals.END_ROW, null, listLevel); }
-<LISTATE> \n / [ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> \n / [ \t]*"|" { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> \n / [ \t]*[#*] { return newToken(Terminals.END_LI, null, listLevel); }
+<TABLESTATE> \n / [ \t]*[^|] {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_ROW);
+}
+<TABLESTATE> \n / [ \t]*[|] {
+    return newToken(Terminals.END_ROW, null, listLevel);
+}
+<LISTATE> \n / [ \t]*\n {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_LI);
+}
+<LISTATE> \n / [ \t]*"|" {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_LI);
+}
+<LISTATE> \n / [ \t]*[#*] {
+    return newToken(Terminals.END_LI, null, listLevel);
+}
 <TABLESTATE> ^[ \t]*"|=" { return newToken(Terminals.CELL, null, 1); }
   // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
@@ -212,7 +244,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 "~}}" { return newToken(Terminals.TEXT, "}}"); }
 "~~" { return newToken(Terminals.TEXT, "~"); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
-// TODO:  I believe that these will cause the next token to inherit the ^:
 ^[ \t]*"~"[*#=|] {
     int len = yylength();
     return newToken(Terminals.TEXT,
@@ -257,14 +288,32 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
+<HEADSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    pausingState = HEADSTATE;
+    yybegin(ESCURL);
+    return newToken(Terminals.TEXT, yytext());
+}
 // In PSTATE we write TEXT tokens until we encounter a blank line
 <PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
-<PSTATE, LISTATE, TABLESTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
-<PSTATE, LISTATE, TABLESTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "//" {
+    return newToken(Terminals.EM_TOGGLE);
+}
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "**" {
+    return newToken(Terminals.STRONG_TOGGLE);
+}
 // End PSTATE to make way for another element:
-<PSTATE> \n / ("{{{" \n) { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
-<PSTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
-<PSTATE> \n / [ \t]*----[ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.END_PARA);}
+<PSTATE> \n / ("{{{" \n) {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> \n / [ \t]*= {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> \n / [ \t]*----[ \t]*\n {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.END_PARA);
+}
 <PSTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
 
 
@@ -272,10 +321,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 \\\\ { return newToken(Terminals.HARDLINE); }
 // I am violating Creole rules here and will not honor any markup inside the
 // URL that we are linking.  I see no benefit to ever doing that.
-<YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~" (https|http|ftp):"/"{S}*{NONPUNC} { return newToken(Terminals.TEXT, yytext().substring(1)); }
-<PSTATE, LISTATE, TABLESTATE> (https|http|ftp):"/"{S}*{NONPUNC} {
-    return newToken(Terminals.URL, yytext()); }
+<YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
+    yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
+"~" (https|http|ftp):"/"{S}*{NONPUNC} {
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> (https|http|ftp):"/"{S}*{NONPUNC} {
+    return newToken(Terminals.URL, yytext());
+}
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
@@ -296,24 +351,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
             sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 
-// Misc Creole Block elements
-// (which require special characters at beginning of line)
-// These have a paired PSTATE rule above which will close a (possible PSTATE),
-// preparing for the YYINITIAL state rules here.
-<YYINITIAL> ^[ \t]*= ~ \n {
-    Matcher m = HeadingPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "Header line text doesn't match our Heading pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
-    String headerText = m.group(2);
-    int hLevel = m.group(1).length();
-    if (hLevel < 1 || hLevel > 6)
-        throw new CreoleParseException(
-                "Unexpected level for Heading command: " + yytext(),
-                yychar, yyline, yycolumn);
-    return newToken(Terminals.HEADING, headerText, hLevel);
-}
+
 <YYINITIAL> ^[ \t]*----[ \t]*\n { return newToken(Terminals.HOR); }
 
 "<<<" | ">>>" {
@@ -327,11 +365,21 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
 <LISTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
 <LISTATE> \n { }  // Ignore if last char in file
 // End LISTATE to make way for another element:
-<LISTATE> \n / ("{{{" \n) { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> \n / [ \t]*= { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
-<LISTATE> \n / [ \t]*----[ \t]*\n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI);}
+<LISTATE> \n / ("{{{" \n) {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_LI);
+}
+<LISTATE> \n / [ \t]*= {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_LI);
+}
+<LISTATE> \n / [ \t]*----[ \t]*\n {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_LI);
+}
 <LISTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
 // Would this last not defeat sending proper EOF to the parser?
+
 
 // TABLE stuff
 <TABLESTATE> "~|" { return newToken(Terminals.TEXT, "|"); }
@@ -340,7 +388,26 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.
   // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> "|" { return newToken(Terminals.CELL); }
 <TABLESTATE> . { return newToken(Terminals.TEXT, yytext()); }
-<TABLESTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
+<TABLESTATE> <<EOF>> {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.FINAL_ROW);
+}
 // I believe that the following can only be called if very last thing in file,
 // since above we have captured both "\n\s*[|]" and "\n\s*[^|]".
 <TABLESTATE> \n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
+
+
+// HEADING STUFF
+<HEADSTATE> ^[ \t]*=+ {
+    int hLevel = yytext().trim().length();
+    if (hLevel < 1 || hLevel > 6)
+        throw new CreoleParseException(
+                "Unexpected level for Heading prefix: " + yytext().trim(),
+                yychar, yyline, yycolumn);
+    return newToken(Terminals.HEADING, null, hLevel);
+}
+<HEADSTATE> (=+[ \t]*)? \n {
+    yybegin(YYINITIAL);
+    return newToken(Terminals.END_H);
+}
+<HEADSTATE> . { return newToken(Terminals.TEXT, yytext()); }

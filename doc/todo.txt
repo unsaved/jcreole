@@ -2,8 +2,6 @@ SHORT TERM
 
 Move project to Github.
 
-Allow wikitext in Headings.
-
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
