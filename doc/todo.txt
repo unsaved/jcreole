@@ -1,7 +1,5 @@
 SHORT TERM
 
-License.
-
 Move project to Github.
 
 Allow wikitext in Headings.
