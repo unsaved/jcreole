@@ -37,7 +37,7 @@ package com.admc.jcreole;
 public class CreoleParseException extends RuntimeException {
     static final long serialVersionUID = 8504782268721814533L;
 
-    private int offset, line, column;
+    private int offset = -1, line = -1, column = -1;
 
     /* I keep vacillating about whether to store 0-based offsets of 1-based
      * offsets.  Sticking with the scanner-side convention for now.
@@ -45,6 +45,16 @@ public class CreoleParseException extends RuntimeException {
     public int getOffset() { return offset; }
     public int getLine() { return line; }
     public int getColumn() { return column; }
+
+    /**
+     * Would like to eliminate this so all of these exceptions will give a
+     * good indication of point-of-failure.
+     * Unfortunately, it looks like at least when post-processing, it would
+     * add too much complexity to the parser to report on source locations.
+     */
+    public CreoleParseException(String msg) {
+        super(msg);
+    }
 
     public CreoleParseException(beaver.Parser.Exception e) {
         super(e);

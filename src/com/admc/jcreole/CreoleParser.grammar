@@ -28,8 +28,12 @@
 %import "java.util.Deque";
 %import "java.util.ArrayDeque";
 %import "java.util.Collections";
+%import "org.apache.commons.logging.Log";
+%import "org.apache.commons.logging.LogFactory";
 
 %embed {:
+    private static Log log = LogFactory.getLog(CreoleParser.class);
+
     private boolean wrote;  // Just used to write block-separating blank lines
     // TODO:  urlBase and pathBase need to be instance vars set by setter or
     //        constructor param.
@@ -48,7 +52,65 @@
             return "{" + wikiName + '/' + wikiPage + '}';
         }
     };
-    private int idCounter = 0;
+    private int lastInserterId = 0;
+    private Map<Integer, CssClassInserter> cssClassInserters
+            = new HashMap<Integer, CssClassInserter>();
+
+    private String postProcess(StringBuilder sb) {
+        sb.insert(0, "<div style=\"jcreole\">");
+        sb.append("</div>");
+        log.debug("PRE-PostProcess[" + sb + ']');
+        int offset = 0;
+        CssClassInserter inserter;
+        List<Integer> markerOffsets = new ArrayList<Integer>();
+        String idString;
+        int id;
+        int foundMarkers = 0;
+        while ((offset = sb.indexOf("\u001a", offset)) > -1) {
+            // Unfortunately StringBuilder has no indexOf(char).
+            // We could make do StringBuilder.toString().indexOf(char), but
+            // that's a pretty expensive copy operation.
+            markerOffsets.add(Integer.valueOf(offset));
+            if (sb.length() < offset + 4)
+                throw new CreoleParseException(
+                        "Marker offset too close to end of output");
+            idString = sb.substring(offset + 1, offset + 5);
+            id = Integer.parseInt(idString, 16);
+            inserter = cssClassInserters.get(Integer.valueOf(id));
+            if (inserter == null)
+                throw new IllegalStateException("Lost inserter with id " + id);
+            foundMarkers++;
+            inserter.setContext(sb, offset);
+            offset += 5;  // Move past the marker that we just found
+        }
+        List<CssClassInserter> inserters =
+                new ArrayList(cssClassInserters.values());
+        Collections.sort(inserters);
+        Collections.reverse(inserters);
+        log.warn(Integer.toString(markerOffsets.size())
+                + " markers found: " + markerOffsets);
+        log.warn(Integer.toString(inserters.size()) + " inserters sorted");
+        if (foundMarkers != inserters.size())
+            throw new IllegalStateException(
+                    "Marker/Inserter mismatch.  " + foundMarkers
+                    + " markers found, but there are " + inserters.size()
+                    + " inserters");
+        // Can not run insert() until after the inserters have been sorted.
+        if (inserters.size() > 0) {
+            StringBuilder inserterReport = new StringBuilder();
+            for (CssClassInserter ins : inserters) {
+ins.add(classz[nextOne++]);
+                if (inserterReport.length() > 0) inserterReport.append(", ");
+                inserterReport.append(ins.getIdString()
+                        + '@' + ins.getInsertionOffset());
+                ins.insert();
+            }
+            log.warn(inserterReport.toString());
+        }
+        return sb.toString();
+    }
+private String[] classz = { "alpha", "beta", "gamma", "delta", "mu", "nu", "omicron" };
+int nextOne = 0;
 
     /**
      * Assign a mapper from wiki page names to actual paths or URLs to the
@@ -150,6 +212,7 @@
                 sb.append(indent(liToken.getLevel()-1))
                         .append('<')
                         .append((liToken.getType() == '#') ? "ol" : "ul")
+                        .append(mark(true, false, true))
                         .append(">\n");
                 levelTypeMap.put(Integer.valueOf(liToken.getLevel()),
                         Character.valueOf(liToken.getType()));
@@ -173,15 +236,22 @@
                         "Illegal transition from list level "
                         + curLevel + " to " + liToken.getLevel(), liToken);
             }
-            sb.append(indent(liToken.getLevel())).append("<li>")
+            sb.append(indent(liToken.getLevel())).append("<li")
+                    .append(mark(true, false, true)).append('>')
                     .append(liToken.getContent()).append("</li>\n");
-            curLevel = liToken.getLevel();
         }
         for (int hiLevel = curLevel; hiLevel > 0; hiLevel--)
             sb.append(indent(hiLevel-1)).append("</")
                     .append((levelTypeMap.remove(Integer.valueOf(hiLevel))
                     == '#') ? "ol" : "ul").append(">\n");
         return new WashedToken(sb.toString());
+    }
+
+    private String mark(boolean blockType, boolean jcxType, boolean writeAttr) {
+        CssClassInserter cI = new CssClassInserter(++lastInserterId,
+                blockType, jcxType, writeAttr);
+        cssClassInserters.put(Integer.valueOf(lastInserterId), cI);
+        return "\u001a" + cI.getIdString();
     }
 
     /**
@@ -219,8 +289,7 @@
 
 /* The grammar */
 blocks = block.b+ {:
-            return new WashedToken("<div style=\"jcreole\">"
-                    + joinWashedTokens(_list_b) + "</div>");
+            return new WashedToken(postProcess(joinWashedTokens(_list_b)));
         :}
         |;  // This last allows for empty document
 
@@ -231,7 +300,8 @@ block = isoblock.f+ {:
             StringBuilder b = joinWashedTokens(_list_f);
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return blockToken("<p>" + b + fontCaps() + "</p>\n");
+            return blockToken("<p" + mark(true, false, true)
+                    + '>' + b + fontCaps() + "</p>\n");
         :}
         | listnest.l {: return blockToken(l.toString()); :}
         | table.t {: return blockToken(t.toString()); :}
@@ -240,12 +310,12 @@ block = isoblock.f+ {:
             StringBuilder b = joinWashedTokens(_list_f);
             //int lastI = b.length() - 1;
             //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return blockToken("<h" + hLevel + '>'
+            return blockToken("<h" + hLevel + mark(true, false, true) + '>'
                     + b + fontCaps() + "</h" + hLevel + ">\n");
         :}
         ;
 
-table = lastrow {: return new WashedToken("<table/>\n"); :}
+table = lastrow {: log.fatal("DON'T FORGET TO IMPL. SINGLE-ROW TABLES!"); return new WashedToken("<table/>\n"); :}
       | row.rs+ lastrow.lr {:
             int cols = -1;
             _list_rs.add(lr);
@@ -319,14 +389,16 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                             + bCells.length + " vs. " + isHead[k].length);
 
             StringBuilder sb = new StringBuilder(
-                    "<table class=\"jcreole_data\">\n");
+                    "<table class=\"jcreole_data")
+                    .append(mark(true, false, false)).append("\">\n");
                     // 'data' class is to distinguish from formatting tables
                     // which may be needed in the future.
             int unfilledCells;
             if (hCells != null) {
                 sb.append(indent(1)).append("<thead>");
                 for (int r = 0; r < hCells.length; r++) {
-                    sb.append('\n').append(indent(2)).append("<tr> ");
+                    sb.append('\n').append(indent(2)).append("<tr")
+                            .append(mark(true, false, true)).append("> ");
                     for (int c = 0; c < hCells[r].length; c++) {
                         sb.append("<th");
                         if (c + 1 == hCells[r].length) {
@@ -335,7 +407,8 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                                 sb.append(" colspan=\""
                                 + (1+unfilledCells) + '"');
                         }
-                        sb.append('>').append(hCells[r][c]).append("</th>");
+                        sb.append(mark(true, false, true))
+                        .append('>').append(hCells[r][c]).append("</th>");
                     }
                     sb.append(" </tr>");
                 }
@@ -346,8 +419,8 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                 for (int r = 0; r < bCells.length; r++) {
                     sb.append('\n').append(indent(2))
                         .append("<tr class=\"jcreole_")
-                        .append((r == 2 * (r/2)) ? "even" : "odd")
-                        .append("\"> ");
+                        .append((r == 2 * (r/2)) ? "even" : "odd").append('"')
+                        .append(mark(true, false, true)).append("> ");
                     for (int c = 0; c < bCells[r].length; c++) {
                         sb.append("<t").append(isHead[r][c] ? 'h' : 'd');
                         if (c + 1 == bCells[r].length) {
@@ -356,7 +429,8 @@ table = lastrow {: return new WashedToken("<table/>\n"); :}
                                 sb.append(" colspan=\""
                                 + (1+unfilledCells) + '"');
                         }
-                        sb.append('>').append(bCells[r][c]).append("</t")
+                        sb.append(mark(true, false, true))
+                        .append('>').append(bCells[r][c]).append("</t")
                                 .append(isHead[r][c] ? 'h' : 'd').append('>');
                     }
                     sb.append(" </tr>");
@@ -397,8 +471,9 @@ lastli   = liel.li inline.l+ FINAL_LI {:
 liel     = LI.listart {: return new LiToken((Token) listart); :};
 
 inline = INLINE_PRE.text {:
-            return new WashedToken("<span class=\"jcreole_pref\">"
-                    + clean(text) + "</span>");
+            return new WashedToken("<span class=\"jcreole_pref"
+                    + mark(true, false, false)
+                    + "\">" + clean(text) + "</span>");
         :}
         | PLUGIN.t {:
             return new WashedToken("<" + t + '>');
@@ -418,7 +493,7 @@ inline = INLINE_PRE.text {:
                 throw new CreoleParseException(
                         "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.EMPHASIZED);
-            return new WashedToken("<em>");
+            return new WashedToken("<em" + mark(false, false, true) + '>');
         :}
         | STRONG_TOGGLE.t {:
             Token token = (Token) t;
@@ -430,7 +505,7 @@ inline = INLINE_PRE.text {:
                 throw new CreoleParseException(
                         "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.STRONG);
-            return new WashedToken("<strong>");
+            return new WashedToken("<strong" + mark(false, false, true) + '>');
         :}
         | URL.text {:
             Token token = (Token) _symbol_text;
@@ -462,10 +537,12 @@ inline = INLINE_PRE.text {:
             } else {
                 Matcher m = LabelPattern.matcher(inLbl);
                 label = m.matches()
-                    ? ("<img src=\"" + clean(absoluteUrl(m.group(1))) + "\">")
+                    ? ("<img src=\"" + clean(absoluteUrl(m.group(1))) + '"'
+                            + mark(false, false, true) + '>')
                     : clean(inLbl);
             }
-            return new WashedToken("<a href=\"" + url + "\">" + label + "</a>");
+            return new WashedToken("<a href=\"" + url + '"'
+                    + mark(false, false, true) + '>' + label + "</a>");
         :}
         | IMAGE.text {:
             Token token = (Token) _symbol_text;
@@ -475,14 +552,16 @@ inline = INLINE_PRE.text {:
             String alt = (delimPos > -1)
                     ? clean(text.substring(delimPos + 1)) : null;
             return new WashedToken("<img src=\"" + url
-                + ((alt == null) ? "" : ("\" alt=\"" + alt)) + "\">");
+                + ((alt == null) ? "" : ("\" alt=\"" + alt)) + '"'
+                + mark(false, false, true) + '>');
         :}
         ;
 
 // These may not contain any inlines
-isoblock = HOR {: return blockToken("<hr>\n"); :}
-        | BLOCK_PRE.text {: return blockToken("<pre>\n"
-                + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+isoblock = HOR {: return blockToken("<hr" + mark(true, false, true) + ">\n"); :}
+        | BLOCK_PRE.text {:
+            return blockToken("<pre" + mark(true, false, true) + ">\n"
+                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
                 // The replace here is for allowing ^}}} inside of pref block.
                 // Spec says to do this for all " }}}", but that is
                 // unnecessarily liberal since no escaping is needed except

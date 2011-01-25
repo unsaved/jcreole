@@ -89,21 +89,24 @@
     </javac>
   </target>
 
-  <target name="scan" description="run scanner" depends="compile">
+  <target name="scan" description="run scanner" depends="compile, -run-init">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.JFlexDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <arg value="${creolepath}"/>
+      <sysproperty key="java.util.logging.config.file" value="${jul.cfgfile}"/>
     </java>
   </target>
 
-  <target name="parse" description="run Beaver parser" depends="compile">
+  <target name="parse" description="run Beaver parser"
+          depends="compile, -run-init">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java classname="com.admc.jcreole.CreoleParseDriver" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
       <arg value="${creolepath}"/>
+      <sysproperty key="java.util.logging.config.file" value="${jul.cfgfile}"/>
     </java>
   </target>
 
@@ -134,7 +137,7 @@
     </jar>
   </target>
 
-  <target name="html" description="Generate HTML" depends="stage">
+  <target name="html" description="Generate HTML" depends="stage, -run-init">
     <property name="htmlout.path" value="tmp/generated.html"/>
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
@@ -143,6 +146,7 @@
       <arg value="-o"/>
       <arg value="${htmlout.path}"/>
       <arg value="${creolepath}"/>
+      <sysproperty key="java.util.logging.config.file" value="${jul.cfgfile}"/>
     </java>
     <echo>HTML written to '${htmlout.path}'.
 If the document includes relative links, you'll need to
@@ -299,5 +303,17 @@ copy the resources accordingly.</echo>
              bottom="Apache 2.0 License">
       <link href="http://download.oracle.com/javaee/6/api/"/>
     </javadoc>
+  </target>
+
+  <target name="-run-init">
+    <property name="jul.cfgfile" value="local-jul.properties"/>
+    <available property="_julcfg.present" file="${jul.cfgfile}" type="file"/>
+    <antcall target="-condl-mkjulcfg"/>
+  </target>
+
+  <target name="-condl-mkjulcfg" unless="_julcfg.present">
+    <copy file="template-jul.properties" tofile="${jul.cfgfile}"/>
+    <echo>Local logging cfg file created.  Edit per your needs:
+    ${jul.cfgfile}</echo>
   </target>
 </project>
