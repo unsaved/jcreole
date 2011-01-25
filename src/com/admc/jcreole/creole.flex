@@ -115,8 +115,8 @@ import org.apache.commons.io.input.CharSequenceReader;
         return new CreoleScanner(new CharSequenceReader(sb));
     }
 
-    public Token plugin(String s) {
-        if (s.charAt(0) == '(')) return newToken(PLUGIN, "div");
+    private Token plug(String s) {
+        if (s.charAt(0) == '(') return newToken(Terminals.PLUGIN, "div");
         return null;
     }
 %}
@@ -368,7 +368,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment.  Must leave below the <<< match.
 "<<"{s}*[^#<] ~ ">>" {  // Must leave below the <<< match.
-    Matcher m = PluginPattern(yytext());
+    Matcher m = PluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
             "Plugin text doesn't match our Plugin pattern: \""

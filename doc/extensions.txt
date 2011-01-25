@@ -113,20 +113,22 @@ ASSIGN A CSS CLASS TO A HTML ELEMENT
 
 Define CSS styles
 
-    <<$ style line definitions...  >>  The aggregate of all <<$...>> element
-    contents will be inserted inside one
-        <style type="text/css" scoped="scoped">...</style>
-    element (preserving sequence) before the generated HTML content.
-    Using the style element "scoped" (i.e. outside of the HTML head section) is
-    out of spec for HTML before HTML 5, but it is supported by..
-    TODO:  Definitively test that this works with
-    IE6, IE7, FF3, Opera, Chrome, Konqueror.
+    (Deferred until HTML 5:
+        <<$ style line definitions...  >>  The aggregate of all <<$...>> element
+        contents will be inserted inside one
+            <style type="text/css" scoped="scoped">...</style>
+        element (preserving sequence) before the generated HTML content.)
 
     <<@ CSS file path  >>  Link elements for all <<@...>> elements will be
     inserted inside the page head (preserving sequence).
     Each link tag will be of the form
         <link rel="stylesheet type="text/css" href="..." />
-    TODO:  Definitley test this.  I have never tried scoped + standalone!
+
+    CONSIDER  Allowing CSS style coding directly in a <<?...>> tag, which we
+    would insert into a <link> element in the page head.
+    I am thinking that it would encourage consistency more to force the user to
+    upload a separate .css file and just reference that.
+    
 
 Comments
 
