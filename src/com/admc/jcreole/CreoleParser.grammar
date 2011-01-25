@@ -208,9 +208,10 @@
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, PLUGIN;
+// %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, PLUGIN_INLINE, PLUGIN_BLOCK;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, PLUGIN = "String";
 %typeof listnest = "WashedToken";
 
 %goal blocks;
@@ -397,6 +398,7 @@ inline = INLINE_PRE.text {:
             return new WashedToken("<span class=\"jcreole_pref\">"
                     + clean(text) + "</span>");
         :}
+        | PLUGIN.t+ {: return WashedToken("<" + t + '>'); :}
         | TEXT.f+ {: return mkWashedToken((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}
         // For hardline we do not write a \n.  If user wants a \n in addition

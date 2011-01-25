@@ -47,6 +47,8 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern ListLevelPattern =
             Pattern.compile("\\s*([#*]+)");
+    private static final Pattern PluginPattern =
+            Pattern.compile("<<\\s*(.+)>>");
 
     private Token newToken(short id) {
         return new Token(id, null, yychar, yyline, yycolumn);
@@ -112,11 +114,17 @@ import org.apache.commons.io.input.CharSequenceReader;
             //sb.append('\n');
         return new CreoleScanner(new CharSequenceReader(sb));
     }
+
+    public Token plugin(String s) {
+        if (s.charAt(0) == '(')) return newToken(PLUGIN, "div");
+        return null;
+    }
 %}
 
 %states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE
 
 S = [^ \t\f\n]
+s = [ \t\f\n]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 %%
 
@@ -142,7 +150,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 <LISTATE> ^[ \t]*((#+)|("*"+)) {
     Matcher m = ListLevelPattern.matcher(yytext());
-    m.matches();
+    if (!m.matches())
+        throw new CreoleParseException(
+            "List-Item-start text doesn't match our pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
     yybegin(LISTATE);
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
@@ -210,9 +221,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             + yytext() + '"', yychar, yyline, yycolumn);
     return newToken(Terminals.INLINE_PRE, m.group(1));
 }
-"<<"[^<] ~ ">>" {}  // PLUGIN: Author comment
-                    // The [^<] is an attempt to make this capture shorter
-                    // lengths than a <<<>>>.
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
 // plus to change space into nbsp and to escape table row breaks according to
@@ -357,6 +365,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 "<<<" | ">>>" {
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",
             yychar, yyline, yycolumn);
+}
+"<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment.  Must leave below the <<< match.
+"<<"{s}*[^#<] ~ ">>" {  // Must leave below the <<< match.
+    Matcher m = PluginPattern(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(
+            "Plugin text doesn't match our Plugin pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
+    Token token = plug(m.group(1));
+    if (token != null) return token;
 }
 
 

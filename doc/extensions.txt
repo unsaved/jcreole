@@ -43,13 +43,13 @@ Misc.
 -----
 
 Ids are automatically created for each heading.  (They can, of course, be
-used externally and within the page like [#autoId] or [#autoId|label].
+used externally and within the page like [#autoId] or [#autoId|label]).
 
 
 Plugin Directives by category
 -----------------------------
 
-ANGLE BRACKETS
+DIRECT HTML
 
     <<~...>> Direct HTML content.
 
