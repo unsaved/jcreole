@@ -1,5 +1,8 @@
 SHORT TERM
 
+Use a dependset or something in build file to ensure that jflex really executes
+if beaver executes.
+
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
