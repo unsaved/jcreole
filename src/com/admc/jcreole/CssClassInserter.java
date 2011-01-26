@@ -130,7 +130,7 @@ public class CssClassInserter implements Comparable<CssClassInserter> {
                      // have been shifted since setContext was called.
         targetSb.delete(insertionOffset, insertionOffset + 5);
         if (cssClasses.size() < 1) return;
-        String classesString = StringUtils.join(cssClasses.iterator(), ' ');
+        String classesString = StringUtils.join(cssClasses, ' ');
         targetSb.insert(insertionOffset, writeAttr
                 ? (" class=\"" + classesString + '\"')
                 : (" " + classesString));

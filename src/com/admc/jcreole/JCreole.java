@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -134,8 +135,8 @@ public class JCreole {
                     "Internal error.  Neither bpResPath " + "nor bpFsPath set");
         }
         JCreole jCreole = new JCreole(rawBoilerPlate);
-        String html = jCreole.generateHtmlPage(new File(inPath),
-            System.getProperty("line.separator"));
+        String html = jCreole.generateHtmlPage(
+                new File(inPath), SystemUtils.LINE_SEPARATOR);
         if (outPath == null) {
             System.out.print(html);
         } else {

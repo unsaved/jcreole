@@ -19,7 +19,6 @@
 
 %import "java.net.URL";
 %import "java.net.MalformedURLException";
-%import "org.apache.commons.lang.StringEscapeUtils";
 %import "java.util.regex.Pattern";
 %import "java.util.List";
 %import "java.util.Map";
@@ -30,6 +29,8 @@
 %import "java.util.Collections";
 %import "org.apache.commons.logging.Log";
 %import "org.apache.commons.logging.LogFactory";
+%import "org.apache.commons.lang.StringEscapeUtils";
+%import "org.apache.commons.lang.StringUtils";
 
 %embed {:
     private static Log log = LogFactory.getLog(CreoleParser.class);
@@ -259,9 +260,7 @@ int nextOne = 0;
      * Can very likely be done much more efficiently and/or elegantly.
      */
     public static String indent(int num) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < num; i++) sb.append(INDENT_STRING);
-        return sb.toString();
+        return StringUtils.repeat(INDENT_STRING, num);
     }
 
     Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
