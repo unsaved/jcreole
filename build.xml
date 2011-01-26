@@ -21,6 +21,7 @@
   <property name="javac.targetVersion" value="${javac.sourceVersion}"/>
   <property name="javac.debug" value="true"/>
   <property name="jflex.debug" value="true"/>
+  <property name="beaverlib.url" value="http://pub.admc.com/lib-repos"/>
 
   <import file="ivy-projsetup.xml" />
 
@@ -34,7 +35,7 @@
     <fail unless="beaver.available"
           message="Beaver Ant task not accessible in '${beaver.path}'"/>
     <taskdef name="beaver" classname="beaver.comp.run.AntTask"
-              classpathref="beaver.ivyrefid"/>
+             classpathref="beaver.ivyrefid"/>
   </target>
   
   <target name="-jflex-setup" description="creates JFlex Ant task"
@@ -50,7 +51,8 @@
               classpathref="jflex.ivyrefid"/>
   </target>
   
-  <target name="beaver" description="Run Beaver" depends="-beaver-setup">
+  <target name="beaver" description="Run Beaver" depends="-beaver-setup"
+          unless="_parser.java.present">
     <mkdir dir="tmp/derived-src"/>
     <!-- Unfortunately task is so careless that it returns success status no
       -  matter what.  Therefore we have to check for ourselves. -->
@@ -62,7 +64,27 @@
     <fail unless="beaver.success" message="Beaver failed"/>
   </target>
 
-  <target name="jflex" description="run JFlex" depends="beaver, -jflex-setup">
+  <target name="-condl-beaver">
+    <!-- Invokes the 'beaver' target only if it is needed.
+         Beaver doesn't do its own dependency checking like JFlex does, and will
+         rerun the parser-generator when there is no need to. -->
+    <dependset>
+      <srcfileset dir="src" excludes="**/.*"
+                  includes="com/admc/jcreole/*.grammar"/>
+    <targetfileset file="tmp/derived-src/com/admc/jcreole/CreoleParser.java"/>
+    </dependset>
+    <available property="_parser.java.present" type="file"
+               file="tmp/derived-src/com/admc/jcreole/CreoleParser.java"/>
+    <antcall target="beaver"/>
+  </target>
+
+  <target name="jflex" description="run JFlex"
+          depends="-condl-beaver, -jflex-setup">
+    <dependset>
+      <srcfileset dir="src" excludes="**/.*"
+                  includes="com/admc/jcreole/*.grammar"/>
+    <targetfileset file="tmp/derived-src/com/admc/jcreole/CreoleScanner.java"/>
+    </dependset>
     <mkdir dir="tmp/derived-src"/>
     <jflex file="src/com/admc/jcreole/creole.flex" destdir="tmp/derived-src"
            verbose="${jflex.debug}" nobak="true" />
@@ -159,7 +181,11 @@ copy the resources accordingly.</echo>
                includes="**/*.css, **/*.js, **/*.jsp, **/*.html, **/*.creole">
         <contains text="&#9;"/>
       </fileset>
-      <fileset dir="." excludes="**/.*" includes="*src/**, doc/**">
+      <fileset dir="resources" excludes="**/.*"
+               includes="**/*.css, **/*.js, **/*.jsp, **/*.html, **/*.creole">
+        <contains text="&#9;"/>
+      </fileset>
+      <fileset dir="." excludes="**/.*" includes="*src/**, test-src/**, doc/**">
         <contains text="&#9;"/>
       </fileset>
     </pathconvert>
@@ -196,25 +222,15 @@ copy the resources accordingly.</echo>
       -->
       <classpath refid="test.refid"/>
       <classpath path="classes:test-classes"/>
-      <!-- Ant provides several ways to set the classpath.  The critical thing
-           is just that the final classpath for the junit task must include
-           the junit-4.x jar file, the test classes, and all classes referred
-           to directly or indirectly by your test classes.  -->
-
       <batchtest todir="tmp/rawtestoutput">
         <fileset dir="test-classes"/>
         <formatter type="xml"/>
       </batchtest>
-      <!-- In the unlikely case that you just have a single test class,
-           use a test element like this instead of the batchtest element
-           above:   <test name='com.admc.jamama.smtp.SMTPTest'/>
-           You can nest the formatter inside it, just like batchtest.
-      -->
 
       <!-- You can use sysproperty elements to pass configuration settings
-           to your test classes, or to appplication classes they will run:
-     <sysproperty key="targetserver.test" value="mercedes"/>
-     -->
+           to your test classes, or to application classes they will run:
+      <sysproperty key="targetserver.test" value="mercedes"/>
+      -->
     </junit>
     <junitreport todir="tmp">
       <fileset dir="tmp/rawtestoutput"/>
@@ -254,6 +270,8 @@ copy the resources accordingly.</echo>
                   dir="." excludes="**/.*" includes="doc/**"/>
       <zipfileset prefix="${ant.project.name}-${version}"
                   dir="dist" excludes="**/.*" includes="apidocs/**"/>
+      <zipfileset prefix="${ant.project.name}-${version}/doc"
+                  file="README.txt"/>
     </zip>
   </target>
 
@@ -264,7 +282,8 @@ copy the resources accordingly.</echo>
          filesonly="true" whenempty="fail">
       <zipfileset prefix="${ant.project.name}-${version}"
                   dir="." excludes="**/.*" includes="
-        app.properties, boot-libs/**, build.xml, ivy*,
+        app.properties, boot-libs/**, build.xml, ivy-projsetup.xml, ivy.xml,
+        template-ivysettings.xml, README.txt, template*/**,
         resources/**, src/**, test-data/**, doc/**, *-src/**
       "/>
       <zipfileset prefix="${ant.project.name}-${version}"
@@ -274,12 +293,12 @@ copy the resources accordingly.</echo>
 
   <target name="condl-javadoc" unless="javadoc.skip"
           description="Generates the Java API if necessary">
-     <dependset>
-       <srcfileset dir="src" excludes="**/.*"/>
-       <targetfileset dir="dist/apidocs"/>
-     </dependset>
-     <available file="dist/apidocs" type="dir" property="javadoc.skip"/>
-     <antcall target="javadoc"/>
+    <dependset>
+      <srcfileset dir="src" excludes="**/.*"/>
+      <targetfileset dir="dist/apidocs"/>
+    </dependset>
+    <available file="dist/apidocs" type="dir" property="javadoc.skip"/>
+    <antcall target="javadoc"/>
   </target>
 
   <target name="javadoc" depends="jflex" unless="javadoc.skip"

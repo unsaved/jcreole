@@ -26,12 +26,12 @@
     <dependency org="beaver" name="beaver" rev="0.9.7" transitive="false"
                 conf="beaver->default">
       <artifact name="beaver" type="jar"
-             url="http://pub.admc.com/lib-repos/beaver-0.9.7.jar"/> 
+                url="${beaverlib.url}/beaver-0.9.7.jar"/> 
     </dependency>
     <dependency org="beaver" name="beaver-rt" rev="0.9.7" transitive="false"
                 conf="run,build->default">
       <artifact name="beaver-rt" type="jar"
-             url="http://pub.admc.com/lib-repos/beaver-rt-0.9.7.jar"/> 
+                url="${beaverlib.url}/beaver-rt-0.9.7.jar"/> 
     </dependency>
     <dependency org="junit" name="junit" rev="4.8.2"
                 transitive="false" conf="test->default"/>

@@ -28,5 +28,12 @@ Copy-and-paste this for any Bourne shell (inc. Bash):
 OR copy-and-paste this for any CMD-like Windows shell:
 
     SET ANT_ARGS=-lib boot-libs -noclasspath</fail>
+    <available property="_setup.present" file="ivysettings.xml" type="file"/>
+    <antcall target="-condl-mksetup"/>
+  </target>
+
+  <target name="-condl-mksetup" unless="_setup.present">
+    <copy file="template-ivysettings.xml" tofile="ivysettings.xml"/>
+    <echo message="Local ivysettings.xml file created.  Edit per your needs."/>
   </target>
 </project>
