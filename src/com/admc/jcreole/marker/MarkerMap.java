@@ -64,7 +64,7 @@ int nextOne = 0;
                     + " markers");
         // Can not run insert() until after the markers have been sorted.
         if (size() > 0) {
-            validateSetClasses(sortedMarkers);
+            validateAndSetClasses(sortedMarkers);
             // The list of markers MUST BE REVERSE SORTED before applying.
             // Applying in forward order would change buffer offsets.
             Collections.reverse(sortedMarkers);
@@ -87,7 +87,7 @@ int nextOne = 0;
      * For efficiency of the iteration, these two disparate functions are both
      * performed by this one function.
      */
-    private void validateSetClasses(List<BufferMarker> sortedMarkers) {
+    private void validateAndSetClasses(List<BufferMarker> sortedMarkers) {
         List<TagMarker> stack = new ArrayList<TagMarker>();
         TagMarker tagM;
         CloseMarker closeM;
