@@ -56,8 +56,6 @@
     };
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
-private String[] classz = { "alpha", "beta", "gamma", "delta", "mu", "nu", "omicron" };
-int nextOne = 0;
 
     /**
      * Assign a mapper from wiki page names to actual paths or URLs to the

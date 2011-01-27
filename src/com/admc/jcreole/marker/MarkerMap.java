@@ -28,6 +28,8 @@ import com.admc.jcreole.CreoleParseException;
 
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
+private String[] classz = { "alpha", "beta", "gamma", "delta", "mu", "nu", "omicron" };
+int nextOne = 0;
 
     public String apply(StringBuilder sb) {
         int offset = 0;
@@ -65,13 +67,13 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         if (size() > 0) {
             StringBuilder markerReport = new StringBuilder();
             for (BufferMarker mer : sortedMarkers) {
-//mer.add(classz[nextOne++]);
+//if (mer instanceof TagMarker) ((TagMarker) mer).add(classz[nextOne++]);
                 if (markerReport.length() > 0) markerReport.append(", ");
                 markerReport.append(mer.getIdString()
                         + '@' + mer.getOffset());
                 mer.updateBuffer();
             }
-            log.warn(markerReport.toString());
+            log.warn("MARKERS:  " + markerReport.toString());
         }
         return sb.toString();
     }
