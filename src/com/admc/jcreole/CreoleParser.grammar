@@ -380,7 +380,8 @@
             }
             sb.append('\n').append(indent(1)).append("</tbody>\n");
         }
-        return new WashedSymbol(sb.append("</table>\n").toString());
+        return new WashedSymbol(sb.append(markClose("table", true))
+                .append("</table>\n").toString());
     }
 :};
 

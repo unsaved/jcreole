@@ -112,6 +112,8 @@ int nextOne = 0;
             }
 //if (mer instanceof TagMarker) ((TagMarker) mer).add(classz[nextOne++]);
         }
-        log.debug("STACK = " + stack);
+        if (stack.size() != 0)
+            throw new CreoleParseException(
+                    "Unmatched tag(s) generated: " + stack);
     }
 }
