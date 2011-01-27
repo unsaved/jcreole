@@ -195,7 +195,7 @@
             tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                     == '#') ? "ol" : "ul";
             sb.append(indent(hiLevel-1)).append("</")
-                    .append(markClose("tagName", true))
+                    .append(markClose(tagName, true))
                     .append(tagName).append(">\n");
         }
         return new WashedToken(sb.toString());
@@ -248,7 +248,8 @@
         String tagName;
         while (fontModeStack.peekFirst() != null) {
             tagName = fontModeStack.removeFirst().toString();
-            b.append("</").append(tagName).append('>');
+            b.append("</").append(markClose(tagName, false))
+                    .append(tagName).append('>');
         }
         return b;
     }
@@ -256,6 +257,7 @@
     private static final String INDENT_STRING = "  ";
 
     public WashedToken buildTreeSymbol(List<Symbol> symList) {
+        //  PHASE 1:  Prepate cell data
         String[][] cells = new String[symList.size()][];
         int i = -1, j, cols = -1;
         for (Symbol rSym : symList) {
@@ -324,6 +326,7 @@
                         + "and row-is-head-count for row #" + (k+1) + ".  "
                         + bCells.length + " vs. " + isHead[k].length);
 
+        //  PHASE 2:  Generate HTML
         StringBuilder sb = new StringBuilder(
                 "<table class=\"jcreole_data")
                 .append(markBlock("table", false, false)).append("\">\n");
@@ -344,6 +347,7 @@
                             + (1+unfilledCells) + '"');
                     }
                     sb.append(markBlock("th", true, false))
+                    .append(markClose("th", true))
                     .append('>').append(hCells[r][c]).append("</th>");
                 }
                 sb.append(markClose("tr", true)).append(" </tr>");

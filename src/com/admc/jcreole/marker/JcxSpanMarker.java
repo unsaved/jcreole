@@ -23,6 +23,6 @@ package com.admc.jcreole.marker;
  */
 public class JcxSpanMarker extends TagMarker {
     public JcxSpanMarker(int id) {
-        super(id, "span", false);
+        super(id, "span", false, false);
     }
 }

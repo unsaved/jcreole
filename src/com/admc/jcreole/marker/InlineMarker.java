@@ -22,13 +22,8 @@ package com.admc.jcreole.marker;
  * @since 1.1
  */
 public class InlineMarker extends TagMarker {
-    private boolean atomic;
-
     public InlineMarker(
-            int id, String tagName, boolean writeAttr, boolean atomc) {
-        super(id, tagName, writeAttr);
-        this.atomic = atomic;
+            int id, String tagName, boolean writeAttr, boolean atomic) {
+        super(id, tagName, writeAttr, atomic);
     }
-
-    public boolean isAtomic() { return atomic; }
 }

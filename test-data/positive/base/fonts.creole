@@ -11,7 +11,7 @@ And should have reverted again.
 
 Repeating with italics now.  //Zebra// thing //going// on// here //.
 
-Turn on //but never
+Turn on **both //but never
 turn off.
 
 This should have reverted back to normal font.

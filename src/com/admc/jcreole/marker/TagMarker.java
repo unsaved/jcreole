@@ -31,15 +31,18 @@ abstract public class TagMarker extends BufferMarker {
     private boolean writeAttr;
     private List<String> cssClasses = new ArrayList<String>();
     private String tagName;
+    private boolean atomic;
 
     /**
      * @writeAttr  whether to write the 'class' attribute name (and = and "),
      *             as opposed to just inserting names of classes.
      */
-    public TagMarker(int id, String tagName, boolean writeAttr) {
+    public TagMarker(
+            int id, String tagName, boolean writeAttr, boolean atomic) {
         super(id);
         this.tagName = tagName;
         this.writeAttr = writeAttr;
+        this.atomic = atomic;
     }
 
     public String getTagName() {
@@ -62,4 +65,12 @@ abstract public class TagMarker extends BufferMarker {
                 ? (" class=\"" + classesString + '\"')
                 : (" " + classesString));
     }
+
+    public String toString() {
+        return getIdString() + '/'
+                + getClass().getName().replaceFirst(".*\\.", "")
+                + ':' + getTagName() + (applied ? "" : ("@" + offset));
+    }
+
+    public boolean isAtomic() { return atomic; }
 }

@@ -44,4 +44,13 @@ public class CloseMarker extends BufferMarker {
     public String getTagName() { return tagName; }
 
     public Boolean getBlockType() { return blockType; }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getIdString()).append('/');
+        if (blockType == null) sb.append("JCX");
+        else sb.append(blockType.booleanValue() ? "BLOCK" : "INLINE");
+        sb.append(':').append(getTagName());
+        if (applied) return sb.toString();
+        return sb.append('@').append(offset).toString();
+    }
 }

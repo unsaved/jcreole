@@ -33,6 +33,7 @@ abstract public class BufferMarker implements Comparable<BufferMarker> {
     private int id = -1;
     protected StringBuilder targetSb;
     public static final char markerChar = '\u001a';
+    protected boolean applied;
 
     public String toString() { return getIdString() + '@' + offset; }
 
@@ -113,6 +114,9 @@ abstract public class BufferMarker implements Comparable<BufferMarker> {
      * Some subclasses will need to do more than this to update the buffer.
      */
     public void updateBuffer() {
+        if (applied)
+            throw new IllegalStateException(
+                    "This marker already applied: " + this);
         validate();  // Rechecking since contents of the targetSb could easily
                      // have been shifted since setContext was called.
         targetSb.delete(offset, offset + 5);

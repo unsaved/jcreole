@@ -22,13 +22,8 @@ package com.admc.jcreole.marker;
  * @since 1.1
  */
 public class BlockMarker extends TagMarker {
-    private boolean atomic;
-
     public BlockMarker(
             int id, String tagName, boolean writeAttr, boolean atomic) {
-        super(id, tagName, writeAttr);
-        this.atomic = atomic;
+        super(id, tagName, writeAttr, atomic);
     }
-
-    public boolean isAtomic() { return atomic; }
 }
