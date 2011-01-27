@@ -31,12 +31,15 @@ DESIGN
     encourages generalization further to use custom class names across
     multiple pages and even multiple web sites.
 
-Definitions
+Definitions.  These special characters are used in various commands consistently
+to denote the entities attributed to them here.
 
     [ = Normal (non-JCreole) block HTML tag (like H1, DIV)
-    < = Normal (non-JCreole) inline HTML tag (like I, SPAN)
-    ( = JCX block tag:  <div class="jcx...
-    { = JCX inline tag:  <span class="jcx...
+    ( = Normal (non-JCreole) inline HTML tag (like I, SPAN)
+    { = JCX-created SPAN tag:  <span class="jcx...
+
+    As an example, the Styler command "<<+(className>>" operates on the next
+    normal inline HTML tag.
 
 
 Misc.
@@ -44,6 +47,8 @@ Misc.
 
 Ids are automatically created for each heading.  (They can, of course, be
 used externally and within the page like [#autoId] or [#autoId|label]).
+A map is stored internally so that the default label for "[@autoId]" is the
+text in that label (scraped of markup).
 
 
 Plugin Directives by category
@@ -61,17 +66,15 @@ DIRECT HTML
     depending on server-side technology integration, even server-side
     scripting).
 
-    BEWARE that inside of <<~!...>>, you are responsible for the consquences of
+    BEWARE that inside of <<~...>>, you are responsible for the consquences of
     missing the very strict requirements of CSS, HTML, JavaScript, or whatever
     you code in there.
 
 
 CREATE ELEMENTS
 
-    <<(>>  Open a new JCX block element with '<div class="jcx">'.
-    <<)>>  Close the previously opened div with '</div>'.
-    <<{>>  Open a new JCX inline element with '<span class="jcx">'.
-    <<}>>  Close the previously opened span with '</span>.
+    <<{>>  Open a new JCX SPAN element with '<span class="jcx">'.
+    <<}>>  Close the previously opened SPAN with '</span>.
 
     You should obviously always pair <<(>>...<<)>> and <<{>>...<<}>>.
 
@@ -80,36 +83,30 @@ ASSIGN A CSS CLASS TO A HTML ELEMENT
 
     <<=[className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<=<className>>
-        Add CSS class to the immediate containing non-JCX inline element.
     <<=(className>>
-        Add CSS class to the immediate containing JCX block element.
+        Add CSS class to the immediate containing non-JCX inline element.
     <<={className>>
-        Add CSS class to the immediate containing JCX inline element.
+        Add CSS class to the immediate containing JCX SPAN element.
 
     Same as above, but with "-" instead of "=".  Target the preceding closed
     element instead of the immediate containing element:
 
     <<-[className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<-<className>>
-        Add CSS class to the immediate containing non-JCX inline element.
     <<-(className>>
-        Add CSS class to the immediate containing JCX block element.
+        Add CSS class to the immediate containing non-JCX inline element.
     <<-{className>>
-        Add CSS class to the immediate containing JCX inline element.
+        Add CSS class to the immediate containing JCX SPAN element.
 
     Same as above, but with "+".  Target the next
     element instead of the immediate containing element:
 
     <<+[className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<+<className>>
-        Add CSS class to the immediate containing non-JCX inline element.
     <<+(className>>
-        Add CSS class to the immediate containing JCX block element.
+        Add CSS class to the immediate containing non-JCX inline element.
     <<+{className>>
-        Add CSS class to the immediate containing JCX inline element.
+        Add CSS class to the immediate containing JCX SPAN element.
 
 Define CSS styles
 
