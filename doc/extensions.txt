@@ -2,9 +2,9 @@ JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
 
 ****************************************************************************
-***   THESE FEATURES ARE NOT IMPLEMENTED YET!!!!
+***   SOME FEATURES DESCRIBED HAVE BEEN IMPLEMENTED AND SOME HAVE NOT!
+***   Every item not implemented is prefixed with "Coming Soon!".
 ****************************************************************************
-Coming soon!
 
 Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
 
@@ -60,7 +60,7 @@ Plugin Directives by category
 In every case, white space (including newlines) is permitted between the opening
 "<<" and the first non-whitespace character.
 
-DIRECT HTML
+Coming Soon!  DIRECT HTML
 
     <<~...>> Direct HTML content.
 
@@ -119,7 +119,7 @@ STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
         //emphasized **strong** closing// <<-(aName)
     the name applies to the last incline CLOSED, which is <em> for the //.
 
-Define CSS styles
+Coming Soon!  Define CSS styles
 
     (Deferred until HTML 5:
         <<$ style line definitions...  >>  The aggregate of all <<$...>> element
@@ -145,16 +145,16 @@ Comments
     These contents will be entirely stripped.  I.e. they will not be visible as
     HTML comments, or in any other way, in the generated HTML.
 
-    <<! HTML comments... >>
+    Coming Soon!  <<! HTML comments... >>
     Your comment text may not include the strings "--" or ">>".
     These will not be visible as HTML comments in the generated HTML.
 
-TOC
+Coming Soon!  TOC
 
     <<^>>
     (The character "^" is tentative.  Accepting suggestions.).
     Insert a little TOC table or list, with hyperlinks to all headings.
 
-UNDER CONSIDERATION
+Coming Maybe.  UNDER CONSIDERATION
     <<:IntraWikiLink>>
     Because plain IntraWikiLink is too susceptible to false positives.
