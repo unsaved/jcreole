@@ -1,0 +1,11 @@
+<<=[para1a>> <<+[para2>>
+
+Some words in <<-[para1b>><<+[horizont>>para2.
+----
+===Table heading here<<=[tableHead>><<+[tableProper>>
+|=header1|=header2
+|<<+[r1c2>>row1col1|row1col2
+|row2col1|row2col2<<+[thelist>>
+* item 1<<=[theitem>><<+[the2nditem>>
+*item 2<<+[ol>>
+##something nested

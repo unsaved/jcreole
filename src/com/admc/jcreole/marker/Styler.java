@@ -30,7 +30,7 @@ import com.admc.jcreole.TagType;
  */
 public class Styler extends BufferMarker {
     private static final Pattern CssNamePattern =
-            Pattern.compile("[a-z][a-zA-Z_][-\\w]*");
+            Pattern.compile("[a-zA-Z_][-\\w]*");
     enum Direction { PREVIOUS, CONTAINER, NEXT }
 
     protected String className;

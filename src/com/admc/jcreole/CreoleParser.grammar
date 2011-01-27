@@ -44,7 +44,7 @@
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
-            "\\s*([-+=])\\s*([\\[({])\\s*([a-z][a-zA-Z_][-\\w]*)\\s*");
+            "\\s*([-+=])\\s*([\\[({])\\s*([a-zA-Z_][-\\w]*)\\s*");
     private String urlBase;
     private String pathBase;
     // Following is just for testing.
@@ -424,8 +424,9 @@ block = isoblock.f+ {:
             //int lastI = b.length() - 1;
             //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return blockToken("<h" + hLevel
-                    + markBlock("h" + hLevel, true, true) + '>'
-                    + b + fontCaps() + "</h" + hLevel + ">\n");
+                    + markBlock("h" + hLevel, true, false) + '>'
+                    + b + fontCaps() + markClose("h" + hLevel, true)
+                    + "</h" + hLevel + ">\n");
         :}
         ;
 
@@ -564,7 +565,7 @@ inline = INLINE_PRE.text {:
                 throw new CreoleParseException("Malformatted Style "
                         + "specification: " + text);
             Styler styler = new Styler(++lastMarkerId, m.group(3),
-                    m.group(1).charAt(0), m.group(2).charAt(1));
+                    m.group(1).charAt(0), m.group(2).charAt(0));
             markers.put(Integer.valueOf(lastMarkerId), styler);
             return new WashedSymbol(styler.getMarkerString());
         :}

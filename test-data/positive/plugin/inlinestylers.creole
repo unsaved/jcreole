@@ -16,3 +16,7 @@ post1 <<+(post1>> and <<+(post2>>post2.
 Do-nothing paragraph, just to intercede.
 
 Finally our ** bold and // italic paragraph.
+
+|**<<=(r1c1>><<+(r3c2>>row1col1|row1col2|row1col3
+|row2col1|row2col2|row2col3
+|row3col1|**row3**col2|row3col3
