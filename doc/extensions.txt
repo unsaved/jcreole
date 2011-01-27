@@ -40,6 +40,9 @@ to denote the entities attributed to them here.
 
     As an example, the Styler command "<<+(className>>" operates on the next
     normal inline HTML tag.
+    Combining this concept with -/=/+ for previous/current/next, we get, for
+    example "-[" meaning the previous block tag, and "+{" meaning the next JCX
+    tag.
 
 
 Misc.

@@ -43,6 +43,8 @@
     private static Pattern ImgAsLabelPattern =
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
+    private static Pattern StylerPattern = Pattern.compile(
+            "\\s*([-+=])\\s*([\\[({])\\s*([a-z][a-zA-Z_][-\\w]*)\\s*");
     private String urlBase;
     private String pathBase;
     // Following is just for testing.
@@ -387,9 +389,9 @@
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN, STYLER;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -555,6 +557,16 @@ inline = INLINE_PRE.text {:
             return new WashedSymbol("<img src=\"" + url
                 + ((alt == null) ? "" : ("\" alt=\"" + alt)) + '"'
                 + markInline("img", true, true) + '>');
+        :}
+        | STYLER.text {:
+            Matcher m = StylerPattern.matcher(text);
+            if (!m.matches())
+                throw new CreoleParseException("Malformatted Style "
+                        + "specification: " + text);
+            Styler styler = new Styler(++lastMarkerId, m.group(3),
+                    m.group(1).charAt(0), m.group(2).charAt(1));
+            markers.put(Integer.valueOf(lastMarkerId), styler);
+            return new WashedSymbol(styler.getMarkerString());
         :}
         ;
 

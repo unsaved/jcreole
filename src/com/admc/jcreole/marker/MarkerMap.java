@@ -168,7 +168,12 @@ int nextOne = 0;
                 lastTag = (stack.size() > 0) ? stack.get(stack.size()-1) : null;
                 // Validate tag name
                 if (lastTag == null
-                        || !lastTag.getTagName().equals(closeM.getTagName()))
+                        || (lastTag.getTagName() == null
+                            && closeM.getTagName() != null)
+                        || (lastTag.getTagName() != null
+                            && closeM.getTagName() == null)
+                        || (lastTag.getTagName() != null
+                        && !lastTag.getTagName().equals(closeM.getTagName())))
                     throw new CreoleParseException(
                             "Tangled tag nesting.  No matching open tag name "
                             + "for close of " + closeM + ".  Last open tag is "

@@ -375,17 +375,14 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yychar, yyline, yycolumn);
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment.  Must leave below the <<< match.
-/*
-"<<"{s}*[^#<] ~ ">>" {  // Must leave below the <<< match.
+"<<"{s}*[-=+]{s}*[\[({] ~ ">>" {  // Must leave below the <<< match.
     Matcher m = PluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "Plugin text doesn't match our Plugin pattern: \""
+            "Styler Plugin text doesn't match our Styler Plugin pattern: \""
             + yytext() + '"', yychar, yyline, yycolumn);
-    Token token = plug(m.group(1));
-    if (token != null) return token;
+    return newToken(Terminals.STYLER, m.group(1));
 }
-*/
 
 
 // LISTATE stuff

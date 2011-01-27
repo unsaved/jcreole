@@ -37,8 +37,8 @@ public class Styler extends BufferMarker {
     protected Direction targetDirection;
     protected TagType targetType;
 
-    public Styler(int id, String newClassName,
-            Direction direction, char tagTypeChar) {
+    public Styler(
+            int id, String newClassName, char directionChar, char tagTypeChar) {
         super(id);
         if (newClassName == null)
             throw new NullPointerException(
@@ -48,7 +48,21 @@ public class Styler extends BufferMarker {
             throw new CreoleParseException(
                     "Illegal class name: " + newClassName);
         this.className = newClassName;
-        this.targetDirection = direction;
+        switch (directionChar) {
+          case '-':
+            targetDirection = Direction.PREVIOUS;
+            break;
+          case '=':
+            targetDirection = Direction.CONTAINER;
+            break;
+          case '+':
+            targetDirection = Direction.NEXT;
+            break;
+          default:
+            throw new CreoleParseException(
+                    "Unexpected target direction specifier character: "
+                    + directionChar);
+        }
         switch (tagTypeChar) {
           case '(':
             targetType = TagType.INLINE;
