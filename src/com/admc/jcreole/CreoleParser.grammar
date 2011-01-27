@@ -58,8 +58,8 @@
             = new HashMap<Integer, CssClassInserter>();
 
     private String postProcess(StringBuilder sb) {
-        sb.insert(0, "<div style=\"jcreole\">");
-        sb.append("</div>");
+        sb.insert(0, "<div style=\"jcreole\">\n");
+        sb.append("</div>\n");
         log.debug("PRE-PostProcess[" + sb + ']');
         int offset = 0;
         CssClassInserter inserter;
@@ -100,7 +100,7 @@
         if (inserters.size() > 0) {
             StringBuilder inserterReport = new StringBuilder();
             for (CssClassInserter ins : inserters) {
-ins.add(classz[nextOne++]);
+//ins.add(classz[nextOne++]);
                 if (inserterReport.length() > 0) inserterReport.append(", ");
                 inserterReport.append(ins.getIdString()
                         + '@' + ins.getInsertionOffset());
@@ -240,6 +240,7 @@ int nextOne = 0;
             sb.append(indent(liToken.getLevel())).append("<li")
                     .append(mark(true, false, true)).append('>')
                     .append(liToken.getContent()).append("</li>\n");
+            curLevel = liToken.getLevel();
         }
         for (int hiLevel = curLevel; hiLevel > 0; hiLevel--)
             sb.append(indent(hiLevel-1)).append("</")
@@ -274,6 +275,127 @@ int nextOne = 0;
     }
 
     private static final String INDENT_STRING = "  ";
+
+    public WashedToken buildTreeSymbol(List<Symbol> symList) {
+        String[][] cells = new String[symList.size()][];
+        int i = -1, j, cols = -1;
+        for (Symbol rSym : symList) {
+            cells[++i] = new String[((List) rSym.value).size()];
+            if (cells[i].length > cols) cols = cells[i].length;
+            j = -1;
+            for (Symbol cTok : (ArrayList<WashedToken>) rSym.value)
+                cells[i][++j] = cTok.toString();
+        }
+
+        // Purposefully not supporting HTML tfoot element, because it's
+        // pretty much impossible for it to degrade for non-supporting
+        /// browsers.
+        // Now break down cells into hCells + bCells (head/body)
+        // + bCellIsHead.
+        List<String[]> hCellList = null;
+        List<String[]> bCellList = null;
+        List<boolean[]> bCellIsHead = new ArrayList<boolean[]>();
+        boolean[] ih;
+        int headCount;
+        for (int r = 0; r < cells.length; r++) {
+            ih = new boolean[cells[r].length];
+            headCount = 0;
+            for (int c = 0; c < cells[r].length; c++)
+                if (cells[r][c].length() > 0
+                        && cells[r][c].charAt(0) == '\u0001') {
+                    headCount++;
+                    cells[r][c] = cells[r][c].substring(1);
+                    ih[c] = true;
+                }
+            if (headCount == cells[r].length) {
+                // All cells in this row are Headings.  Prefer hCells.
+                if (bCellList == null) {
+                    if (hCellList == null)
+                        hCellList = new ArrayList<String[]>();
+                    hCellList.add(cells[r]);
+                } else {
+                    bCellList.add(cells[r]);
+                    bCellIsHead.add(ih);
+                }
+            } else {
+                // All cells in this row are not Headings.  Require bCells.
+                if (bCellList == null)
+                    bCellList = new ArrayList<String[]>();
+                bCellList.add(cells[r]);
+                bCellIsHead.add(ih);
+            }
+        }
+        if (bCellList != null && bCellList.size() != bCellIsHead.size())
+            throw new RuntimeException(
+                    "Internal Error.  Mismatch between body row count and "
+                    + "body-cell-is-head-count.  " + bCellList.size()
+                    + " vs. " + bCellIsHead.size());
+        // We have parallel lists that we want to iterate through with
+        // index.  This is done more simply with native arrays than lists.
+        String[][] hCells = (hCellList == null)
+                ? null : hCellList.toArray(new String[0][]);
+        String[][] bCells = (bCellList == null)
+                ? null : bCellList.toArray(new String[0][]);
+        boolean[][] isHead = (bCellIsHead == null)
+                ? null : bCellIsHead.toArray(new boolean[0][]);
+        if (isHead != null) for (int k = 0; k < isHead.length; k++)
+            if (isHead[k].length != bCells[k].length)
+                throw new RuntimeException(
+                        "Internal Error.  Mismatch between row cell count "
+                        + "and row-is-head-count for row #" + (k+1) + ".  "
+                        + bCells.length + " vs. " + isHead[k].length);
+
+        StringBuilder sb = new StringBuilder(
+                "<table class=\"jcreole_data")
+                .append(mark(true, false, false)).append("\">\n");
+                // 'data' class is to distinguish from formatting tables
+                // which may be needed in the future.
+        int unfilledCells;
+        if (hCells != null) {
+            sb.append(indent(1)).append("<thead>");
+            for (int r = 0; r < hCells.length; r++) {
+                sb.append('\n').append(indent(2)).append("<tr")
+                        .append(mark(true, false, true)).append("> ");
+                for (int c = 0; c < hCells[r].length; c++) {
+                    sb.append("<th");
+                    if (c + 1 == hCells[r].length) {
+                        unfilledCells = cols - hCells[r].length;
+                        if (unfilledCells > 0)
+                            sb.append(" colspan=\""
+                            + (1+unfilledCells) + '"');
+                    }
+                    sb.append(mark(true, false, true))
+                    .append('>').append(hCells[r][c]).append("</th>");
+                }
+                sb.append(" </tr>");
+            }
+            sb.append('\n').append(indent(1)).append("</thead>\n");
+        }
+        if (bCells != null) {
+            sb.append(indent(1)).append("<tbody>");
+            for (int r = 0; r < bCells.length; r++) {
+                sb.append('\n').append(indent(2))
+                    .append("<tr class=\"jcreole_")
+                    .append((r == 2 * (r/2)) ? "even" : "odd").append('"')
+                    .append(mark(true, false, true)).append("> ");
+                for (int c = 0; c < bCells[r].length; c++) {
+                    sb.append("<t").append(isHead[r][c] ? 'h' : 'd');
+                    if (c + 1 == bCells[r].length) {
+                        unfilledCells = cols - bCells[r].length;
+                        if (unfilledCells > 0)
+                            sb.append(" colspan=\""
+                            + (1+unfilledCells) + '"');
+                    }
+                    sb.append(mark(true, false, true))
+                    .append('>').append(bCells[r][c]).append("</t")
+                            .append(isHead[r][c] ? 'h' : 'd').append('>');
+                }
+                sb.append(" </tr>");
+            }
+            sb.append('\n').append(indent(1)).append("</tbody>\n");
+        }
+        return new WashedToken(sb.append("</table>\n").toString());
+    }
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
@@ -314,129 +436,12 @@ block = isoblock.f+ {:
         :}
         ;
 
-table = lastrow {: log.fatal("DON'T FORGET TO IMPL. SINGLE-ROW TABLES!"); return new WashedToken("<table/>\n"); :}
+table = lastrow.lr {:
+            return buildTreeSymbol(Collections.singletonList(lr));
+        :}
       | row.rs+ lastrow.lr {:
-            int cols = -1;
             _list_rs.add(lr);
-            String[][] cells = new String[_list_rs.size()][];
-            int i = -1, j;
-            for (Symbol rSym : (List<Symbol>) _list_rs) {
-                cells[++i] = new String[((List) rSym.value).size()];
-                if (cells[i].length > cols)
-                    cols = cells[i].length;
-                j = -1;
-                for (Symbol cTok : (ArrayList<WashedToken>) rSym.value)
-                    cells[i][++j] = cTok.toString();
-            }
-
-            // Purposefully not supporting HTML tfoot element, because it's
-            // pretty much impossible for it to degrade for non-supporting
-            /// browsers.
-            // Now break down cells into hCells + bCells (head/body)
-            // + bCellIsHead.
-            List<String[]> hCellList = null;
-            List<String[]> bCellList = null;
-            List<boolean[]> bCellIsHead = new ArrayList<boolean[]>();
-            boolean[] ih;
-            int headCount;
-            for (int r = 0; r < cells.length; r++) {
-                ih = new boolean[cells[r].length];
-                headCount = 0;
-                for (int c = 0; c < cells[r].length; c++)
-                    if (cells[r][c].length() > 0
-                            && cells[r][c].charAt(0) == '\u0001') {
-                        headCount++;
-                        cells[r][c] = cells[r][c].substring(1);
-                        ih[c] = true;
-                    }
-                if (headCount == cells[r].length) {
-                    // All cells in this row are Headings.  Prefer hCells.
-                    if (bCellList == null) {
-                        if (hCellList == null)
-                            hCellList = new ArrayList<String[]>();
-                        hCellList.add(cells[r]);
-                    } else {
-                        bCellList.add(cells[r]);
-                        bCellIsHead.add(ih);
-                    }
-                } else {
-                    // All cells in this row are not Headings.  Require bCells.
-                    if (bCellList == null)
-                        bCellList = new ArrayList<String[]>();
-                    bCellList.add(cells[r]);
-                    bCellIsHead.add(ih);
-                }
-            }
-            if (bCellList != null && bCellList.size() != bCellIsHead.size())
-                throw new RuntimeException(
-                        "Internal Error.  Mismatch between body row count and "
-                        + "body-cell-is-head-count.  " + bCellList.size()
-                        + " vs. " + bCellIsHead.size());
-            // We have parallel lists that we want to iterate through with
-            // index.  This is done more simply with native arrays than lists.
-            String[][] hCells = (hCellList == null)
-                    ? null : hCellList.toArray(new String[0][]);
-            String[][] bCells = (bCellList == null)
-                    ? null : bCellList.toArray(new String[0][]);
-            boolean[][] isHead = (bCellIsHead == null)
-                    ? null : bCellIsHead.toArray(new boolean[0][]);
-            if (isHead != null) for (int k = 0; k < isHead.length; k++)
-                if (isHead[k].length != bCells[k].length)
-                    throw new RuntimeException(
-                            "Internal Error.  Mismatch between row cell count "
-                            + "and row-is-head-count for row #" + (k+1) + ".  "
-                            + bCells.length + " vs. " + isHead[k].length);
-
-            StringBuilder sb = new StringBuilder(
-                    "<table class=\"jcreole_data")
-                    .append(mark(true, false, false)).append("\">\n");
-                    // 'data' class is to distinguish from formatting tables
-                    // which may be needed in the future.
-            int unfilledCells;
-            if (hCells != null) {
-                sb.append(indent(1)).append("<thead>");
-                for (int r = 0; r < hCells.length; r++) {
-                    sb.append('\n').append(indent(2)).append("<tr")
-                            .append(mark(true, false, true)).append("> ");
-                    for (int c = 0; c < hCells[r].length; c++) {
-                        sb.append("<th");
-                        if (c + 1 == hCells[r].length) {
-                            unfilledCells = cols - hCells[r].length;
-                            if (unfilledCells > 0)
-                                sb.append(" colspan=\""
-                                + (1+unfilledCells) + '"');
-                        }
-                        sb.append(mark(true, false, true))
-                        .append('>').append(hCells[r][c]).append("</th>");
-                    }
-                    sb.append(" </tr>");
-                }
-                sb.append('\n').append(indent(1)).append("</thead>\n");
-            }
-            if (bCells != null) {
-                sb.append(indent(1)).append("<tbody>");
-                for (int r = 0; r < bCells.length; r++) {
-                    sb.append('\n').append(indent(2))
-                        .append("<tr class=\"jcreole_")
-                        .append((r == 2 * (r/2)) ? "even" : "odd").append('"')
-                        .append(mark(true, false, true)).append("> ");
-                    for (int c = 0; c < bCells[r].length; c++) {
-                        sb.append("<t").append(isHead[r][c] ? 'h' : 'd');
-                        if (c + 1 == bCells[r].length) {
-                            unfilledCells = cols - bCells[r].length;
-                            if (unfilledCells > 0)
-                                sb.append(" colspan=\""
-                                + (1+unfilledCells) + '"');
-                        }
-                        sb.append(mark(true, false, true))
-                        .append('>').append(bCells[r][c]).append("</t")
-                                .append(isHead[r][c] ? 'h' : 'd').append('>');
-                    }
-                    sb.append(" </tr>");
-                }
-                sb.append('\n').append(indent(1)).append("</tbody>\n");
-            }
-            return new WashedToken(sb.append("</table>\n").toString());
+            return buildTreeSymbol((List<Symbol>) _list_rs);
         :}
       ;
 
