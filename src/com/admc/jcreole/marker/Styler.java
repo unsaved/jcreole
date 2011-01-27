@@ -20,6 +20,7 @@ package com.admc.jcreole.marker;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import com.admc.jcreole.CreoleParseException;
+import com.admc.jcreole.TagType;
 
 /**
  * Adds CSS class to HTML tags in the output buffer.
@@ -30,12 +31,14 @@ import com.admc.jcreole.CreoleParseException;
 public class Styler extends BufferMarker {
     private static final Pattern CssNamePattern =
             Pattern.compile("[a-z][a-zA-Z_][-\\w]*");
-    enum TargetDirection { PREVIOUS, CONTAINER, NEXT }
+    enum Direction { PREVIOUS, CONTAINER, NEXT }
 
     protected String className;
-    protected TargetDirection targetDirection;
+    protected Direction targetDirection;
+    protected TagType targetType;
 
-    public Styler(int id, String newClassName, TargetDirection direction) {
+    public Styler(int id, String newClassName,
+            Direction direction, char tagTypeChar) {
         super(id);
         if (newClassName == null)
             throw new NullPointerException(
@@ -46,5 +49,23 @@ public class Styler extends BufferMarker {
                     "Illegal class name: " + newClassName);
         this.className = newClassName;
         this.targetDirection = direction;
+        switch (tagTypeChar) {
+          case '(':
+            targetType = TagType.INLINE;
+            break;
+          case '[':
+            targetType = TagType.BLOCK;
+            break;
+          case '{':
+            targetType = TagType.JCX;
+            break;
+          default:
+            throw new CreoleParseException(
+                    "Unexpected tag type specifier character: " + tagTypeChar);
+        }
     }
+
+    public String getClassName() { return className; }
+    public Direction getTargetDirection() { return targetDirection; }
+    public TagType getTargetType() { return targetType; }
 }

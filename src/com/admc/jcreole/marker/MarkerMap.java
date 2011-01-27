@@ -25,6 +25,7 @@ import java.util.Collections;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.admc.jcreole.CreoleParseException;
+import com.admc.jcreole.TagType;
 
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
@@ -93,7 +94,7 @@ int nextOne = 0;
         List<String> queuedJcxClassNames = new ArrayList<String>();
         List<String> queuedBlockClassNames = new ArrayList<String>();
         List<String> queuedInlineClassNames = new ArrayList<String>();
-        List<String> queueToEmpty = null;
+        List<String> typedQueue = null;
         CloseMarker closeM;
         TagMarker lastTag, tagM;
         List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
@@ -148,19 +149,19 @@ int nextOne = 0;
                 }
                 if (tagM instanceof JcxSpanMarker) {
                     if (queuedJcxClassNames.size() > 0)
-                        queueToEmpty = queuedJcxClassNames;
+                        typedQueue = queuedJcxClassNames;
                 } else if (tagM instanceof BlockMarker) {
                     if (queuedBlockClassNames.size() > 0)
-                        queueToEmpty = queuedBlockClassNames;
+                        typedQueue = queuedBlockClassNames;
                 } else if (tagM instanceof InlineMarker) {
                     if (queuedInlineClassNames.size() > 0)
-                        queueToEmpty = queuedInlineClassNames;
+                        typedQueue = queuedInlineClassNames;
                 } else {
-                    queueToEmpty = null;
+                    typedQueue = null;
                 }
-                if (queueToEmpty != null) {
-                    for (String className : queueToEmpty) tagM.add(className);
-                    queueToEmpty.clear();
+                if (typedQueue != null) {
+                    for (String className : typedQueue) tagM.add(className);
+                    typedQueue.clear();
                 }
             } else if (m instanceof CloseMarker) {
                 closeM = (CloseMarker) m;
@@ -216,7 +217,76 @@ int nextOne = 0;
                 typedStack.remove(typedStack.size()-1);
                 stack.remove(stack.size()-1);
             } else if (m instanceof Styler) {
-                ; //if (m instanceof TagMarker) ((TagMarker) m).add(classz[nextOne++]);
+                Styler styler = (Styler) m;
+                TagType targetType = styler.getTargetType();
+                String className = styler.getClassName();
+                // Get this validation over with so rest of this block can
+                // assume targetType is an instance of one of these types.
+                switch (targetType) {
+                  case INLINE:
+                  case BLOCK:
+                  case JCX:
+                    break;
+                  default:
+                    throw new RuntimeException(
+                            "Unexpected tag type value: " + targetType);
+                }
+                TagMarker targetTag = null;
+                switch (styler.getTargetDirection()) {
+                  case PREVIOUS:
+                    switch (targetType) {
+                      case INLINE:
+                        targetTag = prevInline;
+                        break;
+                      case BLOCK:
+                        targetTag = prevBlock;
+                        break;
+                      case JCX:
+                        targetTag = prevJcx;
+                        break;
+                    }
+                    if (targetTag == null)
+                        throw new CreoleParseException(
+                                "No previous " + targetType
+                                + " tag for Styler " + styler);
+                    break;
+                  case CONTAINER:
+                    switch (targetType) {
+                      case INLINE:
+                        typedStack = inlineStack;
+                        break;
+                      case BLOCK:
+                        typedStack = blockStack;
+                        break;
+                      case JCX:
+                        typedStack = jcxStack;
+                        break;
+                    }
+                    if (typedStack.size() < 1)
+                        throw new CreoleParseException(
+                                "No parent " + targetType
+                                + " container for Styler " + styler);
+                    targetTag = typedStack.get(typedStack.size()-1);
+                    break;
+                  case NEXT:
+                    switch (targetType) {
+                      case INLINE:
+                        typedQueue = queuedJcxClassNames;
+                        break;
+                      case BLOCK:
+                        typedQueue = queuedBlockClassNames;
+                        break;
+                      case JCX:
+                        typedQueue = queuedInlineClassNames;
+                        break;
+                    }
+                    typedQueue.add(className);
+                    break;
+                  default:
+                    throw new RuntimeException("Unexpected direction value: "
+                            + styler.getTargetDirection());
+                }
+                if (targetTag != null) targetTag.add(className);
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "
