@@ -58,7 +58,7 @@
             = new HashMap<Integer, CssClassInserter>();
 
     private String postProcess(StringBuilder sb) {
-        sb.insert(0, "<div style=\"jcreole\">\n");
+        sb.insert(0, "<div class=\"jcreole\">\n");
         sb.append("</div>\n");
         log.debug("PRE-PostProcess[" + sb + ']');
         int offset = 0;
@@ -400,10 +400,9 @@ int nextOne = 0;
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, PLUGIN;
-// %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, PLUGIN_INLINE, PLUGIN_BLOCK;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, PLUGIN = "String";
+%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
 %typeof listnest = "WashedToken";
 
 %goal blocks;
@@ -479,8 +478,12 @@ inline = INLINE_PRE.text {:
                     + mark(true, false, false)
                     + "\">" + clean(text) + "</span>");
         :}
-        | PLUGIN.t {:
-            return new WashedToken("<" + t + '>');
+        | SPAN {:
+            return new WashedToken("<span class=\"jcx"
+                    + mark(false, true, false) + "\">");
+        :}
+        | END_SPAN {:
+            return new WashedToken("</span>");
         :}
         | TEXT.f+ {: return mkWashedToken((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedToken("&nbsp;"); :}

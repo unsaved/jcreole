@@ -54,6 +54,9 @@ text in that label (scraped of markup).
 Plugin Directives by category
 -----------------------------
 
+In every case, white space (including newlines) is permitted between the opening
+"<<" and the first non-whitespace character.
+
 DIRECT HTML
 
     <<~...>> Direct HTML content.
@@ -79,7 +82,7 @@ CREATE ELEMENTS
     You should obviously always pair <<(>>...<<)>> and <<{>>...<<}>>.
 
 
-ASSIGN A CSS CLASS TO A HTML ELEMENT
+STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
 
     <<=[className>>
         Add CSS class to the immediate containing non-JCX block element.

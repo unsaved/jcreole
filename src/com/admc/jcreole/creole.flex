@@ -114,11 +114,6 @@ import org.apache.commons.io.input.CharSequenceReader;
             //sb.append('\n');
         return new CreoleScanner(new CharSequenceReader(sb));
     }
-
-    private Token plug(String s) {
-        if (s.charAt(0) == '(') return newToken(Terminals.PLUGIN, "div");
-        return null;
-    }
 %}
 
 %states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE
@@ -250,6 +245,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 "~\\\\" { return newToken(Terminals.TEXT, "\\\\"); }
 "~{{" { return newToken(Terminals.TEXT, "{{"); }
 "~}}" { return newToken(Terminals.TEXT, "}}"); }
+"~<<" { return newToken(Terminals.TEXT, "<<"); } // Mine.  Esc both << and <<<
 "~~" { return newToken(Terminals.TEXT, "~"); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 ^[ \t]*"~"[*#=|] {
@@ -339,6 +335,18 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <PSTATE, LISTATE, TABLESTATE, HEADSTATE> (https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.URL, yytext());
 }
+<YYINITIAL> ^ (https|http|ftp):"/"{S}*{NONPUNC} {
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
+    return newToken((yytext().indexOf('{') < 0)
+            ? Terminals.END_SPAN : Terminals.SPAN);
+}
+<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
@@ -367,6 +375,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yychar, yyline, yycolumn);
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment.  Must leave below the <<< match.
+/*
 "<<"{s}*[^#<] ~ ">>" {  // Must leave below the <<< match.
     Matcher m = PluginPattern.matcher(yytext());
     if (!m.matches())
@@ -376,6 +385,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     Token token = plug(m.group(1));
     if (token != null) return token;
 }
+*/
 
 
 // LISTATE stuff
