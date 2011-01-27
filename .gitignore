@@ -2,6 +2,8 @@
 /*classes
 /local*
 /tmp
-*.swp
+.*.sw?
+*~
+*.bak
 /test-reports
 /ivysettings.xml

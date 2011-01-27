@@ -15,10 +15,8 @@
  */
 
 
-package com.admc.jcreole;
+package com.admc.jcreole.marker;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -27,33 +25,26 @@ import org.apache.commons.lang.StringUtils;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public class CssClassInserter implements Comparable<CssClassInserter> {
+abstract public class BufferMarker implements Comparable<BufferMarker> {
     /* Undecided about whether to store source location offset/line/col.
      * Would have to complicate parser code by passiing around the
      * originating non-terminals all over the place. */
-    private boolean blockType, jcxType, writeAttr;
-    protected List<String> cssClasses = new ArrayList<String>();
-    private int insertionOffset = -1;
-    int id = -1;
+    protected int offset = -1;
+    private int id = -1;
     protected StringBuilder targetSb;
+    public static final char markerChar = '\u001a';
 
-    public String toString() {
-        return getIdString() + '@' + insertionOffset + ": "
-            + (blockType ? 'T' : 'F')
-            + (jcxType ? 'T' : 'F')
-            + (writeAttr ? 'T' : 'F')
-            + "  Classes: " + cssClasses;
-    }
+    public String toString() { return getIdString() + '@' + offset; }
 
     public boolean equals(Object o) {
         if (o == null) return false;
-        if (!(o instanceof CssClassInserter)) return false;
-        return compareTo((CssClassInserter) o) == 0;
+        if (!(o instanceof BufferMarker)) return false;
+        return compareTo((BufferMarker) o) == 0;
     }
 
-    public int compareTo(CssClassInserter other) {
-        return Integer.valueOf(insertionOffset).compareTo(
-                Integer.valueOf(other.insertionOffset));
+    public int compareTo(BufferMarker other) {
+        return Integer.valueOf(offset).compareTo(
+                Integer.valueOf(other.offset));
     }
 
     /**
@@ -66,27 +57,23 @@ public class CssClassInserter implements Comparable<CssClassInserter> {
      *                   Set this true unless your beginning tag already has
      *                   a 'class' attr.
      */
-    public CssClassInserter(int id,
-            boolean blockType, boolean jcxType, boolean writeAttr) {
+    protected BufferMarker(int id) {
         this.id = id;
         if (id < 0 || id > 0xFFFF)
             throw new IllegalArgumentException(
                     "Id is not between 0 and 0xFFFF inclusive: " + id);
-        this.blockType = blockType;
-        this.jcxType = jcxType;
-        this.writeAttr = writeAttr;
     }
 
     public String getIdString() {
         return String.format("%04X", id);
     }
 
-    public int getInsertionOffset() {
-        return insertionOffset;
+    public String getMarkerString() {
+        return Character.toString(markerChar) + getIdString();
     }
 
-    public void add(String className) {
-        if (!cssClasses.contains(className)) cssClasses.add(className);
+    public int getOffset() {
+        return offset;
     }
 
     /**
@@ -97,42 +84,37 @@ public class CssClassInserter implements Comparable<CssClassInserter> {
      *         found at the indicated location.
      */
     public void validate() {
-        if (targetSb == null || insertionOffset < 1)
+        if (targetSb == null || offset < 1)
             throw new IllegalStateException(
-                    "targetSb or insertionOffset not initialized");
-        if (targetSb.length() < insertionOffset + 4)
+                    "targetSb or offset not initialized");
+        if (targetSb.length() < offset + 4)
             throw new IllegalStateException(
                     "StringBuilder not long enough to contain marker at "
-                    + insertionOffset);
-        if (targetSb.charAt(insertionOffset) != '\u001a')
+                    + offset);
+        if (targetSb.charAt(offset) != '\u001a')
             throw new IllegalStateException(
-                    "Missing binary SUB char at offset " + insertionOffset);
-        if (!targetSb.substring(insertionOffset + 1, insertionOffset + 5)
+                    "Missing binary SUB char at offset " + offset);
+        if (!targetSb.substring(offset + 1, offset + 5)
                 .equals(getIdString()))
             throw new IllegalStateException(
                     "Marker ID mismatch.  Expected " + getIdString()
                     + " but is '" + targetSb.substring(
-                    insertionOffset + 1, insertionOffset + 5) + "'");
+                    offset + 1, offset + 5) + "'");
     }
 
-    public void setContext(StringBuilder targetSb, int insertionOffset) {
+    public void setContext(StringBuilder targetSb, int offset) {
         this.targetSb = targetSb;
-        this.insertionOffset = insertionOffset;
+        this.offset = offset;
         validate();
     }
 
     /**
-     * Removes the single character at the indicated point, then, if there
-     * are any class names to be written, inserts the list at that point.
+     * Removes the single character at the indicated point.
+     * Some subclasses will need to do more than this to update the buffer.
      */
-    public void insert() {
+    public void updateBuffer() {
         validate();  // Rechecking since contents of the targetSb could easily
                      // have been shifted since setContext was called.
-        targetSb.delete(insertionOffset, insertionOffset + 5);
-        if (cssClasses.size() < 1) return;
-        String classesString = StringUtils.join(cssClasses, ' ');
-        targetSb.insert(insertionOffset, writeAttr
-                ? (" class=\"" + classesString + '\"')
-                : (" " + classesString));
+        targetSb.delete(offset, offset + 5);
     }
 }
