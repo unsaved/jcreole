@@ -89,11 +89,11 @@
      * Returns a single XML-washed String
      *
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
-     * The specified List must be all WashedTokens.
+     * The specified List must be all WashedSymbols.
      */
-    public static StringBuilder joinWashedTokens(List<WashedToken> wtList) {
+    public static StringBuilder joinWashedSymbols(List<WashedSymbol> wtList) {
         StringBuilder sb = new StringBuilder();
-        for (WashedToken t : wtList) sb.append(t.toString());
+        for (WashedSymbol t : wtList) sb.append(t.toString());
         return sb;
     }
 
@@ -103,11 +103,11 @@
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
      * The specified List must be either all non-washed Tokens.
      */
-    public static WashedToken mkWashedToken(List<String> sList) {
+    public static WashedSymbol mkWashedSymbol(List<String> sList) {
         //@SuppressWarnings("unchecked")
         StringBuilder sb = new StringBuilder();
         for (String s : sList) sb.append(s);
-        return new WashedToken(clean(sb.toString()));
+        return new WashedSymbol(clean(sb.toString()));
     }
 
     private String absoluteUrl(String path) {
@@ -123,10 +123,10 @@
         return path;
     }
 
-    private WashedToken blockToken(String s) {
-        if (wrote) return new WashedToken("\n" + s);
+    private WashedSymbol blockToken(String s) {
+        if (wrote) return new WashedSymbol("\n" + s);
         wrote = true;
-        return new WashedToken(s);
+        return new WashedSymbol(s);
     }
 
     /**
@@ -147,49 +147,49 @@
         public String toString() { return tagName; }
     }
 
-    public WashedToken newListNest(List<LiToken> liTokenList) {
+    public WashedSymbol newListNest(List<LiSymbol> liSymbolList) {
         StringBuilder sb = new StringBuilder();
         int curLevel = 0;
         Map<Integer, Character> levelTypeMap =
                 new HashMap<Integer, Character>();
         String tagName = null;
-        for (LiToken liToken : liTokenList) {
-            tagName = (liToken.getType() == '#') ? "ol" : "ul";
-            if (liToken.getLevel() == curLevel + 1) {
-                sb.append(indent(liToken.getLevel()-1))
+        for (LiSymbol liSymbol : liSymbolList) {
+            tagName = (liSymbol.getType() == '#') ? "ol" : "ul";
+            if (liSymbol.getLevel() == curLevel + 1) {
+                sb.append(indent(liSymbol.getLevel()-1))
                         .append('<')
                         .append(tagName)
                         .append(markBlock(tagName, true, false))
                         .append(">\n");
-                levelTypeMap.put(Integer.valueOf(liToken.getLevel()),
-                        Character.valueOf(liToken.getType()));
-            } else if (liToken.getLevel() < curLevel) {
+                levelTypeMap.put(Integer.valueOf(liSymbol.getLevel()),
+                        Character.valueOf(liSymbol.getType()));
+            } else if (liSymbol.getLevel() < curLevel) {
                 for (int hiLevel = curLevel;
-                        hiLevel > liToken.getLevel(); hiLevel--) {
+                        hiLevel > liSymbol.getLevel(); hiLevel--) {
                     tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                             == '#') ? "ol" : "ul";
                     sb.append(indent(hiLevel-1)).append("</").append(tagName)
                             .append(markClose(tagName, true)).append(">\n");
                 }
-                if (liToken.getType() !=
-                        levelTypeMap.get(liToken.getLevel()).charValue())
+                if (liSymbol.getType() !=
+                        levelTypeMap.get(liSymbol.getLevel()).charValue())
                     throw new CreoleParseException(
-                            "Illegal type transition", liToken);
-            } else if (liToken.getLevel() == curLevel) {
+                            "Illegal type transition", liSymbol);
+            } else if (liSymbol.getLevel() == curLevel) {
                 // All we do in this case is to validate the type.
-                if (liToken.getType() != levelTypeMap.get(curLevel).charValue())
+                if (liSymbol.getType() != levelTypeMap.get(curLevel).charValue())
                     throw new CreoleParseException(
-                            "Illegal type transition", liToken);
+                            "Illegal type transition", liSymbol);
             } else {
                 throw new CreoleParseException(
                         "Illegal transition from list level "
-                        + curLevel + " to " + liToken.getLevel(), liToken);
+                        + curLevel + " to " + liSymbol.getLevel(), liSymbol);
             }
-            sb.append(indent(liToken.getLevel())).append("<li")
+            sb.append(indent(liSymbol.getLevel())).append("<li")
                     .append(markBlock("li", true, false)).append('>')
-                    .append(liToken.getContent())
+                    .append(liSymbol.getContent())
                     .append(markClose("li", true)).append("</li>\n");
-            curLevel = liToken.getLevel();
+            curLevel = liSymbol.getLevel();
         }
         for (int hiLevel = curLevel; hiLevel > 0; hiLevel--) {
             tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
@@ -198,7 +198,7 @@
                     .append(markClose(tagName, true))
                     .append(tagName).append(">\n");
         }
-        return new WashedToken(sb.toString());
+        return new WashedSymbol(sb.toString());
     }
 
     private String markBlock(
@@ -256,7 +256,7 @@
 
     private static final String INDENT_STRING = "  ";
 
-    public WashedToken buildTreeSymbol(List<Symbol> symList) {
+    public WashedSymbol buildTreeSymbol(List<Symbol> symList) {
         //  PHASE 1:  Prepate cell data
         String[][] cells = new String[symList.size()][];
         int i = -1, j, cols = -1;
@@ -264,7 +264,7 @@
             cells[++i] = new String[((List) rSym.value).size()];
             if (cells[i].length > cols) cols = cells[i].length;
             j = -1;
-            for (Symbol cTok : (ArrayList<WashedToken>) rSym.value)
+            for (Symbol cTok : (ArrayList<WashedSymbol>) rSym.value)
                 cells[i][++j] = cTok.toString();
         }
 
@@ -380,7 +380,7 @@
             }
             sb.append('\n').append(indent(1)).append("</tbody>\n");
         }
-        return new WashedToken(sb.append("</table>\n").toString());
+        return new WashedSymbol(sb.append("</table>\n").toString());
     }
 :};
 
@@ -389,25 +389,25 @@
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE = "String";
-%typeof listnest = "WashedToken";
+%typeof listnest = "WashedSymbol";
 
 %goal blocks;
 
 /* The grammar */
 blocks = block.b+ {:
-            StringBuilder sb = joinWashedTokens(_list_b)
+            StringBuilder sb = joinWashedSymbols(_list_b)
                     .insert(0, "<div class=\"jcreole\">\n")
                     .append("</div>\n");
             log.debug("PRE-PostProcess[" + sb + ']');
-            return new WashedToken(markers.apply(sb));
+            return new WashedSymbol(markers.apply(sb));
         :}
         |;  // This last allows for empty document
 
 block = isoblock.f+ {:
-            return new WashedToken(joinWashedTokens(_list_f).toString());
+            return new WashedSymbol(joinWashedSymbols(_list_f).toString());
         :}
         | inline.f+ END_PARA {:
-            StringBuilder b = joinWashedTokens(_list_f);
+            StringBuilder b = joinWashedSymbols(_list_f);
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return blockToken("<p" + markBlock("p", true, false)
@@ -417,7 +417,7 @@ block = isoblock.f+ {:
         | table.t {: return blockToken(t.toString()); :}
         | HEADING.h inline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
-            StringBuilder b = joinWashedTokens(_list_f);
+            StringBuilder b = joinWashedSymbols(_list_f);
             //int lastI = b.length() - 1;
             //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return blockToken("<h" + hLevel
@@ -437,74 +437,74 @@ table = lastrow.lr {:
 
 row   = cell.c+ END_ROW;
 lastrow   = cell.c+ FINAL_ROW;
-cell  = CELL.c inline.l+ {: return new WashedToken(
+cell  = CELL.c inline.l+ {: return new WashedSymbol(
                     ((((Token) c).getIntParam() == 1) ? "\u0001" : "")
-                    + joinWashedTokens(_list_l) + fontCaps()); :};
+                    + joinWashedSymbols(_list_l) + fontCaps()); :};
 
 listnest = lastli.llitem {:
                 // A single <li> list.
                 // Not useful in final docs, but definitely useful for drafts.
-                return newListNest(Collections.singletonList((LiToken) llitem));
+                return newListNest(Collections.singletonList((LiSymbol) llitem));
             :}
          | li.litem+ lastli.llitem {:
-                List<LiToken> liTokens = (List<LiToken>) _list_litem;
-                liTokens.add((LiToken) llitem);
-                return newListNest(liTokens);
+                List<LiSymbol> liSymbols = (List<LiSymbol>) _list_litem;
+                liSymbols.add((LiSymbol) llitem);
+                return newListNest(liSymbols);
             :};
 
 li       = liel.li inline.l+ END_LI {:
-                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString()
+                ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
                         + fontCaps());
                 return li;
             :};
 lastli   = liel.li inline.l+ FINAL_LI {:
-                ((LiToken) li).setContent(joinWashedTokens(_list_l).toString()
+                ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
                         + fontCaps());
                 return li;
             :};
-liel     = LI.listart {: return new LiToken((Token) listart); :};
+liel     = LI.listart {: return new LiSymbol((Token) listart); :};
 
 inline = INLINE_PRE.text {:
-            return new WashedToken("<span class=\"jcreole_pref"
+            return new WashedSymbol("<span class=\"jcreole_pref"
                     + markInline("span", false, true)
                     + "\">" + clean(text) + "</span>");
         :}
         | SPAN {:
-            return new WashedToken("<span class=\"jcx"
+            return new WashedSymbol("<span class=\"jcx"
                     + markJcxSpan() + "\">");
         :}
         | END_SPAN {:
-            return new WashedToken(markClose() + "</span>");
+            return new WashedSymbol(markClose() + "</span>");
         :}
-        | TEXT.f+ {: return mkWashedToken((List<String>) _list_f); :}
-        | HARDSPACE {: return new WashedToken("&nbsp;"); :}
+        | TEXT.f+ {: return mkWashedSymbol((List<String>) _list_f); :}
+        | HARDSPACE {: return new WashedSymbol("&nbsp;"); :}
         // For hardline we do not write a \n.  If user wants a \n in addition
         // to the <br>, they should write "<br>\n".
-        | HARDLINE {: return new WashedToken("<br>"); :}
+        | HARDLINE {: return new WashedSymbol("<br>"); :}
         | EM_TOGGLE.t {:
             Token token = (Token) t;
             if (FontMode.EMPHASIZED.equals(fontModeStack.peekFirst())) {
                 fontModeStack.pop();
-                return new WashedToken(markClose("em", false) + "</em>");
+                return new WashedSymbol(markClose("em", false) + "</em>");
             }
             if (fontModeStack.contains(FontMode.EMPHASIZED))
                 throw new CreoleParseException(
                         "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.EMPHASIZED);
-            return new WashedToken("<em" + markInline("em", true, false) + '>');
+            return new WashedSymbol("<em" + markInline("em", true, false) + '>');
         :}
         | STRONG_TOGGLE.t {:
             Token token = (Token) t;
             if (FontMode.STRONG.equals(fontModeStack.peekFirst())) {
                 fontModeStack.pop();
-                return new WashedToken(
+                return new WashedSymbol(
                         markClose("strong", false) + "</strong>");
             }
             if (fontModeStack.contains(FontMode.STRONG))
                 throw new CreoleParseException(
                         "Font presentations modes are tangled", token);
             fontModeStack.push(FontMode.STRONG);
-            return new WashedToken(
+            return new WashedSymbol(
                     "<strong" + markInline("strong", true, false) + '>');
         :}
         | URL.text {:
@@ -541,7 +541,7 @@ inline = INLINE_PRE.text {:
                             + markInline("img", true, true) + '>')
                     : clean(inLbl);
             }
-            return new WashedToken("<a href=\"" + url + '"'
+            return new WashedSymbol("<a href=\"" + url + '"'
                     + markInline("a", true, true) + '>' + label + "</a>");
         :}
         | IMAGE.text {:
@@ -551,7 +551,7 @@ inline = INLINE_PRE.text {:
                     (delimPos > -1) ? text.substring(0, delimPos) : text));
             String alt = (delimPos > -1)
                     ? clean(text.substring(delimPos + 1)) : null;
-            return new WashedToken("<img src=\"" + url
+            return new WashedSymbol("<img src=\"" + url
                 + ((alt == null) ? "" : ("\" alt=\"" + alt)) + '"'
                 + markInline("img", true, true) + '>');
         :}

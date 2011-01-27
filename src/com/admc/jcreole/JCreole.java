@@ -176,11 +176,11 @@ public class JCreole {
         }
         if (retVal == null)
             throw new IllegalArgumentException("Input generated no output");
-        if (!(retVal instanceof WashedToken))
+        if (!(retVal instanceof WashedSymbol))
             throw new IllegalStateException(
                     "Parser returned unexpected type: "
                     + retVal.getClass().getName());
-        return ((WashedToken) retVal).toString();
+        return ((WashedSymbol) retVal).toString();
     }
 
     /**
@@ -209,11 +209,11 @@ public class JCreole {
         }
         if (retVal == null)
             throw new IllegalArgumentException("Input generated no output");
-        if (!(retVal instanceof WashedToken))
+        if (!(retVal instanceof WashedSymbol))
             throw new IllegalStateException(
                     "Parser returned unexpected type: "
                     + retVal.getClass().getName());
-        return ((WashedToken) retVal).toString();
+        return ((WashedSymbol) retVal).toString();
     }
 
     /**

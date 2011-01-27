@@ -25,10 +25,10 @@ import beaver.Symbol;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.0
  */
-class WashedToken extends Token {
+class WashedSymbol extends Token {
     private final String cleanString;
 
-    public WashedToken(String s) {
+    public WashedSymbol(String s) {
         cleanString = s;
     }
 

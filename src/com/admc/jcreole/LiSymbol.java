@@ -25,11 +25,11 @@ import beaver.Symbol;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.0
  */
-class LiToken extends Token {
+class LiSymbol extends Token {
     private char type;
     private String content;
 
-    public LiToken(Token sourceToken) {
+    public LiSymbol(Token sourceToken) {
         super(sourceToken.getId(), null,
                 sourceToken.getOffset(), sourceToken.getLine(),
                 sourceToken.getColumn(), sourceToken.getIntParam());

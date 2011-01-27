@@ -118,7 +118,7 @@ public class CreoleParseTest {
             throw ae;
         }
         FileUtils.writeStringToFile(htmlFile,
-                ((retVal == null) ? "" : (((WashedToken) retVal).toString()))
+                ((retVal == null) ? "" : (((WashedSymbol) retVal).toString()))
                 , "UTF-8");
         if (!shouldSucceed)
             fail("Should have failed, but generated '" + htmlFile + "'");
