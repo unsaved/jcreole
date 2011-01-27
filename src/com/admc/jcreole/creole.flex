@@ -339,14 +339,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     yybegin(PSTATE);
 }
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
-    return newToken((yytext().indexOf('{') < 0)
-            ? Terminals.END_SPAN : Terminals.SPAN);
-}
-<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
-    yypushback(yylength());
-    yybegin(PSTATE);
-}
 // Creole spec does not allow for https!!
 "[[" ~ "]]" {
     // The optional 2nd half may in fact be a {{image}} instead of the target
@@ -374,8 +366,20 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",
             yychar, yyline, yycolumn);
 }
-"<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment.  Must leave below the <<< match.
-"<<"{s}*[-=+]{s}*[\[({] ~ ">>" {  // Must leave below the <<< match.
+
+// PLUGINs.  Must leave these below the <<< matcher.
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
+    return newToken((yytext().indexOf('{') < 0)
+            ? Terminals.END_SPAN : Terminals.SPAN);
+}
+<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
+<YYINITIAL> "<<"{s}*[-+=] { yypushback(yylength()); yybegin(PSTATE); }
+"<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[-=+]{s}*[\[({] ~ ">>" {
+    // PLUGIN:  Styler
     Matcher m = PluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
