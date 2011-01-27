@@ -1,5 +1,12 @@
 SHORT TERM
 
+Implement all Extensions listed in the extensions.txt file.
+
+Make every extension instance-togglable.  Either throw or silently ignore
+extension X if extension X is not enabled.
+
+Implement all good Creole-site suggested "Additions".
+
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
