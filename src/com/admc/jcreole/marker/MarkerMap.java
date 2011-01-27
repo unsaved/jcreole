@@ -89,31 +89,162 @@ int nextOne = 0;
      */
     private void validateAndSetClasses(List<BufferMarker> sortedMarkers) {
         List<TagMarker> stack = new ArrayList<TagMarker>();
-        TagMarker tagM;
+        List<? extends TagMarker> typedStack = null;
+        List<String> queuedJcxClassNames = new ArrayList<String>();
+        List<String> queuedBlockClassNames = new ArrayList<String>();
+        List<String> queuedInlineClassNames = new ArrayList<String>();
+        List<String> queueToEmpty = null;
         CloseMarker closeM;
-        TagMarker lastTag;
-        JcxSpanMarker prevJcx = null, curJcx = null, nextJcx = null;
-        BlockMarker prevBlock = null, curBlock = null, nextBlock = null;
-        InlineMarker prevInline = null, curInline = null, nextInline = null;
+        TagMarker lastTag, tagM;
+        List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
+        List<BlockMarker> blockStack = new ArrayList<BlockMarker>();
+        List<InlineMarker> inlineStack = new ArrayList<InlineMarker>();
+        JcxSpanMarker prevJcx = null;
+        BlockMarker prevBlock = null;
+        InlineMarker prevInline = null;
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof TagMarker) {
                 tagM = (TagMarker) m;
+                // Get this validation over with so rest of this block can
+                // assume tagM is an instance of one of these types.
+                if (!(tagM instanceof JcxSpanMarker)
+                        && !(tagM instanceof BlockMarker)
+                        && !(tagM instanceof InlineMarker))
+                    throw new RuntimeException(
+                            "Unexpected class for TagMarker " + tagM
+                            + ": " + tagM.getClass().getName());
                 // UPDATE prev/cur
-                if (!tagM.isAtomic()) stack.add(tagM);
+                if (tagM.isAtomic()) {
+                    // For atomics we do not deal with stacks, since we would
+                    // just push and pop immediately resulting in no change.
+                    // Similarly, whatever was cur* before will again be cur*
+                    // when we exit this code block.
+                    if (tagM instanceof JcxSpanMarker) {
+                        prevJcx = (JcxSpanMarker) tagM;
+                    } else if (tagM instanceof BlockMarker) {
+                        prevBlock = (BlockMarker) tagM;
+                    } else if (tagM instanceof InlineMarker) {
+                        prevInline = (InlineMarker) tagM;
+                    }
+                } else {
+                    // Tag has just OPENed.
+                    if (tagM instanceof JcxSpanMarker) {
+                        prevJcx = (jcxStack.size() > 0)
+                                ? jcxStack.get(jcxStack.size()-1)
+                                : null;
+                        jcxStack.add((JcxSpanMarker) tagM);
+                    } else if (tagM instanceof BlockMarker) {
+                        prevBlock = (blockStack.size() > 0)
+                                ? blockStack.get(blockStack.size()-1)
+                                : null;
+                        blockStack.add((BlockMarker) tagM);
+                    } else if (tagM instanceof InlineMarker) {
+                        prevInline = (inlineStack.size() > 0)
+                                ? inlineStack.get(inlineStack.size()-1)
+                                : null;
+                        inlineStack.add((InlineMarker) tagM);
+                    }
+                    stack.add(tagM);  // 'lastTag' until another added
+                }
+                if (tagM instanceof JcxSpanMarker) {
+                    if (queuedJcxClassNames.size() > 0)
+                        queueToEmpty = queuedJcxClassNames;
+                } else if (tagM instanceof BlockMarker) {
+                    if (queuedBlockClassNames.size() > 0)
+                        queueToEmpty = queuedBlockClassNames;
+                } else if (tagM instanceof InlineMarker) {
+                    if (queuedInlineClassNames.size() > 0)
+                        queueToEmpty = queuedInlineClassNames;
+                } else {
+                    queueToEmpty = null;
+                }
+                if (queueToEmpty != null) {
+                    for (String className : queueToEmpty) tagM.add(className);
+                    queueToEmpty.clear();
+                }
             } else if (m instanceof CloseMarker) {
                 closeM = (CloseMarker) m;
                 lastTag = (stack.size() > 0) ? stack.get(stack.size()-1) : null;
-                if (!lastTag.getTagName().equals(closeM.getTagName()))
+                // Validate tag name
+                if (lastTag == null
+                        || !lastTag.getTagName().equals(closeM.getTagName()))
                     throw new CreoleParseException(
-                            "Tangled tag nesting.  No matching open tag "
+                            "Tangled tag nesting.  No matching open tag name "
                             + "for close of " + closeM + ".  Last open tag is "
                             + lastTag + '.');
+                Boolean blockType = closeM.getBlockType();
+                // Validate tag type
+                if ((blockType == null && !(lastTag instanceof JcxSpanMarker))
+                        || (blockType == Boolean.TRUE
+                        && !(lastTag instanceof BlockMarker))
+                        || (blockType == Boolean.FALSE
+                        && !(lastTag instanceof InlineMarker)))
+                    throw new CreoleParseException(
+                            "Tangled tag nesting.  No matching open tag type "
+                            + "for close of " + closeM + ".  Last open tag is "
+                            + lastTag + '.');
+                if (lastTag.isAtomic())
+                    throw new CreoleParseException(
+                            "Close tag " + closeM
+                            + " attempted to close atomic tag "
+                            + lastTag + '.');
+                // Get this validation over with so rest of this block can
+                // assume lastTag is an instance of one of these types.
+                if (!(lastTag instanceof JcxSpanMarker)
+                        && !(lastTag instanceof BlockMarker)
+                        && !(lastTag instanceof InlineMarker))
+                    throw new RuntimeException(
+                            "Unexpected class for TagMarker " + lastTag
+                            + ": " + lastTag.getClass().getName());
+                // At this point we have validated match with an opening tag.
+                if (lastTag instanceof JcxSpanMarker) {
+                    prevJcx = (JcxSpanMarker) lastTag;
+                    typedStack = jcxStack;
+                } else if (lastTag instanceof BlockMarker) {
+                    prevBlock = (BlockMarker) lastTag;
+                    typedStack = blockStack;
+                } else if (lastTag instanceof InlineMarker) {
+                    prevInline = (InlineMarker) lastTag;
+                    typedStack = inlineStack;
+                }
+                if (typedStack.size() < 1
+                        || typedStack.get(typedStack.size()-1) != lastTag)
+                    throw new CreoleParseException(
+                            "Closing tag " + lastTag
+                            + ", but it is not on the tail of the "
+                            + "type-specific tag stack: " + typedStack);
+                typedStack.remove(typedStack.size()-1);
                 stack.remove(stack.size()-1);
+            } else if (m instanceof Styler) {
+                ; //if (m instanceof TagMarker) ((TagMarker) m).add(classz[nextOne++]);
+            } else {
+                throw new CreoleParseException(
+                        "Unexpected close marker class: "
+                        + m.getClass().getName());
             }
-//if (mer instanceof TagMarker) ((TagMarker) mer).add(classz[nextOne++]);
         }
         if (stack.size() != 0)
             throw new CreoleParseException(
                     "Unmatched tag(s) generated: " + stack);
+        if (jcxStack.size() != 0)
+            throw new CreoleParseException(
+                    "Unmatched JCX tag(s): " + jcxStack);
+        if (blockStack.size() != 0)
+            throw new CreoleParseException(
+                    "Unmatched Block tag(s): " + blockStack);
+        if (inlineStack.size() != 0)
+            throw new CreoleParseException(
+                    "Unmatched Inline tag(s): " + inlineStack);
+        if (queuedJcxClassNames.size() > 0)
+            throw new CreoleParseException(
+                    "Unapplied Styler JCX class names: " + queuedJcxClassNames);
+        if (queuedBlockClassNames.size() > 0)
+            throw new CreoleParseException(
+                    "Unapplied Styler Block class names: "
+                    + queuedBlockClassNames);
+        if (queuedInlineClassNames.size() > 0)
+            throw new CreoleParseException(
+                    "Unapplied Styler Inline class names: "
+                    + queuedInlineClassNames);
     }
 }

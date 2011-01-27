@@ -37,6 +37,9 @@ public class Styler extends BufferMarker {
 
     public Styler(int id, String newClassName, TargetDirection direction) {
         super(id);
+        if (newClassName == null)
+            throw new NullPointerException(
+                    "Styler specifies no CSS class name");
         Matcher m = CssNamePattern.matcher(newClassName);
         if (!m.matches())
             throw new CreoleParseException(
