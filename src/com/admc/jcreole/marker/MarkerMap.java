@@ -89,17 +89,17 @@ int nextOne = 0;
      * performed by this one function.
      */
     private void validateAndSetClasses(List<BufferMarker> sortedMarkers) {
-        List<TagMarker> stack = new ArrayList<TagMarker>();
+        final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
-        List<String> queuedJcxClassNames = new ArrayList<String>();
-        List<String> queuedBlockClassNames = new ArrayList<String>();
-        List<String> queuedInlineClassNames = new ArrayList<String>();
+        final List<String> queuedJcxClassNames = new ArrayList<String>();
+        final List<String> queuedBlockClassNames = new ArrayList<String>();
+        final List<String> queuedInlineClassNames = new ArrayList<String>();
         List<String> typedQueue = null;
         CloseMarker closeM;
         TagMarker lastTag, tagM;
-        List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
-        List<BlockMarker> blockStack = new ArrayList<BlockMarker>();
-        List<InlineMarker> inlineStack = new ArrayList<InlineMarker>();
+        final List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
+        final List<BlockMarker> blockStack = new ArrayList<BlockMarker>();
+        final List<InlineMarker> inlineStack = new ArrayList<InlineMarker>();
         JcxSpanMarker prevJcx = null;
         BlockMarker prevBlock = null;
         InlineMarker prevInline = null;
@@ -129,24 +129,18 @@ int nextOne = 0;
                     }
                 } else {
                     // Tag has just OPENed.
+                    // Opening a tag should not effect prev* tags, since nothing
+                    // has closed to become previous.
                     if (tagM instanceof JcxSpanMarker) {
-                        prevJcx = (jcxStack.size() > 0)
-                                ? jcxStack.get(jcxStack.size()-1)
-                                : null;
                         jcxStack.add((JcxSpanMarker) tagM);
                     } else if (tagM instanceof BlockMarker) {
-                        prevBlock = (blockStack.size() > 0)
-                                ? blockStack.get(blockStack.size()-1)
-                                : null;
                         blockStack.add((BlockMarker) tagM);
                     } else if (tagM instanceof InlineMarker) {
-                        prevInline = (inlineStack.size() > 0)
-                                ? inlineStack.get(inlineStack.size()-1)
-                                : null;
                         inlineStack.add((InlineMarker) tagM);
                     }
                     stack.add(tagM);  // 'lastTag' until another added
                 }
+                typedQueue = null;
                 if (tagM instanceof JcxSpanMarker) {
                     if (queuedJcxClassNames.size() > 0)
                         typedQueue = queuedJcxClassNames;
@@ -156,8 +150,6 @@ int nextOne = 0;
                 } else if (tagM instanceof InlineMarker) {
                     if (queuedInlineClassNames.size() > 0)
                         typedQueue = queuedInlineClassNames;
-                } else {
-                    typedQueue = null;
                 }
                 if (typedQueue != null) {
                     for (String className : typedQueue) tagM.add(className);
@@ -276,13 +268,13 @@ int nextOne = 0;
                   case NEXT:
                     switch (targetType) {
                       case INLINE:
-                        typedQueue = queuedJcxClassNames;
+                        typedQueue = queuedInlineClassNames;
                         break;
                       case BLOCK:
                         typedQueue = queuedBlockClassNames;
                         break;
                       case JCX:
-                        typedQueue = queuedInlineClassNames;
+                        typedQueue = queuedJcxClassNames;
                         break;
                     }
                     typedQueue.add(className);

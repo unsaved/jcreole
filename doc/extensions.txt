@@ -114,6 +114,11 @@ STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
     <<+{className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
+    Note that <<- means the last previous element CLOSED, not the last element
+    opened.  So, with nested "em" and "strong" elements, if we have
+        //emphasized **strong** closing// <<-(aName)
+    the name applies to the last incline CLOSED, which is <em> for the //.
+
 Define CSS styles
 
     (Deferred until HTML 5:
