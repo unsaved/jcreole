@@ -1,1 +1,1 @@
-alpha<<{>>beta<<{>>gamma<<}>>delta<<}>>upsilon
+alpha<<{>>beta<<{>>gam<<={inner>>ma<<}>>de<<={outer1>>lta<<}>><<-{outer2>>upsilon
