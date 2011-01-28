@@ -64,6 +64,10 @@ public class SectionHeading {
         return level;
     }
 
+    public String getText() {
+        return text;
+    }
+
     /**
      * @param levelsToDisplay is an array that must contain non-null String
      *        (incl. "") for each level to display.
@@ -80,7 +84,7 @@ public class SectionHeading {
             menuLevels[i] = (levelsToDisplay[i] == null) ? -1 : nextLevel++;
         int menuLevel = 0, newMenuLevel;
         String seqLabel;
-        StringBuilder sb = new StringBuilder("<ol>\n");
+        StringBuilder sb = new StringBuilder("<ol class=\"jcreole_toc\">\n");
         for (SectionHeading sh : shs) {
             // sh level is 1 more than array indexes
             newMenuLevel = menuLevels[sh.level - 1];

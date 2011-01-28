@@ -1,6 +1,8 @@
 SHORT TERM
 
 Implement section-counting.
+    Rigorous testing of nesting and sequencing.
+    Implement sequenceLabeling.
     Implement <<toc>> Plugin.
     Defer all default link label generation to a new first post-processing pass.
         If URL begins with #, look up the URL in hIdMap and set the label.

@@ -12,7 +12,7 @@ The individual features implemented are listed below.
 I am considering documenting why I have chosen not to implement some
 Creole-suggested additions that I do not like.
 
-Auto-Id
+Auto-Id & Auto-link-labels
 
     Unique HTML element id's are generated for all heading elements.
     This allows for intra-document or inter-document links to link directly to
@@ -20,9 +20,17 @@ Auto-Id
     Implementation of this feature involves just generation of legal XML id
     attributes, and needs no page author involvement whatsoever.
     If a page author wants to link to headings, just use the generated id's
-    (which can easily be inferred from the headings' text content).
+    in hrefs (the names begin with "jcxsect_" and are easy to infer).
     These id's are leveraged by the section-counting and TOC plugin features,
-    which are described in the extensions.txt file.
+    which are described in the extensions.txt file (because there are plugin
+    directives to customize both of these sub-features).
+
+    If the page author adds a link to an auto-generated header id, but supplies
+    no "label", instead of labeling with the "#idtext", we generate a label from
+    the target header's content.  For example:
+        [[#jcsect_WashingClothesInTheWild]]
+    will generate something like
+        <a href="#jsect_WashingClothesInTheWild">Washing Clothes in the Wild</a>
 
 NOT IMPLEMENTED YET:  Monospace.  See http://wiki.wikicreole.org/Creole%201.0/additions
 

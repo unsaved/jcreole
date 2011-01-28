@@ -20,6 +20,8 @@
 %import "java.net.URL";
 %import "java.net.MalformedURLException";
 %import "java.util.regex.Pattern";
+%import "java.util.Set";
+%import "java.util.HashSet";
 %import "java.util.List";
 %import "java.util.Map";
 %import "java.util.HashMap";
@@ -56,11 +58,20 @@
         public String toPath(String wikiName, String wikiPage) {
             return "{" + wikiName + '/' + wikiPage + '}';
         }
+        public String toLabel(String wikiName, String wikiPage) {
+            return "{" + wikiName + '/' + wikiPage + '}';
+        }
     };
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
-    private Map<String, String> hIdMap = new HashMap<String, String>();
+    // hIds is only for checking ID uniqueness
+    private Set<String> hIds = new HashSet<String>();
+    private String sectIdPrefix = "jcsect_";
+
+    public void setSectIdPrevix(String sectIdPrefix) {
+        this.sectIdPrefix = sectIdPrefix;
+    }
 
     public List<SectionHeading> getSectionHeadings() {
         return markers.getSectionHeadings();
@@ -69,20 +80,21 @@
     private static String stripMeta(String anyString) {
         return anyString
                 .replaceAll("\\u001a\\w{4}", "").replaceAll("<[^>]+>", "")
+                .replaceAll("&\\w+;", "")
                 .trim().replaceAll("[^\\w\\s]", "").replaceAll("\\s+", " ");
     }
 
     private String mkXmlId(String strippedString) {
-        String s = "jcsect_" + WordUtils.capitalizeFully(strippedString)
+        String s = sectIdPrefix + WordUtils.capitalizeFully(strippedString)
                 .replaceAll("\\s+", "");
-        if (s.length() < 50 && !hIdMap.containsKey(s)) {
-            hIdMap.put(s, strippedString);
+        if (s.length() < 50 && !hIds.contains(s)) {
+            hIds.add(s);
             return s;
         }
-        s = "jcsect_" + WordUtils.initials(strippedString);
-        if (hIdMap.containsKey(s)) for (int i = 1; i < 10000; i++)
-            if (!hIdMap.containsKey(s + i)) { s += i; break; }
-        hIdMap.put(s, strippedString);
+        s = sectIdPrefix + WordUtils.initials(strippedString);
+        if (hIds.contains(s)) for (int i = 1; i < 10000; i++)
+            if (!hIds.contains(s + i)) { s += i; break; }
+        hIds.add(s);
         return s;
     }
 
@@ -152,7 +164,9 @@
 
     private String absoluteUrl(String path) {
         if (urlBase == null && pathBase == null) return path;
-        if (path.length() > 0 && path.charAt(0) == '/') {
+        if (path.length() > 0 && path.charAt(0) == '#') {
+            return path;
+        } else if (path.length() > 0 && path.charAt(0) == '/') {
             return urlBase + path;
         } else try {
             new URL(path);
@@ -592,13 +606,31 @@ inline = INLINE_PRE.text {:
             }
             String label = null;
             if (inLbl == null) {
-                label = clean(text);
+                if (text.startsWith("#" + sectIdPrefix)) {
+                    // This defers generation of label text to MarkerMap.
+                    BufferMarker m = new LinkMarker(
+                            ++lastMarkerId, clean(text));
+                    markers.put(Integer.valueOf(lastMarkerId), m);
+                    label = m.getMarkerString();
+                } else {
+                    label = clean(text);
+                }
             } else {
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
-                label = m.matches()
-                    ? ("<img src=\"" + clean(absoluteUrl(m.group(1))) + '"'
-                            + markInline("img", true, true) + '>')
-                    : clean(inLbl);
+                if (m.matches()) {
+                    label = "<img src=\"" + clean(absoluteUrl(m.group(1)))
+                            + '"' + markInline("img", true, true) + '>';
+                } else {
+                    if (text.startsWith("#" + sectIdPrefix)) {
+                        // This causese MarkerMap to validate the link
+                        LinkMarker lm = new LinkMarker(++lastMarkerId, url);
+                        markers.put(Integer.valueOf(lastMarkerId), lm);
+                        lm.setLabel(clean(inLbl));
+                        label = lm.getMarkerString();
+                    } else {
+                        label = clean(inLbl);
+                    }
+                }
             }
             return new WashedSymbol("<a href=\"" + url + '"'
                     + markInline("a", true, true) + '>' + label + "</a>");

@@ -31,10 +31,12 @@ import com.admc.jcreole.SectionHeading;
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
     private List<SectionHeading> sectionHeadings;
+    private Map<String, String> idToTextMap = new HashMap<String, String>();
 
     public String apply(StringBuilder sb) {
         int offset = 0;
         BufferMarker marker;
+        SectionHeading sectionHeading;
         List<Integer> markerOffsets = new ArrayList<Integer>();
         String idString;
         int id;
@@ -65,6 +67,12 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     + " markers");
         // Can not run insert() until after the markers have been sorted.
         if (size() > 0) {
+            for (BufferMarker m : values())
+                if (m instanceof HeadingMarker) {
+                    sectionHeading = ((HeadingMarker) m).getSectionHeading();
+                    idToTextMap.put(sectionHeading.getXmlId(),
+                            sectionHeading.getText());
+                }
             validateAndSetClasses(sortedMarkers);
             log.debug(Integer.toString(sectionHeadings.size())
                     + " Section headings: " + sectionHeadings);
@@ -100,7 +108,9 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
         final List<String> queuedBlockClassNames = new ArrayList<String>();
         final List<String> queuedInlineClassNames = new ArrayList<String>();
         List<String> typedQueue = null;
+        String linkText;
         CloseMarker closeM;
+        LinkMarker lMarker;
         TagMarker lastTag, tagM;
         final List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
         final List<BlockMarker> blockStack = new ArrayList<BlockMarker>();
@@ -293,6 +303,18 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
                             + styler.getTargetDirection());
                 }
                 if (targetTag != null) targetTag.add(className);
+            } else if (m instanceof LinkMarker) {
+                lMarker = (LinkMarker) m;
+                linkText = lMarker.getLinkText();
+                String lookedUpLabel =
+                        idToTextMap.get(lMarker.getLinkText().substring(1));
+                if (lMarker.getLabel() == null)
+                    lMarker.setLabel((lookedUpLabel == null)
+                            ? lMarker.getLinkText()
+                            : lookedUpLabel);
+                if (lookedUpLabel == null)
+                    lMarker.wrapLabel("<span class=\"jcreole_orphanlink\">",
+                            "</span>");
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "
