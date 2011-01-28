@@ -58,6 +58,18 @@
     };
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
+    private List<String> cssHrefs = new ArrayList<String>();
+
+    public String getHeaderInsertion() {
+        if (cssHrefs.size() < 1) return "";
+        StringBuilder sb = new StringBuilder();
+        for (String ref : cssHrefs) {
+            if (sb.length() > 0) sb.append('\n');
+            sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"")
+                    .append(ref).append("\" />");
+        }
+        return sb.toString();
+    }
 
     /**
      * Assign a mapper from wiki page names to actual paths or URLs to the
@@ -384,12 +396,12 @@
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN, STYLER;
-%terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE;
+%terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
-%typeof BLOCK_RAWHTML, INLINE_RAWHTML = "String";
+%typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -408,7 +420,6 @@ block = isoblock.f+ {:
             return new WashedSymbol(joinWashedSymbols(_list_f).toString());
         :}
         | inline.f+ END_PARA.text {:
-System.err.println("Para=" + text + ')');
             StringBuilder b = joinWashedSymbols(_list_f);
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
@@ -437,6 +448,10 @@ System.err.println("Para=" + text + ')');
             return new WashedSymbol(text);
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
+        | STYLESHEET.text {:
+            cssHrefs.add(clean(absoluteUrl(text)));
+            return new WashedSymbol("");  // No-op return val
+        :}
         ;
 
 table = lastrow.lr {:

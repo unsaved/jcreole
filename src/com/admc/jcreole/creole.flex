@@ -381,6 +381,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 
 <YYINITIAL> ^[ \t]*----[ \t]*\n { return newToken(Terminals.HOR); }
+<YYINITIAL> "<<"[ \t]*@ ~ ">>" {
+    return newToken(Terminals.STYLESHEET,
+            yytext().substring(yytext().indexOf('@')+1, yylength()-2).trim());
+}
 
 "<<<" | ">>>" {
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",

@@ -238,9 +238,15 @@ public class JCreole {
     public String generateHtmlPage(File creoleFile, String outputEol)
             throws IOException {
         String gendHtml = parseCreole(creoleFile);
-        String html = pageBoilerPlate.replace("${content}", gendHtml);
+        StringBuilder html = new StringBuilder(pageBoilerPlate);
+        int index = html.indexOf("${content}");
+        html.replace(index, index + "${content}".length(), gendHtml);
+        index = html.indexOf("${headers}");
+        html.replace(index, index + "${headers}".length(),
+                parser.getHeaderInsertion());
         return (outputEol == null || outputEol.equals("\n"))
-                ? html : html.replace("\n", outputEol);
+                ? html.toString() : html.toString().replace("\n", outputEol);
+                // Amazing that StringBuilder can't do a multi-replace like this
     }
 
     protected CreoleParser parser = new CreoleParser();

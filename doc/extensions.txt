@@ -1,11 +1,6 @@
 JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
 
-****************************************************************************
-***   SOME FEATURES DESCRIBED HAVE BEEN IMPLEMENTED AND SOME HAVE NOT!
-***   Every item not implemented is prefixed with "Coming Soon!".
-****************************************************************************
-
 Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
 
 I call the individual <<X>> commands that are available "Plugin Directives".
@@ -119,7 +114,8 @@ STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
         //emphasized **strong** closing// <<-(aName)
     the name applies to the last incline CLOSED, which is <em> for the //.
 
-Coming Soon!  Define CSS styles
+
+DEFINE CSS STYLES
 
     (Deferred until HTML 5:
         <<$ style line definitions...  >>  The aggregate of all <<$...>> element
@@ -130,15 +126,20 @@ Coming Soon!  Define CSS styles
     <<@ CSS file path  >>  Link elements for all <<@...>> elements will be
     inserted inside the page head (preserving sequence).
     Each link tag will be of the form
-        <link rel="stylesheet type="text/css" href="..." />
+        <link rel="stylesheet" type="text/css" href="..." />
+    Note that the integrator must call the method
+     CreoleParser.getHeaderInsertion() to get the HTML that should be inserted
+     into the HTML page's head.  If you use JCreole.generateHtmlPage, then
+     you just need to have the string "${headers}" in the head of the
+     boilerplate.
 
     CONSIDER  Allowing CSS style coding directly in a <<?...>> tag, which we
     would insert into a <link> element in the page head.
     I am thinking that it would encourage consistency more to force the user to
     upload a separate .css file and just reference that.
-    
 
-Comments
+
+COMMENTS
 
     <<# author comments... >>
     Your comment text may not include the string ">>".
@@ -149,12 +150,15 @@ Comments
     Your comment text may not include the strings "--" or ">>".
     These will not be visible as HTML comments in the generated HTML.
 
+
 Coming Soon!  TOC
 
     <<^>>
     (The character "^" is tentative.  Accepting suggestions.).
     Insert a little TOC table or list, with hyperlinks to all headings.
 
+
 Coming Maybe.  UNDER CONSIDERATION
+
     <<:IntraWikiLink>>
     Because plain IntraWikiLink is too susceptible to false positives.
