@@ -1,6 +1,6 @@
 SHORT TERM
 
-Switch "<<[+=-][({["..." to <<addClass [+-=]{lbock|inline|jcs}".
+Switch "<<[+=-][({["..." to <<addClass [+-=]{bock|inline|jcs}".
 
 Implement TOC Plugin.
 Need a new structure to store TOC entries.
