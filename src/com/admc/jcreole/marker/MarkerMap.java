@@ -26,11 +26,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.admc.jcreole.CreoleParseException;
 import com.admc.jcreole.TagType;
+import com.admc.jcreole.SectionHeading;
 
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
-private String[] classz = { "alpha", "beta", "gamma", "delta", "mu", "nu", "omicron" };
-int nextOne = 0;
+    private List<SectionHeading> sectionHeadings;
 
     public String apply(StringBuilder sb) {
         int offset = 0;
@@ -66,6 +66,9 @@ int nextOne = 0;
         // Can not run insert() until after the markers have been sorted.
         if (size() > 0) {
             validateAndSetClasses(sortedMarkers);
+            log.debug(Integer.toString(sectionHeadings.size())
+                    + " Section headings: " + sectionHeadings);
+log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "", "", "", "" }));
             // The list of markers MUST BE REVERSE SORTED before applying.
             // Applying in forward order would change buffer offsets.
             Collections.reverse(sortedMarkers);
@@ -84,11 +87,13 @@ int nextOne = 0;
 
     /**
      * Validates tag nesting and updates CSS classes of all TagMarkers.
+     * Also populates the ordered sectionHeadings list.
      *
      * For efficiency of the iteration, these two disparate functions are both
      * performed by this one function.
      */
     private void validateAndSetClasses(List<BufferMarker> sortedMarkers) {
+        sectionHeadings = new ArrayList<SectionHeading>();
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
         final List<String> queuedJcxClassNames = new ArrayList<String>();
@@ -103,6 +108,10 @@ int nextOne = 0;
         JcxSpanMarker prevJcx = null;
         BlockMarker prevBlock = null;
         InlineMarker prevInline = null;
+        int headingLevel = 0;
+        // We won't use slot 0 of nextSequence, so we can code using
+        // headingLevel as the index.
+        int[] nextSequence = new int[7];
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof TagMarker) {
                 tagM = (TagMarker) m;
@@ -289,6 +298,22 @@ int nextOne = 0;
                         "Unexpected close marker class: "
                         + m.getClass().getName());
             }
+            if (m instanceof HeadingMarker) {
+                SectionHeading sh = ((HeadingMarker) m).getSectionHeading();
+                sectionHeadings.add(sh);
+                int newLevel = sh.getLevel();
+                if (newLevel > headingLevel) {
+                    headingLevel = newLevel;
+                } else if (newLevel < headingLevel) {
+                    for (int i = headingLevel; i >= newLevel; i--)
+                        nextSequence[i] = 0;
+                    headingLevel = newLevel;
+                } else {
+                    // No level change
+                    // Intentionally empty
+                }
+                sh.setSequence(nextSequence[headingLevel]++);
+            }
         }
         if (stack.size() != 0)
             throw new CreoleParseException(
@@ -313,5 +338,9 @@ int nextOne = 0;
             throw new CreoleParseException(
                     "Unapplied Styler Inline class names: "
                     + queuedInlineClassNames);
+    }
+
+    public List<SectionHeading> getSectionHeadings() {
+        return sectionHeadings;
     }
 }

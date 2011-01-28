@@ -62,10 +62,14 @@
     private List<String> cssHrefs = new ArrayList<String>();
     private Map<String, String> hIdMap = new HashMap<String, String>();
 
+    public List<SectionHeading> getSectionHeadings() {
+        return markers.getSectionHeadings();
+    }
+
     private static String stripMeta(String anyString) {
         return anyString
                 .replaceAll("\\u001a\\w{4}", "").replaceAll("<[^>]+>", "")
-                .replaceAll("[^\\w\\s]", "").replaceAll("\\s+", " ");
+                .trim().replaceAll("[^\\w\\s]", "").replaceAll("\\s+", " ");
     }
 
     private String mkXmlId(String strippedString) {
