@@ -174,7 +174,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <PSTATE> ^([ \t]*\n)+ {
     yybegin(YYINITIAL);
     yypushback(yylength());
-    return newToken(Terminals.END_PARA);
+    return newToken(Terminals.END_PARA, "\n");
 }
 <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
@@ -200,6 +200,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
   // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
 
+<YYINITIAL> ^[ \t]*"<<"{s}*"!" ~ ">>" {
+    int startIndex = yytext().indexOf('!');
+    return newToken(Terminals.HTMLBLOCK_COMMENT,
+            yytext().substring(startIndex+1, yylength() - 2));
+}
+"<<"{s}*"!" ~ ">>" {
+    int startIndex = yytext().indexOf('!');
+    return newToken(Terminals.HTMLINLINE_COMMENT,
+            yytext().substring(startIndex+1, yylength() - 2));
+}
 ^("{{{"\n) ~ (\n"}}}"\n) {
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
@@ -262,7 +272,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 
 // General/Global stuff
-<YYINITIAL> \n {}  // Ignore newlines at root state.
+<YYINITIAL> [ \t]*\n { return newToken(Terminals.ROOTLVL_NEWLINE); }
 <<EOF>> { return newToken(Terminals.EOF); }
 //. { if (yylength() != 1) throw new CreoleParseException("Match length != 1 for '.'  UNMATCHED: [" + yytext() + ']', yychar, yyline, yycolumn); }
 

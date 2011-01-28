@@ -56,7 +56,7 @@ int nextOne = 0;
         }
         List<BufferMarker> sortedMarkers = new ArrayList(values());
         Collections.sort(sortedMarkers);
-        log.warn(Integer.toString(markerOffsets.size())
+        log.debug(Integer.toString(markerOffsets.size())
                 + " markings: " + markerOffsets);
         if (markerOffsets.size() != sortedMarkers.size())
             throw new IllegalStateException(
@@ -77,7 +77,7 @@ int nextOne = 0;
                 // N.b. this is where the real APPLY occurs to the buffer:
                 m.updateBuffer();
             }
-            log.warn("MARKERS:  " + markerReport.toString());
+            log.debug("MARKERS:  " + markerReport.toString());
         }
         return sb.toString();
     }

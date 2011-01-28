@@ -1,0 +1,9 @@
+==Two words
+
+~==Escaped heading
+
+=Three words here=====
+
+   ===  This with whitespace all around  =      
+
+====== \\ Now we process formatting inside headings \\ {{{x}}}

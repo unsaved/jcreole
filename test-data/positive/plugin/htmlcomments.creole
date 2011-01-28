@@ -1,0 +1,28 @@
+<<! HTML Comment >>
+<<! second ina row>>
+  
+  <<!other cmt>>thing
+
+other<<!addl cmt>>
+
+  <<! A multi
+  -line-
+  comment >>
+
+  <<!
+
+  With whitespace
+  
+  blank lines too.
+
+  >>
+
+An now <<! inside
+of a 
+para>>graph.
+
+And finally
+<<! spanning
+
+paragraphs>>
+So there.

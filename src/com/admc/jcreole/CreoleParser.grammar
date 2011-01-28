@@ -125,12 +125,6 @@
         return path;
     }
 
-    private WashedSymbol blockToken(String s) {
-        if (wrote) return new WashedSymbol("\n" + s);
-        wrote = true;
-        return new WashedSymbol(s);
-    }
-
     /**
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
      *
@@ -390,8 +384,10 @@
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN, STYLER;
+%terminals HTMLBLOCK_COMMENT, HTMLINLINE_COMMENT, ROOTLVL_NEWLINE;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
+%typeof HTMLBLOCK_COMMENT, HTMLINLINE_COMMENT = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -409,25 +405,33 @@ blocks = block.b+ {:
 block = isoblock.f+ {:
             return new WashedSymbol(joinWashedSymbols(_list_f).toString());
         :}
-        | inline.f+ END_PARA {:
+        | inline.f+ END_PARA.text {:
+System.err.println("Para=" + text + ')');
             StringBuilder b = joinWashedSymbols(_list_f);
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return blockToken("<p" + markBlock("p", true, false)
+            return new WashedSymbol("<p" + markBlock("p", true, false)
                     + '>' + b + fontCaps() + markClose("p", true) + "</p>\n");
         :}
-        | listnest.l {: return blockToken(l.toString()); :}
-        | table.t {: return blockToken(t.toString()); :}
+        | listnest.l {: return new WashedSymbol(l.toString()); :}
+        | table.t {: return new WashedSymbol(t.toString()); :}
         | HEADING.h inline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
             StringBuilder b = joinWashedSymbols(_list_f);
             //int lastI = b.length() - 1;
             //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return blockToken("<h" + hLevel
+            return new WashedSymbol("<h" + hLevel
                     + markBlock("h" + hLevel, true, false) + '>'
                     + b + fontCaps() + markClose("h" + hLevel, true)
                     + "</h" + hLevel + ">\n");
         :}
+        | HTMLBLOCK_COMMENT.text {:
+            if (text.indexOf("--")> -1)
+                throw new CreoleParseException(
+                        "'--' prohibited inside of XML comments");
+            return new WashedSymbol("<!--" + text + "-->");
+        :}
+        | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         ;
 
 table = lastrow.lr {:
@@ -569,14 +573,21 @@ inline = INLINE_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), styler);
             return new WashedSymbol(styler.getMarkerString());
         :}
+        | HTMLINLINE_COMMENT.text {:
+            if (text.indexOf("--")> -1)
+                throw new CreoleParseException(
+                        "'--' prohibited inside of XML comments");
+            return new WashedSymbol("<!--" + text + "-->");
+        :}
         ;
 
 // These may not contain any inlines
 isoblock = HOR {:
-            return blockToken("<hr" + markBlock("hr", true, true) + ">\n");
+            return new WashedSymbol(
+                    "<hr" + markBlock("hr", true, true) + ">\n");
           :}
         | BLOCK_PRE.text {:
-            return blockToken("<pre" + markBlock("pre", true, true) + ">\n"
+            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
                     + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
                 // The replace here is for allowing ^}}} inside of pref block.
                 // Spec says to do this for all " }}}", but that is

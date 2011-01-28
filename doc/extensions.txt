@@ -145,7 +145,7 @@ Comments
     These contents will be entirely stripped.  I.e. they will not be visible as
     HTML comments, or in any other way, in the generated HTML.
 
-    Coming Soon!  <<! HTML comments... >>
+    <<! HTML comments... >>
     Your comment text may not include the strings "--" or ">>".
     These will not be visible as HTML comments in the generated HTML.
 
