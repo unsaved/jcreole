@@ -1,6 +1,12 @@
 SHORT TERM
 
-Implement all Extensions listed in the extensions.txt file.
+Implement TOC Plugin.
+Need a new structure to store TOC entries.
+Must be sorted by sequence in the page.  Perhaps the method in MarkerMap can do
+this.
+Must store the h level so TOC can nest with ULs at least.
+(I guess should present with ULs until add a new plugin to automatically number
+sections).
 
 Make every extension instance-togglable.  Either throw or silently ignore
 extension X if extension X is not enabled.
