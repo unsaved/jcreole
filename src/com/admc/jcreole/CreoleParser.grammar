@@ -73,13 +73,13 @@
     }
 
     private String mkXmlId(String strippedString) {
-        String s = WordUtils.capitalizeFully(strippedString)
+        String s = "jcsect_" + WordUtils.capitalizeFully(strippedString)
                 .replaceAll("\\s+", "");
         if (s.length() < 50 && !hIdMap.containsKey(s)) {
             hIdMap.put(s, strippedString);
             return s;
         }
-        s = WordUtils.initials(strippedString);
+        s = "jcsect_" + WordUtils.initials(strippedString);
         if (hIdMap.containsKey(s)) for (int i = 1; i < 10000; i++)
             if (!hIdMap.containsKey(s + i)) { s += i; break; }
         hIdMap.put(s, strippedString);
