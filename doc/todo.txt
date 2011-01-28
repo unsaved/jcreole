@@ -1,5 +1,9 @@
 SHORT TERM
 
+Switch "<<@...>>" to "<<styleSheet...>>".
+
+Switch "<<[+=-][({["..." to <<addClass [+-=]{lbock|inline|jcs}".
+
 Implement TOC Plugin.
 Need a new structure to store TOC entries.
 Must be sorted by sequence in the page.  Perhaps the method in MarkerMap can do
@@ -11,7 +15,7 @@ sections).
 Make every extension instance-togglable.  Either throw or silently ignore
 extension X if extension X is not enabled.
 
-Implement all good Creole-site suggested "Additions".
+Implement features listed in "additions.txt".
 
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.

@@ -3,11 +3,25 @@ JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
 Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
 
+This file does not document all JCreole features beyond those of Crole 1.0.
+It only documents those that are controlled with the Extension/Plugin mechamnism
+of <<X>> directives.
+See the file "additions.txt" for JCreole features that do not depend on Plugin
+directives.
+
 I call the individual <<X>> commands that are available "Plugin Directives".
 (I don't call them "elements" in order to eliminate ambiguity because of the resemblance to XML Elements).
 
 
 DESIGN
+
+    JCreole's syntax is normally <<directiveName>> (notice camelBack) or
+    <<directiveName options...>>, with exceptions for the following exceptional
+    elements:
+        <<~...>>  <<{>>  <<}>>  <<#... >>  <<!... >>
+    The justification is that <<{>> and <<}>> need to block code, in paris, and
+    that purpose will be easier to recognize without other distracting text;
+    The purpose of the other exceptions here is to defeat markup parsing.
 
     Some (or possibly all) extensions are enabled/disabled at the Scanner
     instance level.  This can be used, for example, to prevent "comment"
@@ -25,19 +39,6 @@ DESIGN
     can re-use that same class elsewhere in the page.  The <<@ element further
     encourages generalization further to use custom class names across
     multiple pages and even multiple web sites.
-
-Definitions.  These special characters are used in various commands consistently
-to denote the entities attributed to them here.
-
-    [ = Normal (non-JCreole) block HTML tag (like H1, DIV)
-    ( = Normal (non-JCreole) inline HTML tag (like I, SPAN)
-    { = JCX-created SPAN tag:  <span class="jcx...
-
-    As an example, the Styler command "<<+(className>>" operates on the next
-    normal inline HTML tag.
-    Combining this concept with -/=/+ for previous/current/next, we get, for
-    example "-[" meaning the previous block tag, and "+{" meaning the next JCX
-    tag.
 
 
 Misc.
@@ -58,6 +59,9 @@ In every case, white space (including newlines) is permitted between the opening
 RAW HTML
 
     <<~...>> Direct HTML content.
+
+    Justification of ~ character:  In Creole, ~ generally means "escape Wiki
+    markup formatting".
 
     Even Nowiki does not let you enter HTML into a web page, because of the
     real danger of either unintentionally or intentionally invoking dynamic
@@ -82,37 +86,37 @@ CREATE ELEMENTS
 
 STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
 
-    <<=[className>>
+    <<addClass =block className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<=(className>>
+    <<addClass =inline className>>
         Add CSS class to the immediate containing non-JCX inline element.
-    <<={className>>
+    <<addClass =jcx className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
     Same as above, but with "-" instead of "=".  Target the preceding closed
     element instead of the immediate containing element:
 
-    <<-[className>>
+    <<addClass -block className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<-(className>>
+    <<addClass -inline className>>
         Add CSS class to the immediate containing non-JCX inline element.
-    <<-{className>>
+    <<addClass -jcx className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
     Same as above, but with "+".  Target the next
     element instead of the immediate containing element:
 
-    <<+[className>>
+    <<addClass +block className>>
         Add CSS class to the immediate containing non-JCX block element.
-    <<+(className>>
+    <<addClass +inline className>>
         Add CSS class to the immediate containing non-JCX inline element.
-    <<+{className>>
+    <<addClass +jcx className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
-    Note that <<- means the last previous element CLOSED, not the last element
-    opened.  So, with nested "em" and "strong" elements, if we have
-        //emphasized **strong** closing// <<-(aName)
-    the name applies to the last incline CLOSED, which is <em> for the //.
+    Note that "<<... -..." means the last previous element CLOSED, not the last
+    element opened.  So, with nested "em" and "strong" elements, if we have
+        //emphasized **strong** closing// <<addClass -inline aName>>
+    the name applies to the last inline CLOSED, which here is <em> for the //.
 
 
 DEFINE CSS STYLES
@@ -123,8 +127,9 @@ DEFINE CSS STYLES
             <style type="text/css" scoped="scoped">...</style>
         element (preserving sequence) before the generated HTML content.)
 
-    <<@ CSS file path  >>  Link elements for all <<@...>> elements will be
-    inserted inside the page head (preserving sequence).
+    <<styleSheet CSS/file.path  >>  A CSS file link will be added to the HTML
+    page header.  If multiple <<styleSheet...>> directives are given, then
+    multiple links will be added, matching the sequence of the directives.
     Each link tag will be of the form
         <link rel="stylesheet" type="text/css" href="..." />
     Note that the integrator must call the method
@@ -153,7 +158,7 @@ COMMENTS
 
 Coming Soon!  TOC
 
-    <<^>>
+    <<toc>>
     (The character "^" is tentative.  Accepting suggestions.).
     Insert a little TOC table or list, with hyperlinks to all headings.
 
@@ -162,3 +167,5 @@ Coming Maybe.  UNDER CONSIDERATION
 
     <<:IntraWikiLink>>
     Because plain IntraWikiLink is too susceptible to false positives.
+    Maybe better is just to interpret link destinations beginning with ":"
+    as intra-wiki links.  Sounds good to me...

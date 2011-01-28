@@ -1,0 +1,37 @@
+This document describes JCreole's "additions" to the Creole 1.0 feature set,
+excluding those features controlled by plugin directives <<X>>.
+For compatibility purposes, features in JCreole are normally impemented as
+plugins.  But some features require no page-author involvement, and others are
+already documented as optional Creole 1.0 "additions".  These features are
+documented here.
+
+Creole 1.0 optional Additions are documented at
+http://wiki.wikicreole.org/Creole%201.0/additions and a couple under "Will
+Discuss..." at http://www.wikicreole.org/wiki/Elements .
+The individual features implemented are listed below.
+I am considering documenting why I have chosen not to implement some
+Creole-suggested additions that I do not like.
+
+Auto-Id
+
+    Unique HTML element id's are generated for all heading elements.
+    This allows for intra-document or inter-document links to link directly to
+    any heading in this document.
+    Implementation of this feature involves just generation of legal XML id
+    attributes, and needs no page author involvement whatsoever.
+    If a page author wants to link to headings, just use the generated id's
+    (which can easily be inferred from the headings' text content).
+    These id's are leveraged by the section-counting and TOC plugin features,
+    which are described in the extensions.txt file.
+
+NOT IMPLEMENTED YET:  Monospace.  See http://wiki.wikicreole.org/Creole%201.0/additions
+
+NOT IMPLEMENTED YET:  Superscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
+
+NOT IMPLEMENTED YET:  Subscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
+
+NOT IMPLEMENTED YET:  Underline.  See http://wiki.wikicreole.org/Creole%201.0/additions
+
+NOT IMPLEMENTED YET:  Strike.  See http://www.wikicreole.org/wiki/Strike
+
+NOT IMPLEMENTED YET:  References/footnotes.  See http://www.wikicreole.org/wiki/Reference
