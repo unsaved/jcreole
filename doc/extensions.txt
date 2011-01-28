@@ -60,7 +60,7 @@ Plugin Directives by category
 In every case, white space (including newlines) is permitted between the opening
 "<<" and the first non-whitespace character.
 
-Coming Soon!  DIRECT HTML
+RAW HTML
 
     <<~...>> Direct HTML content.
 

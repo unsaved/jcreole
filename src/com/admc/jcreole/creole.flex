@@ -202,12 +202,22 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 <YYINITIAL> ^[ \t]*"<<"{s}*"!" ~ ">>" {
     int startIndex = yytext().indexOf('!');
-    return newToken(Terminals.HTMLBLOCK_COMMENT,
+    return newToken(Terminals.BLOCK_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
 "<<"{s}*"!" ~ ">>" {
     int startIndex = yytext().indexOf('!');
-    return newToken(Terminals.HTMLINLINE_COMMENT,
+    return newToken(Terminals.INLINE_HTMLCOMMENT,
+            yytext().substring(startIndex+1, yylength() - 2));
+}
+<YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
+    int startIndex = yytext().indexOf('~');
+    return newToken(Terminals.BLOCK_RAWHTML,
+            yytext().substring(startIndex+1, yylength() - 2));
+}
+"<<"{s}*"~" ~ ">>" {
+    int startIndex = yytext().indexOf('~');
+    return newToken(Terminals.INLINE_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
 }
 ^("{{{"\n) ~ (\n"}}}"\n) {

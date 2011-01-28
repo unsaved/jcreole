@@ -384,10 +384,12 @@
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN, STYLER;
-%terminals HTMLBLOCK_COMMENT, HTMLINLINE_COMMENT, ROOTLVL_NEWLINE;
+%terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE;
+%terminals BLOCK_RAWHTML, INLINE_RAWHTML;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
-%typeof HTMLBLOCK_COMMENT, HTMLINLINE_COMMENT = "String";
+%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
+%typeof BLOCK_RAWHTML, INLINE_RAWHTML = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -425,11 +427,14 @@ System.err.println("Para=" + text + ')');
                     + b + fontCaps() + markClose("h" + hLevel, true)
                     + "</h" + hLevel + ">\n");
         :}
-        | HTMLBLOCK_COMMENT.text {:
+        | BLOCK_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
                         "'--' prohibited inside of XML comments");
             return new WashedSymbol("<!--" + text + "-->");
+        :}
+        | BLOCK_RAWHTML.text {:
+            return new WashedSymbol(text);
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         ;
@@ -573,11 +578,14 @@ inline = INLINE_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), styler);
             return new WashedSymbol(styler.getMarkerString());
         :}
-        | HTMLINLINE_COMMENT.text {:
+        | INLINE_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
                         "'--' prohibited inside of XML comments");
             return new WashedSymbol("<!--" + text + "-->");
+        :}
+        | INLINE_RAWHTML.text {:
+            return new WashedSymbol(text);
         :}
         ;
 

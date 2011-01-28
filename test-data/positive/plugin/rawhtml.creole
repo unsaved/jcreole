@@ -1,0 +1,28 @@
+<<~ <div>HTML Comment >>
+<<~ &second ina row>>
+  
+  <<~<span>other cmt>>thing
+
+other<<~addl <h1>cmt>>
+
+  <<~ A multi
+  -li&ne-
+  comment >>
+
+  <<~
+
+  <img>With whitespace
+  
+  blank lines too.
+
+  >>
+
+An now <<~ inside
+of <body>a 
+para>>graph.
+
+And finally
+<<~ spanning
+
+para"graphs>>
+So there.
