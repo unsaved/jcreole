@@ -1,4 +1,4 @@
 <<=[red>>Red paragraph
 
-<<@http://pub.admc.com/tmp/1.css>><<  @    2.css   >>
+<<styleSheet http://pub.admc.com/tmp/1.css>><<  styleSheet     2.css   >>
 <<=[blue>>Blue paragraph

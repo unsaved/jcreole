@@ -1,7 +1,5 @@
 SHORT TERM
 
-Switch "<<@...>>" to "<<styleSheet...>>".
-
 Switch "<<[+=-][({["..." to <<addClass [+-=]{lbock|inline|jcs}".
 
 Implement TOC Plugin.
