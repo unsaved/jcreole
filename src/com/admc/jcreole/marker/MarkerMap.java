@@ -103,7 +103,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         sectionHeadings = new ArrayList<SectionHeading>();
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
-        final List<String> queuedJcxClassNames = new ArrayList<String>();
+        final List<String> queuedJcxSpanClassNames = new ArrayList<String>();
         final List<String> queuedBlockClassNames = new ArrayList<String>();
         final List<String> queuedInlineClassNames = new ArrayList<String>();
         List<String> typedQueue = null;
@@ -160,8 +160,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 }
                 typedQueue = null;
                 if (tagM instanceof JcxSpanMarker) {
-                    if (queuedJcxClassNames.size() > 0)
-                        typedQueue = queuedJcxClassNames;
+                    if (queuedJcxSpanClassNames.size() > 0)
+                        typedQueue = queuedJcxSpanClassNames;
                 } else if (tagM instanceof BlockMarker) {
                     if (queuedBlockClassNames.size() > 0)
                         typedQueue = queuedBlockClassNames;
@@ -292,7 +292,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         typedQueue = queuedBlockClassNames;
                         break;
                       case JCXSPAN:
-                        typedQueue = queuedJcxClassNames;
+                        typedQueue = queuedJcxSpanClassNames;
                         break;
                     }
                     typedQueue.add(className);
@@ -348,9 +348,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         if (inlineStack.size() != 0)
             throw new CreoleParseException(
                     "Unmatched Inline tag(s): " + inlineStack);
-        if (queuedJcxClassNames.size() > 0)
+        if (queuedJcxSpanClassNames.size() > 0)
             throw new CreoleParseException(
-                    "Unapplied Styler JCX class names: " + queuedJcxClassNames);
+                    "Unapplied Styler JCX class names: "
+                    + queuedJcxSpanClassNames);
         if (queuedBlockClassNames.size() > 0)
             throw new CreoleParseException(
                     "Unapplied Styler Block class names: "
