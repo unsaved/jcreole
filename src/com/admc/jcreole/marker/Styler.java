@@ -37,8 +37,8 @@ public class Styler extends BufferMarker {
     protected Direction targetDirection;
     protected TagType targetType;
 
-    public Styler(
-            int id, String newClassName, char directionChar, char tagTypeChar) {
+    public Styler(int id,
+            String newClassName, char directionChar, String tagTypeStr) {
         super(id);
         if (newClassName == null)
             throw new NullPointerException(
@@ -63,20 +63,10 @@ public class Styler extends BufferMarker {
                     "Unexpected target direction specifier character: "
                     + directionChar);
         }
-        switch (tagTypeChar) {
-          case '(':
-            targetType = TagType.INLINE;
-            break;
-          case '[':
-            targetType = TagType.BLOCK;
-            break;
-          case '{':
-            targetType = TagType.JCX;
-            break;
-          default:
+        targetType = Enum.valueOf(TagType.class, tagTypeStr.toUpperCase());
+        if (targetType == null)
             throw new CreoleParseException(
-                    "Unexpected tag type specifier character: " + tagTypeChar);
-        }
+                    "Unexpected tag type specifier: " + tagTypeStr);
     }
 
     public String getClassName() { return className; }

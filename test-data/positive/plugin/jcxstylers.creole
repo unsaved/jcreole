@@ -1,16 +1,16 @@
-<<+{jcx1cssA>><<{>>jcx1<<={jcx1cssB>><<}>><<-{jcx1cssC>>
+<<addClass +jcx jcx1cssA>><<{>>jcx1<<addClass =jcx jcx1cssB>><<}>><<addClass -jcx jcx1cssC>>
 
-Alpha<<+{jcx2cssA>>beta<<{>>jcx2<<={jcx2cssB>>gamma<<}>>delta<<-{jcx2cssC>>mu.
+Alpha<<addClass +jcx jcx2cssA>>beta<<{>>jcx2<<addClass =jcx jcx2cssB>>gamma<<}>>delta<<addClass -jcx jcx2cssC>>mu.
 
-Now <<+{jcx3css>>effect next paragraph.
+Now <<addClass +jcx jcx3css>>effect next paragraph.
 
-<<{>>This is the next<<}>> paragraph.  Effect header<<+{jcx4css>>.
+<<{>>This is the next<<}>> paragraph.  Effect header<<addClass +jcx jcx4css>>.
 ==Level 2 <<{>>Heading<<}>>
 
-===Table heading <<{>>here<<={tableHead>><<+{tableProper>><<}>>
-|=head<<{>>er1<<}>>|=header2<<+{r2c2>>
+===Table heading <<{>>here<<addClass =jcx tableHead>><<addClass +jcx tableProper>><<}>>
+|=head<<{>>er1<<}>>|=header2<<addClass +jcx r2c2>>
 |row1col1|row1col2
 |row2col1|row<<{>>2c<<}>>ol2
 * it<<{>>em<<}>> 1
 *item 2
-##something <<-{item1>>nested with <<{>>unadulterated<<}>> JCX.
+##something <<addClass -jcx item1>>nested with <<{>>unadulterated<<}>> JCX.

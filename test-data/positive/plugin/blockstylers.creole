@@ -1,11 +1,11 @@
-<<=[para1a>> <<+[para2>>
+<<addClass =block para1a>> <<addClass +block para2>>
 
-Some words in <<-[para1b>><<+[horizont>>para2.
+Some words in <<addClass -block para1b>><<addClass +block horizont>>para2.
 ----
-===Table heading here<<=[tableHead>><<+[tableProper>>
+===Table heading here<<addClass =block tableHead>><<addClass +block tableProper>>
 |=header1|=header2
-|<<+[r1c2>>row1col1|row1col2
-|row2col1|row2col2<<+[thelist>>
-* item 1<<=[theitem>><<+[the2nditem>>
-*item 2<<+[ol>>
+|<<addClass +block r1c2>>row1col1|row1col2
+|row2col1|row2col2<<addClass +block thelist>>
+* item 1<<addClass =block theitem>><<addClass +block the2nditem>>
+*item 2<<addClass +block ol>>
 ##something nested

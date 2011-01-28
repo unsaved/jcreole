@@ -1,1 +1,1 @@
-wo//rd<<=(classNameA>>
+wo//rd<<addClass =inline classNameA>>

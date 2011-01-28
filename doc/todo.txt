@@ -1,6 +1,6 @@
 SHORT TERM
 
-Switch "<<[+=-][({["..." to <<addClass [+-=]{block|inline|jcx}".
+Implement section-counting.
 
 Implement TOC Plugin.
 Need a new structure to store TOC entries.

@@ -47,8 +47,8 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern ListLevelPattern =
             Pattern.compile("\\s*([#*]+)");
-    private static final Pattern PluginPattern =
-            Pattern.compile("<<\\s*(.+)>>");
+    private static final Pattern NormalPluginPattern =
+            Pattern.compile("(?s)<<\\s*(\\w+)\\s+(.*\\S)\\s*>>");
 
     private Token newToken(short id) {
         return new Token(id, null, yychar, yyline, yycolumn);
@@ -120,6 +120,7 @@ import org.apache.commons.io.input.CharSequenceReader;
 
 S = [^ \t\f\n]
 s = [ \t\f\n]
+w = [a-zA-Z0-9_]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 %%
 
@@ -382,10 +383,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 <YYINITIAL> ^[ \t]*----[ \t]*\n { return newToken(Terminals.HOR); }
 <YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
-    return newToken(Terminals.STYLESHEET,
-            yytext().substring(
-                    yytext().indexOf("styleSheet") + "styleSheet".length(),
-                    yylength()-2).trim());
+    Matcher m = NormalPluginPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(String.format(
+            "Plugin Directive text doesn't match our Plugin Directive pattern: "
+            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    return newToken(Terminals.STYLESHEET, m.group(2));
 }
 
 "<<<" | ">>>" {
@@ -402,16 +405,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     yybegin(PSTATE);
 }
-<YYINITIAL> "<<"{s}*[-+=] { yypushback(yylength()); yybegin(PSTATE); }
+<YYINITIAL> "<<"{s}*addClass[ \t] { yypushback(yylength()); yybegin(PSTATE); }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[-=+]{s}*[\[({] ~ ">>" {
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcx"){s}+{w}+{s}*">>" {
     // PLUGIN:  Styler
-    Matcher m = PluginPattern.matcher(yytext());
+    Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())
-        throw new CreoleParseException(
-            "Styler Plugin text doesn't match our Styler Plugin pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
-    return newToken(Terminals.STYLER, m.group(1));
+        throw new CreoleParseException(String.format(
+            "Plugin Directive text doesn't match our Plugin Directive pattern: "
+            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    return newToken(Terminals.STYLER, m.group(2));
 }
 
 

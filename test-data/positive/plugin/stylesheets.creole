@@ -1,4 +1,4 @@
-<<=[red>>Red paragraph
+<<addClass =block red>>Red paragraph
 
 <<styleSheet http://pub.admc.com/tmp/1.css>><<  styleSheet     2.css   >>
-<<=[blue>>Blue paragraph
+<<addClass =block blue>>Blue paragraph

@@ -1,1 +1,1 @@
-<<{>><<={classNameA>><<}>>
+<<{>><<addClass =jcx classNameA>><<}>>

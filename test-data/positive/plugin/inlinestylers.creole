@@ -1,22 +1,22 @@
 This paragraph tests a before (-) Styler.
 **Bold will not be modified.**
 //Italic will be.//
-<<-(pre1>>
+<<addClass -inline pre1>>
 **Bold and //Nested italic// Closing both.**
 Done closed.
 
 In 2nd paragraph, inside another //Italic and a <<{>>JCX span, will
-<<-(pre2>>style the last CLOSED (bold) span<<}>> from previous paragaph.
+<<addClass -inline pre2>>style the last CLOSED (bold) span<<}>> from previous paragaph.
 
 Inside the third paragraph I once again nest //Italic and then
-**bold, closing neither but styling the bold <<=(cont>> current container.
+**bold, closing neither but styling the bold <<addClass =inline cont>> current container.
 Also here directing to style the bold in a paragraph down 2, twice with
-post1 <<+(post1>> and <<+(post2>>post2.
+post1 <<addClass +inline post1>> and <<addClass +inline post2>>post2.
 
 Do-nothing paragraph, just to intercede.
 
 Finally our ** bold and // italic paragraph.
 
-|**<<=(r1c1>><<+(r3c2>>row1col1|row1col2|row1col3
+|**<<addClass =inline r1c1>><<addClass +inline r3c2>>row1col1|row1col2|row1col3
 |row2col1|row2col2|row2col3
 |row3col1|**row3**col2|row3col3
