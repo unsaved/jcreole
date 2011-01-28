@@ -1,1 +1,1 @@
-alpha<<{>>beta<<{>>gam<<addClass =jcx inner>>ma<<}>>de<<addClass =jcx outer1>>lta<<}>><<addClass -jcx outer2>>upsilon
+alpha<<{>>beta<<{>>gam<<addClass =jcxSpan inner>>ma<<}>>de<<addClass =jcxSpan outer1>>lta<<}>><<addClass -jcxSpan outer2>>upsilon

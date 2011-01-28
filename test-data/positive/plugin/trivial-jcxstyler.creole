@@ -1,1 +1,1 @@
-<<{>><<addClass =jcx classNameA>><<}>>
+<<{>><<addClass =jcxSpan classNameA>><<}>>

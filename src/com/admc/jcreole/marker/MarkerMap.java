@@ -76,7 +76,6 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             validateAndSetClasses(sortedMarkers);
             log.debug(Integer.toString(sectionHeadings.size())
                     + " Section headings: " + sectionHeadings);
-log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "", "", "", "" }));
             // The list of markers MUST BE REVERSE SORTED before applying.
             // Applying in forward order would change buffer offsets.
             Collections.reverse(sortedMarkers);
@@ -241,7 +240,7 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
                 switch (targetType) {
                   case INLINE:
                   case BLOCK:
-                  case JCX:
+                  case JCXSPAN:
                     break;
                   default:
                     throw new RuntimeException(
@@ -257,7 +256,7 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
                       case BLOCK:
                         targetTag = prevBlock;
                         break;
-                      case JCX:
+                      case JCXSPAN:
                         targetTag = prevJcx;
                         break;
                     }
@@ -274,7 +273,7 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
                       case BLOCK:
                         typedStack = blockStack;
                         break;
-                      case JCX:
+                      case JCXSPAN:
                         typedStack = jcxStack;
                         break;
                     }
@@ -292,7 +291,7 @@ log.fatal(SectionHeading.generateToc(sectionHeadings, new String[] { "", "", "",
                       case BLOCK:
                         typedQueue = queuedBlockClassNames;
                         break;
-                      case JCX:
+                      case JCXSPAN:
                         typedQueue = queuedJcxClassNames;
                         break;
                     }

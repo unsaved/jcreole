@@ -18,5 +18,5 @@
 package com.admc.jcreole;
 
 public enum TagType {
-    JCX, BLOCK, INLINE
+    JCXSPAN, BLOCK, INLINE
 }

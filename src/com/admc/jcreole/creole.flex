@@ -399,7 +399,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // PLUGINs.  Must leave these below the <<< matcher.
 <PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
     return newToken((yytext().indexOf('{') < 0)
-            ? Terminals.END_SPAN : Terminals.SPAN);
+            ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
 }
 <YYINITIAL> "<<"{s}*[{}]{s}*">>" {
     yypushback(yylength());
@@ -407,7 +407,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 <YYINITIAL> "<<"{s}*addClass[ \t] { yypushback(yylength()); yybegin(PSTATE); }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcx"){s}+{w}+{s}*">>" {
+<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{w}+{s}*">>" {
     // PLUGIN:  Styler
     Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())

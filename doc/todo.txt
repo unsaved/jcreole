@@ -9,6 +9,8 @@ Implement section-counting.
     Defer all default link label generation to a new first post-processing pass.
         If URL begins with #, look up the URL in hIdMap and set the label.
 
+Make a reference.creole.
+
 Make every extension instance-togglable.  Either throw or silently ignore
 extension X if extension X is not enabled.
 

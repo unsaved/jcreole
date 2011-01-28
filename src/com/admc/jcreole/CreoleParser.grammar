@@ -47,7 +47,7 @@
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
-            "([-+=])(block|inline|jcx)\\s+([a-zA-Z_][-\\w]*)");
+            "([-+=])(block|inline|jcxSpan)\\s+([a-zA-Z_][-\\w]*)");
     private String urlBase;
     private String pathBase;
     // Following is just for testing.
@@ -263,7 +263,7 @@
         markers.put(Integer.valueOf(lastMarkerId), cI);
         return cI.getMarkerString();
     }
-    private String markJcxSpan() {
+    private String markJcxspan() {
         BufferMarker cI = new JcxSpanMarker(++lastMarkerId);
         markers.put(Integer.valueOf(lastMarkerId), cI);
         return cI.getMarkerString();
@@ -435,7 +435,7 @@
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, SPAN, END_SPAN, STYLER;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, JCXSPAN, END_JCXSPAN, STYLER;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML;
 
@@ -542,11 +542,11 @@ inline = INLINE_PRE.text {:
                     + markInline("span", false, true)
                     + "\">" + clean(text) + "</span>");
         :}
-        | SPAN {:
+        | JCXSPAN {:
             return new WashedSymbol("<span class=\"jcx"
-                    + markJcxSpan() + "\">");
+                    + markJcxspan() + "\">");
         :}
-        | END_SPAN {:
+        | END_JCXSPAN {:
             return new WashedSymbol(markClose() + "</span>");
         :}
         | TEXT.f+ {: return mkWashedSymbol((List<String>) _list_f); :}
