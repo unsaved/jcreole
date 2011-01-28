@@ -62,19 +62,23 @@
     private List<String> cssHrefs = new ArrayList<String>();
     private Map<String, String> hIdMap = new HashMap<String, String>();
 
-    private String mkId(String anyString) {
-        String base = anyString
+    private static String stripMeta(String anyString) {
+        return anyString
                 .replaceAll("\\u001a\\w{4}", "").replaceAll("<[^>]+>", "")
                 .replaceAll("[^\\w\\s]", "").replaceAll("\\s+", " ");
-        String s = WordUtils.capitalizeFully(base).replaceAll("\\s+", "");
+    }
+
+    private String mkXmlId(String strippedString) {
+        String s = WordUtils.capitalizeFully(strippedString)
+                .replaceAll("\\s+", "");
         if (s.length() < 50 && !hIdMap.containsKey(s)) {
-            hIdMap.put(s, base);
+            hIdMap.put(s, strippedString);
             return s;
         }
-        s = WordUtils.initials(base);
+        s = WordUtils.initials(strippedString);
         if (hIdMap.containsKey(s)) for (int i = 1; i < 10000; i++)
             if (!hIdMap.containsKey(s + i)) { s += i; break; }
-        hIdMap.put(s, base);
+        hIdMap.put(s, strippedString);
         return s;
     }
 
@@ -449,11 +453,15 @@ block = isoblock.f+ {:
         | HEADING.h inline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
             StringBuilder b = joinWashedSymbols(_list_f);
-            String id = mkId(b.toString());
-            //int lastI = b.length() - 1;
-            //if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return new WashedSymbol("<h" + hLevel + " id=\"" + id + '"'
-                    + markBlock("h" + hLevel, true, false) + '>'
+            String strippedText = stripMeta(b.toString());
+            String xmlId = mkXmlId(strippedText);
+
+            HeadingMarker hm = new HeadingMarker(
+                    ++lastMarkerId, xmlId, hLevel, strippedText);
+            markers.put(Integer.valueOf(lastMarkerId), hm);
+
+            return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
+                    + hm.getMarkerString() + '>'
                     + b + fontCaps() + markClose("h" + hLevel, true)
                     + "</h" + hLevel + ">\n");
         :}
