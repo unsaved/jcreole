@@ -47,7 +47,7 @@
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
-            "([-+=])(block|inline|jcxSpan)\\s+([a-zA-Z_][-\\w]*)");
+            "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+([a-zA-Z_][-\\w]*)");
     private String urlBase;
     private String pathBase;
     // Following is just for testing.
@@ -217,7 +217,8 @@
                     tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                             == '#') ? "ol" : "ul";
                     sb.append(indent(hiLevel-1)).append("</").append(tagName)
-                            .append(markClose(tagName, true)).append(">\n");
+                            .append(markClose(tagName, TagType.BLOCK))
+                            .append(">\n");
                 }
                 if (liSymbol.getType() !=
                         levelTypeMap.get(liSymbol.getLevel()).charValue())
@@ -236,14 +237,14 @@
             sb.append(indent(liSymbol.getLevel())).append("<li")
                     .append(markBlock("li", true, false)).append('>')
                     .append(liSymbol.getContent())
-                    .append(markClose("li", true)).append("</li>\n");
+                    .append(markClose("li", TagType.BLOCK)).append("</li>\n");
             curLevel = liSymbol.getLevel();
         }
         for (int hiLevel = curLevel; hiLevel > 0; hiLevel--) {
             tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                     == '#') ? "ol" : "ul";
             sb.append(indent(hiLevel-1)).append("</")
-                    .append(markClose(tagName, true))
+                    .append(markClose(tagName, TagType.BLOCK))
                     .append(tagName).append(">\n");
         }
         return new WashedSymbol(sb.toString());
@@ -268,14 +269,14 @@
         markers.put(Integer.valueOf(lastMarkerId), cI);
         return cI.getMarkerString();
     }
-
-    private String markClose() {
-        BufferMarker m = new CloseMarker(++lastMarkerId);
-        markers.put(Integer.valueOf(lastMarkerId), m);
-        return m.getMarkerString();
+    private String markJcxblock() {
+        BufferMarker cI = new JcxBlockMarker(++lastMarkerId);
+        markers.put(Integer.valueOf(lastMarkerId), cI);
+        return cI.getMarkerString();
     }
-    private String markClose(String tagName, boolean isBlockType) {
-        BufferMarker m = new CloseMarker(++lastMarkerId, tagName, isBlockType);
+
+    private String markClose(String tagName, TagType targetType) {
+        BufferMarker m = new CloseMarker(++lastMarkerId, tagName, targetType);
         markers.put(Integer.valueOf(lastMarkerId), m);
         return m.getMarkerString();
     }
@@ -296,7 +297,7 @@
         String tagName;
         while (fontModeStack.peekFirst() != null) {
             tagName = fontModeStack.removeFirst().toString();
-            b.append("</").append(markClose(tagName, false))
+            b.append("</").append(markClose(tagName, TagType.INLINE))
                     .append(tagName).append('>');
         }
         return b;
@@ -395,10 +396,10 @@
                             + (1+unfilledCells) + '"');
                     }
                     sb.append(markBlock("th", true, false))
-                    .append(markClose("th", true))
+                    .append(markClose("th", TagType.BLOCK))
                     .append('>').append(hCells[r][c]).append("</th>");
                 }
-                sb.append(markClose("tr", true)).append(" </tr>");
+                sb.append(markClose("tr", TagType.BLOCK)).append(" </tr>");
             }
             sb.append('\n').append(indent(1)).append("</thead>\n");
         }
@@ -421,21 +422,22 @@
                     tagName = isHead[r][c] ? "th" : "td";
                     sb.append(markBlock(tagName, true, false))
                     .append('>').append(bCells[r][c]).append("</")
-                            .append(markClose(tagName, true))
+                            .append(markClose(tagName, TagType.BLOCK))
                             .append(tagName).append('>');
                 }
-                sb.append(markClose("tr", true)).append(" </tr>");
+                sb.append(markClose("tr", TagType.BLOCK)).append(" </tr>");
             }
             sb.append('\n').append(indent(1)).append("</tbody>\n");
         }
-        return new WashedSymbol(sb.append(markClose("table", true))
+        return new WashedSymbol(sb.append(markClose("table", TagType.BLOCK))
                 .append("</table>\n").toString());
     }
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, JCXSPAN, END_JCXSPAN, STYLER;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, STYLER;
+%terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML;
 
@@ -459,12 +461,25 @@ blocks = block.b+ {:
 block = isoblock.f+ {:
             return new WashedSymbol(joinWashedSymbols(_list_f).toString());
         :}
+        | JCXBLOCK inline.f+ END_JCXBLOCK {:
+            StringBuilder b = joinWashedSymbols(_list_f);
+            // Purpose of the following is to keep the </div> on same line as
+            // the last content of the div.
+            int lastI = b.length() - 1;
+            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            return new WashedSymbol("<div class=\"jcx\""
+                    + markJcxblock() + '>' + b + fontCaps()
+                    + markClose(null, TagType.JCXBLOCK) + "</div>\n");
+        :}
         | inline.f+ END_PARA.text {:
             StringBuilder b = joinWashedSymbols(_list_f);
+            // Purpose of the following is to keep the </p> on same line as
+            // the last content of the p.
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return new WashedSymbol("<p" + markBlock("p", true, false)
-                    + '>' + b + fontCaps() + markClose("p", true) + "</p>\n");
+                    + '>' + b + fontCaps() + markClose("p", TagType.BLOCK)
+                    + "</p>\n");
         :}
         | listnest.l {: return new WashedSymbol(l.toString()); :}
         | table.t {: return new WashedSymbol(t.toString()); :}
@@ -480,7 +495,7 @@ block = isoblock.f+ {:
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
                     + hm.getMarkerString() + '>'
-                    + b + fontCaps() + markClose("h" + hLevel, true)
+                    + b + fontCaps() + markClose("h" + hLevel, TagType.BLOCK)
                     + "</h" + hLevel + ">\n");
         :}
         | BLOCK_HTMLCOMMENT.text {:
@@ -547,7 +562,8 @@ inline = INLINE_PRE.text {:
                     + markJcxspan() + "\">");
         :}
         | END_JCXSPAN {:
-            return new WashedSymbol(markClose() + "</span>");
+            return new WashedSymbol(
+                    markClose(null, TagType.JCXSPAN) + "</span>");
         :}
         | TEXT.f+ {: return mkWashedSymbol((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedSymbol("&nbsp;"); :}
@@ -558,7 +574,8 @@ inline = INLINE_PRE.text {:
             Token token = (Token) t;
             if (FontMode.EMPHASIZED.equals(fontModeStack.peekFirst())) {
                 fontModeStack.pop();
-                return new WashedSymbol(markClose("em", false) + "</em>");
+                return new WashedSymbol(
+                        markClose("em", TagType.INLINE) + "</em>");
             }
             if (fontModeStack.contains(FontMode.EMPHASIZED))
                 throw new CreoleParseException(
@@ -571,7 +588,7 @@ inline = INLINE_PRE.text {:
             if (FontMode.STRONG.equals(fontModeStack.peekFirst())) {
                 fontModeStack.pop();
                 return new WashedSymbol(
-                        markClose("strong", false) + "</strong>");
+                        markClose("strong", TagType.INLINE) + "</strong>");
             }
             if (fontModeStack.contains(FontMode.STRONG))
                 throw new CreoleParseException(

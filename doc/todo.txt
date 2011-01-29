@@ -1,6 +1,8 @@
 SHORT TERM
 
 Implement jcxBlock
+    Top-level:  Review that other top-levels all work.  Raw HTML, NoWiki, etc.
+    Implement nested.
 
 Implement section-counting.
     Rigorous testing of nesting and sequencing.

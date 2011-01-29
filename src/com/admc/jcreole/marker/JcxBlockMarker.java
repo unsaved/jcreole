@@ -15,8 +15,14 @@
  */
 
 
-package com.admc.jcreole;
+package com.admc.jcreole.marker;
 
-public enum TagType {
-    JCXBLOCK, JCXSPAN, BLOCK, INLINE
+/**
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1
+ */
+public class JcxBlockMarker extends TagMarker {
+    public JcxBlockMarker(int id) {
+        super(id, null, false, false);
+    }
 }

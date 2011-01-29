@@ -104,6 +104,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
         final List<String> queuedJcxSpanClassNames = new ArrayList<String>();
+        final List<String> queuedJcxBlockClassNames = new ArrayList<String>();
         final List<String> queuedBlockClassNames = new ArrayList<String>();
         final List<String> queuedInlineClassNames = new ArrayList<String>();
         List<String> typedQueue = null;
@@ -111,10 +112,13 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         CloseMarker closeM;
         LinkMarker lMarker;
         TagMarker lastTag, tagM;
-        final List<JcxSpanMarker> jcxStack = new ArrayList<JcxSpanMarker>();
+        final List<JcxSpanMarker> jcxSpanStack = new ArrayList<JcxSpanMarker>();
+        final List<JcxBlockMarker> jcxBlockStack =
+                new ArrayList<JcxBlockMarker>();
         final List<BlockMarker> blockStack = new ArrayList<BlockMarker>();
         final List<InlineMarker> inlineStack = new ArrayList<InlineMarker>();
-        JcxSpanMarker prevJcx = null;
+        JcxSpanMarker prevJcxSpan = null;
+        JcxBlockMarker prevJcxBlock = null;
         BlockMarker prevBlock = null;
         InlineMarker prevInline = null;
         int headingLevel = 0;
@@ -127,6 +131,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 // Get this validation over with so rest of this block can
                 // assume tagM is an instance of one of these types.
                 if (!(tagM instanceof JcxSpanMarker)
+                        && !(tagM instanceof JcxBlockMarker)
                         && !(tagM instanceof BlockMarker)
                         && !(tagM instanceof InlineMarker))
                     throw new RuntimeException(
@@ -139,7 +144,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     // Similarly, whatever was cur* before will again be cur*
                     // when we exit this code block.
                     if (tagM instanceof JcxSpanMarker) {
-                        prevJcx = (JcxSpanMarker) tagM;
+                        prevJcxSpan = (JcxSpanMarker) tagM;
+                    } else if (tagM instanceof JcxBlockMarker) {
+                        prevJcxBlock = (JcxBlockMarker) tagM;
                     } else if (tagM instanceof BlockMarker) {
                         prevBlock = (BlockMarker) tagM;
                     } else if (tagM instanceof InlineMarker) {
@@ -150,7 +157,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     // Opening a tag should not effect prev* tags, since nothing
                     // has closed to become previous.
                     if (tagM instanceof JcxSpanMarker) {
-                        jcxStack.add((JcxSpanMarker) tagM);
+                        jcxSpanStack.add((JcxSpanMarker) tagM);
+                    } else if (tagM instanceof JcxBlockMarker) {
+                        jcxBlockStack.add((JcxBlockMarker) tagM);
                     } else if (tagM instanceof BlockMarker) {
                         blockStack.add((BlockMarker) tagM);
                     } else if (tagM instanceof InlineMarker) {
@@ -162,6 +171,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 if (tagM instanceof JcxSpanMarker) {
                     if (queuedJcxSpanClassNames.size() > 0)
                         typedQueue = queuedJcxSpanClassNames;
+                } else if (tagM instanceof JcxBlockMarker) {
+                    if (queuedJcxBlockClassNames.size() > 0)
+                        typedQueue = queuedBlockClassNames;
                 } else if (tagM instanceof BlockMarker) {
                     if (queuedBlockClassNames.size() > 0)
                         typedQueue = queuedBlockClassNames;
@@ -176,29 +188,35 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof CloseMarker) {
                 closeM = (CloseMarker) m;
                 lastTag = (stack.size() > 0) ? stack.get(stack.size()-1) : null;
-                // Validate tag name
-                if (lastTag == null
-                        || (lastTag.getTagName() == null
-                            && closeM.getTagName() != null)
-                        || (lastTag.getTagName() != null
-                            && closeM.getTagName() == null)
-                        || (lastTag.getTagName() != null
-                        && !lastTag.getTagName().equals(closeM.getTagName())))
-                    throw new CreoleParseException(
-                            "Tangled tag nesting.  No matching open tag name "
-                            + "for close of " + closeM + ".  Last open tag is "
-                            + lastTag + '.');
-                Boolean blockType = closeM.getBlockType();
                 // Validate tag type
-                if ((blockType == null && !(lastTag instanceof JcxSpanMarker))
-                        || (blockType == Boolean.TRUE
-                        && !(lastTag instanceof BlockMarker))
-                        || (blockType == Boolean.FALSE
-                        && !(lastTag instanceof InlineMarker)))
+                TagType targetType= closeM.getTargetType();
+                try { switch (targetType) {
+                  case JCXBLOCK:
+                    if (!(lastTag instanceof JcxBlockMarker))
+                        throw new Exception();
+                    break;
+                  case JCXSPAN:
+                    if (!(lastTag instanceof JcxSpanMarker))
+                        throw new Exception();
+                    break;
+                  case BLOCK:
+                    if (!(lastTag instanceof BlockMarker))
+                        throw new Exception();
+                    break;
+                  case INLINE:
+                    if (!(lastTag instanceof InlineMarker))
+                        throw new Exception();
+                    break;
+                  default:
+                    throw new IllegalStateException(
+                            "Unexpected target tag type: " + targetType);
+                } } catch (Exception e) {
                     throw new CreoleParseException(
-                            "Tangled tag nesting.  No matching open tag type "
-                            + "for close of " + closeM + ".  Last open tag is "
-                            + lastTag + '.');
+                            "Tangled tag nesting.  No matching open "
+                            + targetType + " tag for close of "
+                            + closeM + ".  Last open tag is "
+                            + lastTag + '.', e);
+                }
                 if (lastTag.isAtomic())
                     throw new CreoleParseException(
                             "Close tag " + closeM
@@ -207,6 +225,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 // Get this validation over with so rest of this block can
                 // assume lastTag is an instance of one of these types.
                 if (!(lastTag instanceof JcxSpanMarker)
+                        && !(lastTag instanceof JcxBlockMarker)
                         && !(lastTag instanceof BlockMarker)
                         && !(lastTag instanceof InlineMarker))
                     throw new RuntimeException(
@@ -214,8 +233,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                             + ": " + lastTag.getClass().getName());
                 // At this point we have validated match with an opening tag.
                 if (lastTag instanceof JcxSpanMarker) {
-                    prevJcx = (JcxSpanMarker) lastTag;
-                    typedStack = jcxStack;
+                    prevJcxSpan = (JcxSpanMarker) lastTag;
+                    typedStack = jcxSpanStack;
+                } else if (lastTag instanceof JcxBlockMarker) {
+                    prevJcxBlock = (JcxBlockMarker) lastTag;
+                    typedStack = jcxBlockStack;
                 } else if (lastTag instanceof BlockMarker) {
                     prevBlock = (BlockMarker) lastTag;
                     typedStack = blockStack;
@@ -241,6 +263,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                   case INLINE:
                   case BLOCK:
                   case JCXSPAN:
+                  case JCXBLOCK:
                     break;
                   default:
                     throw new RuntimeException(
@@ -257,7 +280,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         targetTag = prevBlock;
                         break;
                       case JCXSPAN:
-                        targetTag = prevJcx;
+                        targetTag = prevJcxSpan;
+                        break;
+                      case JCXBLOCK:
+                        targetTag = prevJcxBlock;
                         break;
                     }
                     if (targetTag == null)
@@ -274,7 +300,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         typedStack = blockStack;
                         break;
                       case JCXSPAN:
-                        typedStack = jcxStack;
+                        typedStack = jcxSpanStack;
+                        break;
+                      case JCXBLOCK:
+                        typedStack = jcxBlockStack;
                         break;
                     }
                     if (typedStack.size() < 1)
@@ -293,6 +322,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         break;
                       case JCXSPAN:
                         typedQueue = queuedJcxSpanClassNames;
+                        break;
+                      case JCXBLOCK:
+                        typedQueue = queuedJcxBlockClassNames;
                         break;
                     }
                     typedQueue.add(className);
@@ -339,12 +371,15 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         if (stack.size() != 0)
             throw new CreoleParseException(
                     "Unmatched tag(s) generated: " + stack);
-        if (jcxStack.size() != 0)
+        if (jcxSpanStack.size() != 0)
             throw new CreoleParseException(
-                    "Unmatched JCX tag(s): " + jcxStack);
+                    "Unmatched JCX Span tag(s): " + jcxSpanStack);
         if (blockStack.size() != 0)
             throw new CreoleParseException(
                     "Unmatched Block tag(s): " + blockStack);
+        if (jcxBlockStack.size() != 0)
+            throw new CreoleParseException(
+                    "Unmatched JCX Block tag(s): " + jcxBlockStack);
         if (inlineStack.size() != 0)
             throw new CreoleParseException(
                     "Unmatched Inline tag(s): " + inlineStack);
@@ -352,6 +387,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             throw new CreoleParseException(
                     "Unapplied Styler JCX class names: "
                     + queuedJcxSpanClassNames);
+        if (queuedJcxBlockClassNames.size() > 0)
+            throw new CreoleParseException(
+                    "Unapplied Styler JCX Block class names: "
+                    + queuedBlockClassNames);
         if (queuedBlockClassNames.size() > 0)
             throw new CreoleParseException(
                     "Unapplied Styler Block class names: "

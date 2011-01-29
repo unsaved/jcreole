@@ -17,21 +17,23 @@
 
 package com.admc.jcreole.marker;
 
+import com.admc.jcreole.TagType;
+
 /**
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
 public class CloseMarker extends BufferMarker {
     private String tagName;
-    Boolean blockType;  // TRUE = Block HTML; FALSE = Inline HTML; null = JCX
+    private TagType targetType;
 
     /**
      * For HTML Block and Inline tags.
      */
-    public CloseMarker(int id, String tagName, boolean blockType) {
+    public CloseMarker(int id, String tagName, TagType targetType) {
         super(id);
         this.tagName = tagName;
-        this.blockType = Boolean.valueOf(blockType);
+        this.targetType =  targetType;
     }
 
     /**
@@ -43,13 +45,11 @@ public class CloseMarker extends BufferMarker {
 
     public String getTagName() { return tagName; }
 
-    public Boolean getBlockType() { return blockType; }
+    public TagType getTargetType() { return targetType; }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder(getIdString()).append('/');
-        if (blockType == null) sb.append("JCX");
-        else sb.append(blockType.booleanValue() ? "BLOCK" : "INLINE");
-        sb.append(':').append(getTagName());
+        StringBuilder sb = new StringBuilder(getIdString()).append('/')
+        .append(targetType).append(':').append(getTagName());
         if (applied) return sb.toString();
         return sb.append('@').append(offset).toString();
     }

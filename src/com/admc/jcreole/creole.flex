@@ -60,7 +60,7 @@ import org.apache.commons.io.input.CharSequenceReader;
         return new Token(id, s, yychar, yyline, yycolumn, intParam);
     }
 
-    private int pausingState, listLevel;
+    private int urlDeferringState, listLevel, jcxblockDeferringState;
 
     /**
      * Static factory method.
@@ -116,7 +116,7 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 %}
 
-%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE
+%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE
 
 S = [^ \t\f\n]
 s = [ \t\f\n]
@@ -130,8 +130,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // ** lose the ability to match ^.
 
 // Force high-priorioty of these very short captures
-// len 1:
 // Transition to LISTATE from any state other than LISTATE
+<JCXBLOCKSTATE> "<<"{s}*"]"{s}*">>" {
+    yybegin(jcxblockDeferringState);
+    return newToken(Terminals.END_JCXBLOCK);
+}
 <YYINITIAL> ^[ \t]+ / "**" {
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
@@ -153,6 +156,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
+}
+<YYINITIAL> ^[ \t]*"<<"{s}*"["{s}*">>" {
+    jcxblockDeferringState = YYINITIAL;
+    yybegin(JCXBLOCKSTATE);
+    return newToken(Terminals.JCXBLOCK);
 }
 <YYINITIAL> ^[ \t]*=+ {
     yypushback(yylength());
@@ -290,7 +298,13 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 // PSTATE (Paragaph) stuff
 // In YYINITIAL only, transition to PSTATE upon non-blank line
-<ESCURL> . { yybegin(pausingState); return newToken(Terminals.TEXT, yytext()); }
+<ESCURL> . {
+    yybegin(urlDeferringState);
+    return newToken(Terminals.TEXT, yytext());
+}
+<JCXBLOCKSTATE> . { return newToken(Terminals.TEXT, yytext()); }
+<JCXBLOCKSTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
+<JCXBLOCKSTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
 <YYINITIAL> . { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
 <YYINITIAL> "//" { yybegin(PSTATE); return newToken(Terminals.EM_TOGGLE); }
 <YYINITIAL> "**" { yybegin(PSTATE); return newToken(Terminals.STRONG_TOGGLE); }
@@ -299,31 +313,36 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // Whenever a bare URL occurs in a position where it wouldn't be linked, the
 // user must escape the "//" with ~, or the parser will abort.
 <YYINITIAL, PSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    pausingState = PSTATE;
+    urlDeferringState = PSTATE;
+    yybegin(ESCURL);
+    return newToken(Terminals.TEXT, yytext());
+}
+<JCXBLOCKSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    urlDeferringState = JCXBLOCKSTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
 <LISTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    pausingState = LISTATE;
+    urlDeferringState = LISTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
 <TABLESTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    pausingState = TABLESTATE;
+    urlDeferringState = TABLESTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
 <HEADSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    pausingState = HEADSTATE;
+    urlDeferringState = HEADSTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
 // In PSTATE we write TEXT tokens until we encounter a blank line
-<PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "//" {
+<JCXBLOCKSTATE, PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "//" {
     return newToken(Terminals.EM_TOGGLE);
 }
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "**" {
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "**" {
     return newToken(Terminals.STRONG_TOGGLE);
 }
 // End PSTATE to make way for another element:
@@ -350,10 +369,14 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
+<JCXBLOCKSTATE> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
 "~" (https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> (https|http|ftp):"/"{S}*{NONPUNC} {
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE>
+(https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.URL, yytext());
 }
 <YYINITIAL> ^ (https|http|ftp):"/"{S}*{NONPUNC} {
@@ -381,8 +404,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 
 
-<YYINITIAL> ^[ \t]*----[ \t]*\n { return newToken(Terminals.HOR); }
-<YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*----[ \t]*\n {
+    return newToken(Terminals.HOR);
+}
+<JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
     Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
@@ -396,8 +421,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yychar, yyline, yycolumn);
 }
 
-// PLUGINs.  Must leave these below the <<< matcher.
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
+// PLUGINs.  Must leave these below the <<< matcher I think.
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
     return newToken((yytext().indexOf('{') < 0)
             ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
 }
@@ -407,7 +432,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 <YYINITIAL> "<<"{s}*addClass[ \t] { yypushback(yylength()); yybegin(PSTATE); }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
-<PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{w}+{s}*">>" {
+<PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{w}+{s}*">>" {
+    // PLUGIN:  Styler
+    Matcher m = NormalPluginPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(String.format(
+            "Plugin Directive text doesn't match our Plugin Directive pattern: "
+            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    return newToken(Terminals.STYLER, m.group(2));
+}
+<JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{w}+{s}*">>" {
     // PLUGIN:  Styler
     Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())

@@ -46,6 +46,10 @@ public class CreoleParseException extends RuntimeException {
     public int getLine() { return line; }
     public int getColumn() { return column; }
 
+    public CreoleParseException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
     /**
      * Would like to eliminate this so all of these exceptions will give a
      * good indication of point-of-failure.
