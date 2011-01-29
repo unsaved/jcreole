@@ -3,7 +3,7 @@ JCX = JCreole Extensions.  Implemented as Creole <<...>> plugin/extensions.
 
 Creole authors use extensions (aka plugins) by coding <<...>> elements in their Creole text.  
 
-This file does not document all JCreole features beyond those of Crole 1.0.
+This file does not document all JCreole features beyond those of Creole 1.0.
 It only documents those that are controlled with the Extension/Plugin mechamnism
 of <<X>> directives.
 See the file "additions.txt" for JCreole features that do not depend on Plugin
@@ -18,11 +18,14 @@ DESIGN
     JCreole's syntax is normally <<directiveName>> (notice camelBack) or
     <<directiveName options...>>, with exceptions for the following exceptional
     elements:
-        <<~...>>  <<{>>  <<}>>  <<#... >>  <<!... >>
-    The justification is that <<{>> and <<}>> need to block code, in paris, and
-    that purpose will be easier to recognize without other distracting text;
-    The purpose of the other exceptions here is to defeat markup parsing.
+        <<~...>>  <<[>>  <<]>>  <<{>>  <<}>>   <<#... >>  <<!... >>
+    The justification is that the [,],{,} directives need to block code, in
+    pairs, and that purpose will be easier to recognize without other
+    intervening and distracting text;
+    The purpose of the other exceptions here is to defeat markup parsing, so
+    as they are special beasts, it is intuitive for them to appear special.
 
+    THIS DETAIL NOT IMPLEMENTED YET:
     Some (or possibly all) extensions are enabled/disabled at the Scanner
     instance level.  This can be used, for example, to prevent "comment"
     authors from altering style, or to only allow authorized users to pass
@@ -39,15 +42,6 @@ DESIGN
     can re-use that same class elsewhere in the page.  The <<@ element further
     encourages generalization further to use custom class names across
     multiple pages and even multiple web sites.
-
-
-Misc.
------
-
-Ids are automatically created for each heading.  (They can, of course, be
-used externally and within the page like [#autoId] or [#autoId|label]).
-A map is stored internally so that the default label for "[@autoId]" is the
-text in that label (scraped of markup).
 
 
 Plugin Directives by category
@@ -78,13 +72,35 @@ RAW HTML
 
 CREATE ELEMENTS
 
+    <<[>>  Open a new JCX DIV element with '<div class="jcx">'.
+    <<]>>  Close the previously opened JCX DIV with '</div>.
     <<{>>  Open a new JCX SPAN element with '<span class="jcx">'.
-    <<}>>  Close the previously opened SPAN with '</span>.
+    <<}>>  Close the previously opened JCX SPAN with '</span>.
 
-    You should obviously always pair <<(>>...<<)>> and <<{>>...<<}>>.
+    You should obviously always pair <<[>> with <<]>>,and pair <<{>> with <<}>>.
+
+    JCX Span directives are placed exactly the same as Creole inline elements,
+    with the exception that you must explicitly close JCX Spans (still under
+    consideration whether to auto-close them).
+    I.e., you can add "<<{>>" wherever you can add, for example, "//", and
+    between "<<{>>" and "<<}>>" you can insert anything that you can insert
+    between two "//"s.
+
+    DETAILS NOT FINALIZED, as I am adjusting and testing the grammar right now:
+    JCX Div directives may be placed at the top/root document level (i.e. where
+    you could put a "=" element), plus anyplace where you can put inline
+    elements (like //), with the following special cases.
+    HTML paragraphs may not contain block elements.  Therefore, just as
+    Creole paragraphs may not contain a tables or lists, they may also not
+    contain JCX Divs.  JCX Divs may reside inside of another JCX Div.
+    Perhaps the most useful consequence of this is that table cells or list
+    items may contain JCX Divs.
+    A JCX Div may contain inline elements and other JCX Divs.  I.e. they
+    support recursion.  But they can not contain tables or lists (if at some
+    point I can get the parser to allow these, I'll make it so).
 
 
-STYLERS:  ASSIGN A CSS CLASS TO A HTML ELEMENT
+STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
 
     <<addClass =block className>>
         Add CSS class to the immediate containing non-JCX block element.

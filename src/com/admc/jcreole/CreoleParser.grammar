@@ -522,7 +522,9 @@ leafblock = BLOCK_PRE.text {:
         :}
         ;
 
-jcxblock = JCXBLOCK inline.f+ END_JCXBLOCK {:
+jcxblockOrInline = jcxblock | inline;
+
+jcxblock = JCXBLOCK jcxblockOrInline.f+ END_JCXBLOCK {:
             StringBuilder b = joinWashedSymbols(_list_f);
             // Purpose of the following is to keep the </div> on same line as
             // the last content of the div.
@@ -544,7 +546,7 @@ table = lastrow.lr {:
 
 row   = cell.c+ END_ROW;
 lastrow   = cell.c+ FINAL_ROW;
-cell  = CELL.c inline.l+ {: return new WashedSymbol(
+cell  = CELL.c jcxblockOrInline.l+ {: return new WashedSymbol(
                     ((((Token) c).getIntParam() == 1) ? "\u0001" : "")
                     + joinWashedSymbols(_list_l) + fontCaps()); :};
 
@@ -559,12 +561,12 @@ listnest = lastli.llitem {:
                 return newListNest(liSymbols);
             :};
 
-li       = liel.li inline.l+ END_LI {:
+li       = liel.li jcxblockOrInline.l+ END_LI {:
                 ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
                         + fontCaps());
                 return li;
             :};
-lastli   = liel.li inline.l+ FINAL_LI {:
+lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
                 ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
                         + fontCaps());
                 return li;
