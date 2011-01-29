@@ -1,0 +1,11 @@
+<<[>>Hello
+     world
+
+http://cnn.com **bold and //italic// stuff**.  A&nbsp;space.  Another~ space.
+Some\\line\\
+breaks.  {{{\\~ NoWiki}}}
+<<~<span>My own tags &
+  HTML"</span>>>
+  and <<! HTML comment>> plus <<#author
+  comment>>
+<<]>>

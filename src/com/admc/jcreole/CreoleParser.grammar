@@ -448,8 +448,7 @@
 
 %goal blocks;
 
-/* The grammar */
-blocks = block.b+ {:
+blocks = topblock.b+ {:
             StringBuilder sb = joinWashedSymbols(_list_b)
                     .insert(0, "<div class=\"jcreole\">\n")
                     .append("</div>\n");
@@ -458,31 +457,11 @@ blocks = block.b+ {:
         :}
         |;  // This last allows for empty document
 
-block = isoblock.f+ {:
-            return new WashedSymbol(joinWashedSymbols(_list_f).toString());
+// Blocks which my only occur at top leve + regular blocks
+topblock = HOR {:
+            return new WashedSymbol(
+                    "<hr" + markBlock("hr", true, true) + ">\n");
         :}
-        | JCXBLOCK inline.f+ END_JCXBLOCK {:
-            StringBuilder b = joinWashedSymbols(_list_f);
-            // Purpose of the following is to keep the </div> on same line as
-            // the last content of the div.
-            int lastI = b.length() - 1;
-            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return new WashedSymbol("<div class=\"jcx\""
-                    + markJcxblock() + '>' + b + fontCaps()
-                    + markClose(null, TagType.JCXBLOCK) + "</div>\n");
-        :}
-        | inline.f+ END_PARA.text {:
-            StringBuilder b = joinWashedSymbols(_list_f);
-            // Purpose of the following is to keep the </p> on same line as
-            // the last content of the p.
-            int lastI = b.length() - 1;
-            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return new WashedSymbol("<p" + markBlock("p", true, false)
-                    + '>' + b + fontCaps() + markClose("p", TagType.BLOCK)
-                    + "</p>\n");
-        :}
-        | listnest.l {: return new WashedSymbol(l.toString()); :}
-        | table.t {: return new WashedSymbol(t.toString()); :}
         | HEADING.h inline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
             StringBuilder b = joinWashedSymbols(_list_f);
@@ -498,6 +477,30 @@ block = isoblock.f+ {:
                     + b + fontCaps() + markClose("h" + hLevel, TagType.BLOCK)
                     + "</h" + hLevel + ">\n");
         :}
+        | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
+        | STYLESHEET.text {:
+            cssHrefs.add(clean(absoluteUrl(text)));
+            return new WashedSymbol("");  // No-op return val
+        :}
+        | masterblock
+        | leafblock
+        ;
+
+// Blocks which may occur at different levels
+masterblock = jcxblock
+        | listnest.l {: return new WashedSymbol(l.toString()); :}
+        | table.t {: return new WashedSymbol(t.toString()); :}
+        ;
+
+// Blocks which may not contain any other block
+leafblock = BLOCK_PRE.text {:
+            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
+                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+                // The replace here is for allowing ^}}} inside of pref block.
+                // Spec says to do this for all " }}}", but that is
+                // unnecessarily liberal since no escaping is needed except
+                // for "^ }}}".
+        :}
         | BLOCK_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
@@ -507,12 +510,28 @@ block = isoblock.f+ {:
         | BLOCK_RAWHTML.text {:
             return new WashedSymbol(text);
         :}
-        | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
-        | STYLESHEET.text {:
-            cssHrefs.add(clean(absoluteUrl(text)));
-            return new WashedSymbol("");  // No-op return val
+        | inline.f+ END_PARA.text {:
+            StringBuilder b = joinWashedSymbols(_list_f);
+            // Purpose of the following is to keep the </p> on same line as
+            // the last content of the p.
+            int lastI = b.length() - 1;
+            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            return new WashedSymbol("<p" + markBlock("p", true, false)
+                    + '>' + b + fontCaps() + markClose("p", TagType.BLOCK)
+                    + "</p>\n");
         :}
         ;
+
+jcxblock = JCXBLOCK inline.f+ END_JCXBLOCK {:
+            StringBuilder b = joinWashedSymbols(_list_f);
+            // Purpose of the following is to keep the </div> on same line as
+            // the last content of the div.
+            int lastI = b.length() - 1;
+            if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            return new WashedSymbol("<div class=\"jcx\""
+                    + markJcxblock() + '>' + b + fontCaps()
+                    + markClose(null, TagType.JCXBLOCK) + "</div>\n");
+        :};
 
 table = lastrow.lr {:
             return buildTreeSymbol(Collections.singletonList(lr));
@@ -681,20 +700,5 @@ inline = INLINE_PRE.text {:
         :}
         | INLINE_RAWHTML.text {:
             return new WashedSymbol(text);
-        :}
-        ;
-
-// These may not contain any inlines
-isoblock = HOR {:
-            return new WashedSymbol(
-                    "<hr" + markBlock("hr", true, true) + ">\n");
-          :}
-        | BLOCK_PRE.text {:
-            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
-                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
-                // The replace here is for allowing ^}}} inside of pref block.
-                // Spec says to do this for all " }}}", but that is
-                // unnecessarily liberal since no escaping is needed except
-                // for "^ }}}".
         :}
         ;

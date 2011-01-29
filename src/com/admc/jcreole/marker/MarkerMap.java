@@ -157,15 +157,15 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     // Opening a tag should not effect prev* tags, since nothing
                     // has closed to become previous.
                     if (tagM instanceof JcxSpanMarker) {
-                        jcxSpanStack.add((JcxSpanMarker) tagM);
+                        jcxSpanStack.add(0, (JcxSpanMarker) tagM);
                     } else if (tagM instanceof JcxBlockMarker) {
-                        jcxBlockStack.add((JcxBlockMarker) tagM);
+                        jcxBlockStack.add(0, (JcxBlockMarker) tagM);
                     } else if (tagM instanceof BlockMarker) {
-                        blockStack.add((BlockMarker) tagM);
+                        blockStack.add(0, (BlockMarker) tagM);
                     } else if (tagM instanceof InlineMarker) {
-                        inlineStack.add((InlineMarker) tagM);
+                        inlineStack.add(0, (InlineMarker) tagM);
                     }
-                    stack.add(tagM);  // 'lastTag' until another added
+                    stack.add(0, tagM);  // 'lastTag' until another added
                 }
                 typedQueue = null;
                 if (tagM instanceof JcxSpanMarker) {
@@ -187,7 +187,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 }
             } else if (m instanceof CloseMarker) {
                 closeM = (CloseMarker) m;
-                lastTag = (stack.size() > 0) ? stack.get(stack.size()-1) : null;
+                lastTag = (stack.size() > 0) ? stack.get(0) : null;
                 // Validate tag type
                 TagType targetType= closeM.getTargetType();
                 try { switch (targetType) {
@@ -245,14 +245,13 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     prevInline = (InlineMarker) lastTag;
                     typedStack = inlineStack;
                 }
-                if (typedStack.size() < 1
-                        || typedStack.get(typedStack.size()-1) != lastTag)
+                if (typedStack.size() < 1 || typedStack.get(0) != lastTag)
                     throw new CreoleParseException(
                             "Closing tag " + lastTag
                             + ", but it is not on the tail of the "
                             + "type-specific tag stack: " + typedStack);
-                typedStack.remove(typedStack.size()-1);
-                stack.remove(stack.size()-1);
+                typedStack.remove(0);
+                stack.remove(0);
             } else if (m instanceof Styler) {
                 Styler styler = (Styler) m;
                 TagType targetType = styler.getTargetType();
@@ -310,7 +309,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         throw new CreoleParseException(
                                 "No parent " + targetType
                                 + " container for Styler " + styler);
-                    targetTag = typedStack.get(typedStack.size()-1);
+                    targetTag = typedStack.get(0);
                     break;
                   case NEXT:
                     switch (targetType) {

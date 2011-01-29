@@ -60,7 +60,15 @@ import org.apache.commons.io.input.CharSequenceReader;
         return new Token(id, s, yychar, yyline, yycolumn, intParam);
     }
 
-    private int urlDeferringState, listLevel, jcxblockDeferringState;
+    private int urlDeferringState, listLevel;
+    private List<Integer> stateStack = new ArrayList<Integer>();
+
+    public List<Integer> getStateStack() { return stateStack; }
+
+    private void pushState() {
+        stateStack.add(0, yystate());
+    }
+    private int popState() { return stateStack.remove(0); }
 
     /**
      * Static factory method.
@@ -132,18 +140,21 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // Force high-priorioty of these very short captures
 // Transition to LISTATE from any state other than LISTATE
 <JCXBLOCKSTATE> "<<"{s}*"]"{s}*">>" {
-    yybegin(jcxblockDeferringState);
+    yybegin(popState());
     return newToken(Terminals.END_JCXBLOCK);
 }
 <YYINITIAL> ^[ \t]+ / "**" {
+    pushState();
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
 <YYINITIAL> ^[ \t]*[#] / [^#] {
+    pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "#", 1);
 }
 <YYINITIAL> ^[ \t]*[*] / [^*] {
+    pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
@@ -153,21 +164,22 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
         throw new CreoleParseException(
             "List-Item-start text doesn't match our pattern: \""
             + yytext() + '"', yychar, yyline, yycolumn);
-    yybegin(LISTATE);
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
 }
 <YYINITIAL> ^[ \t]*"<<"{s}*"["{s}*">>" {
-    jcxblockDeferringState = YYINITIAL;
+    pushState();
     yybegin(JCXBLOCKSTATE);
     return newToken(Terminals.JCXBLOCK);
 }
 <YYINITIAL> ^[ \t]*=+ {
+    // No need to push or pop for HEADSTATE.  Will rever tto YYINITIAL.
     yypushback(yylength());
     yybegin(HEADSTATE);
 }
 <YYINITIAL> ^[ \t]*[|] {
     yypushback(yylength());
+    pushState();
     yybegin(TABLESTATE);
 }
 <PSTATE> ^[ \t]*[#*] {
@@ -181,25 +193,24 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.END_PARA);
 }
 <PSTATE> ^([ \t]*\n)+ {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
-}
-<TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
+} <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
 <TABLESTATE> \n / [ \t]*[^|] {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_ROW);
 }
 <TABLESTATE> \n / [ \t]*[|] {
     return newToken(Terminals.END_ROW, null, listLevel);
 }
 <LISTATE> \n / [ \t]*\n {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
 <LISTATE> \n / [ \t]*"|" {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
 <LISTATE> \n / [ \t]*[#*] {
@@ -229,11 +240,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.INLINE_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-^("{{{"\n) ~ (\n"}}}"\n) {
+<YYINITIAL> ^("{{{"\n) ~ (\n"}}}"\n) {
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "BLOCK_PRE text doesn't match our block noWiki pattern: \""
+            "BLOCK_PRE text doesn't match our block Pref pattern: \""
             + yytext() + '"', yychar, yyline, yycolumn);
     return newToken(Terminals.BLOCK_PRE, m.group(1));
 }
@@ -241,7 +252,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     Matcher m = InlinePrePattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
-            "INLINE_PRE text doesn't match our inline noWiki pattern: \""
+            "INLINE_PRE text doesn't match our inline Pref pattern: \""
             + yytext() + '"', yychar, yyline, yycolumn);
     return newToken(Terminals.INLINE_PRE, m.group(1));
 }
@@ -299,41 +310,40 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // PSTATE (Paragaph) stuff
 // In YYINITIAL only, transition to PSTATE upon non-blank line
 <ESCURL> . {
-    yybegin(urlDeferringState);
+    yybegin(urlDeferringState);  // Already been pushed, if necessary
     return newToken(Terminals.TEXT, yytext());
 }
 <JCXBLOCKSTATE> . { return newToken(Terminals.TEXT, yytext()); }
 <JCXBLOCKSTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
 <JCXBLOCKSTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
-<YYINITIAL> . { yybegin(PSTATE); return newToken(Terminals.TEXT, yytext()); }
-<YYINITIAL> "//" { yybegin(PSTATE); return newToken(Terminals.EM_TOGGLE); }
-<YYINITIAL> "**" { yybegin(PSTATE); return newToken(Terminals.STRONG_TOGGLE); }
+<YYINITIAL> . {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext());
+}
+<YYINITIAL> "//" {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.EM_TOGGLE);
+}
+<YYINITIAL> "**" {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.STRONG_TOGGLE);
+}
 // Following case prevent falsely identified URLs by no attempting to link if
 // URL is internal to a word.
 // Whenever a bare URL occurs in a position where it wouldn't be linked, the
 // user must escape the "//" with ~, or the parser will abort.
-<YYINITIAL, PSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+<YYINITIAL> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+    pushState();
     urlDeferringState = PSTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
-<JCXBLOCKSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    urlDeferringState = JCXBLOCKSTATE;
-    yybegin(ESCURL);
-    return newToken(Terminals.TEXT, yytext());
-}
-<LISTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    urlDeferringState = LISTATE;
-    yybegin(ESCURL);
-    return newToken(Terminals.TEXT, yytext());
-}
-<TABLESTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    urlDeferringState = TABLESTATE;
-    yybegin(ESCURL);
-    return newToken(Terminals.TEXT, yytext());
-}
-<HEADSTATE> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
-    urlDeferringState = HEADSTATE;
+<JCXBLOCKSTATE, LISTATE, TABLESTATE, HEADSTATE, PSTATE> [0-9a-zA-Z]
+/ (https|http|ftp):"/"{S}*{NONPUNC} {
+    urlDeferringState = yystate();
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
@@ -347,18 +357,18 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 // End PSTATE to make way for another element:
 <PSTATE> \n / ("{{{" \n) {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
 <PSTATE> \n / [ \t]*= {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
 <PSTATE> \n / [ \t]*----[ \t]*\n {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
-<PSTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.END_PARA); }
+<PSTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.END_PARA); }
 
 
 // Misc Creole Inline elements.  May occur inside of Paras, TRs, LIs
@@ -366,6 +376,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // I am violating Creole rules here and will not honor any markup inside the
 // URL that we are linking.  I see no benefit to ever doing that.
 <YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
+    pushState();
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
@@ -380,6 +391,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.URL, yytext());
 }
 <YYINITIAL> ^ (https|http|ftp):"/"{S}*{NONPUNC} {
+    pushState();
     yypushback(yylength());
     yybegin(PSTATE);
 }
@@ -389,12 +401,18 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     // URL.  In that case, the parser will handle it.
     // We delimit label from url with 0 char.
     StringBuilder sb = new StringBuilder(yytext());
-    if (yystate() == YYINITIAL) yybegin(PSTATE);
+    if (yystate() == YYINITIAL) {
+        pushState();
+        yybegin(PSTATE);
+    }
     return newToken(Terminals.URL,
             sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 "{{" ~ "}}" {
-    if (yystate() == YYINITIAL) yybegin(PSTATE);
+    if (yystate() == YYINITIAL) {
+        pushState();
+        yybegin(PSTATE);
+    }
     // N.b. we handle images inside of [[links]] in the awkwardly redundant
     // way of parsing that out inside the parser instead of the scanner.
     // We delimit url from alttext with 0 char.
@@ -427,10 +445,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
 }
 <YYINITIAL> "<<"{s}*[{}]{s}*">>" {
+    pushState();
     yypushback(yylength());
     yybegin(PSTATE);
 }
-<YYINITIAL> "<<"{s}*addClass[ \t] { yypushback(yylength()); yybegin(PSTATE); }
+<YYINITIAL> "<<"{s}*addClass[ \t] {
+    pushState();
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{w}+{s}*">>" {
     // PLUGIN:  Styler
@@ -458,18 +481,18 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <LISTATE> \n { }  // Ignore if last char in file
 // End LISTATE to make way for another element:
 <LISTATE> \n / ("{{{" \n) {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
 <LISTATE> \n / [ \t]*= {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
 <LISTATE> \n / [ \t]*----[ \t]*\n {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> <<EOF>> { yybegin(YYINITIAL); return newToken(Terminals.FINAL_LI); }
+<LISTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.FINAL_LI); }
 // Would this last not defeat sending proper EOF to the parser?
 
 
@@ -481,12 +504,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <TABLESTATE> "|" { return newToken(Terminals.CELL); }
 <TABLESTATE> . { return newToken(Terminals.TEXT, yytext()); }
 <TABLESTATE> <<EOF>> {
-    yybegin(YYINITIAL);
+    yybegin(popState());
     return newToken(Terminals.FINAL_ROW);
 }
 // I believe that the following can only be called if very last thing in file,
 // since above we have captured both "\n\s*[|]" and "\n\s*[^|]".
-<TABLESTATE> \n { yybegin(YYINITIAL); return newToken(Terminals.FINAL_ROW); }
+<TABLESTATE> \n { yybegin(popState()); return newToken(Terminals.FINAL_ROW); }
 
 
 // HEADING STUFF
@@ -499,6 +522,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.HEADING, null, hLevel);
 }
 <HEADSTATE> (=+[ \t]*)? \n {
+    // No need to pop state.  We always come from and return to YYINITIAL.
     yybegin(YYINITIAL);
     return newToken(Terminals.END_H);
 }
