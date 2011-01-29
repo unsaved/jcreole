@@ -1,0 +1,39 @@
+#List item #1
+##List item 2a
+##<<[>>Item 2b is a block<<]>><<[>>and another<<]>>
+##List <<[>>Item 2c is<<]>> mixed
+##List <<[>>Item 2d has <<[>>nested<<]>> blocks<<]>> in it
+Did that work?
+=====Now same bug with more line breaks inside of line items
+#List item #1
+##List item 2a
+##<<[>>Item 2b
+is a block<<]>>
+##List <<[>>
+Item 2c is
+<<]>>
+mixed
+##List <<[>>Item
+2d has
+<<[>>
+nested
+<<]>>
+blocks<<]>>
+in
+it
+##<<[>>Item 2e is a block<<]>>
+Did that work?
+##List <<[>>Item
+
+2f has
+
+<<[>>
+
+nested blank lines
+
+<<]>>
+
+blocks<<]>>
+in
+it
+=====Closing heading here

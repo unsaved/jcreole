@@ -91,7 +91,7 @@
             hIds.add(s);
             return s;
         }
-        s = sectIdPrefix + WordUtils.initials(strippedString);
+        s = sectIdPrefix + WordUtils.initials(strippedString).toLowerCase();
         if (hIds.contains(s)) for (int i = 1; i < 10000; i++)
             if (!hIds.contains(s + i)) { s += i; break; }
         hIds.add(s);

@@ -155,7 +155,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
-<YYINITIAL, JCXBLOCKSTATE> "<<"{s}*"["{s}*">>" {
+<YYINITIAL, JCXBLOCKSTATE, LISTATE> "<<"{s}*"["{s}*">>" {
     // Note the recursion for JCXBLOCKSTATE
     pushState();
     yybegin(JCXBLOCKSTATE);
@@ -484,15 +484,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 
 // LISTATE stuff
+<LISTATE> \n / [ \t]*= {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_LI);
+}
 <LISTATE> . { return newToken(Terminals.TEXT, yytext()); }
 <LISTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
 <LISTATE> \n { }  // Ignore if last char in file
 // End LISTATE to make way for another element:
 <LISTATE> \n / ("{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_LI);
-}
-<LISTATE> \n / [ \t]*= {
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
