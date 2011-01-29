@@ -104,7 +104,8 @@ public class CreoleParseTest {
 
     @org.junit.Test
     public void parseTest() throws IOException {
-        assertNotNull("Missing expect file: "
+        if (htmlExpectFile != null)
+            assertNotNull("Missing expect file: "
                     + htmlExpectFile.getAbsolutePath(), htmlFile);
         Object retVal = null;
         try {
