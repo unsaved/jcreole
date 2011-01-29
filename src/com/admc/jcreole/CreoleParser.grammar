@@ -530,8 +530,8 @@ jcxblock = JCXBLOCK jcxblockOrInline.f+ END_JCXBLOCK {:
             // the last content of the div.
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return new WashedSymbol("<div class=\"jcx\""
-                    + markJcxblock() + '>' + b + fontCaps()
+            return new WashedSymbol("<div class=\"jcx"
+                    + markJcxblock() + "\">" + b + fontCaps()
                     + markClose(null, TagType.JCXBLOCK) + "</div>\n");
         :};
 

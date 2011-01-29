@@ -155,7 +155,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*"["{s}*">>" {
+<YYINITIAL, JCXBLOCKSTATE> "<<"{s}*"["{s}*">>" {
     // Note the recursion for JCXBLOCKSTATE
     pushState();
     yybegin(JCXBLOCKSTATE);
