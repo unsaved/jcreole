@@ -74,16 +74,14 @@ public class CreoleParseTest {
                 pCreoleInRoot, new String[] { "creole" }, true)) {
             eFile = new File(f.getParentFile(),
                     f.getName().replaceFirst("\\..*", "") + ".html");
-            if (!eFile.isFile())
-                throw new IOException("Missing expect file: "
-                        + eFile.getAbsolutePath());
             params.add(new Object[] {
                 f, eFile,
-                new File(pWorkOutRoot,
+                (eFile.isFile()
+                ? new File(pWorkOutRoot,
                 f.getParentFile().equals(pCreoleInRoot)
                 ? eFile.getName()
                 : (f.getParent().substring(pCreoleInRootPath.length())
-                        + FSEP + eFile.getName())),
+                        + FSEP + eFile.getName())) : null),
                 Boolean.TRUE
             });
         }
@@ -106,6 +104,8 @@ public class CreoleParseTest {
 
     @org.junit.Test
     public void parseTest() throws IOException {
+        assertNotNull("Missing expect file: "
+                    + htmlExpectFile.getAbsolutePath(), htmlFile);
         Object retVal = null;
         try {
             retVal = new CreoleParser().parse(CreoleScanner.newCreoleScanner(
