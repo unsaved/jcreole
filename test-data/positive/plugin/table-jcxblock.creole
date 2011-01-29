@@ -1,0 +1,4 @@
+|=header1|=header2
+|<<[>>Cell 1/1 is a block<<]>><<[>>and another<<]>>|Cell <<[>>1/2 is<<]>> mixed
+|Cell <<[>>2/1 **has** <<[>>nested<<]>> blocks<<]>> //in// it|row2col2
+Did that work?
