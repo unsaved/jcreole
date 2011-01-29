@@ -79,6 +79,11 @@ CREATE ELEMENTS
 
     You should obviously always pair <<[>> with <<]>>,and pair <<{>> with <<}>>.
 
+    N.b. unlike JCreole paragraphs, lists, and tables, neither jcxBlock nor
+    jcxSpan auto-close.  You must always explicitly close with <<]>> or <<}>>.
+    This is required to disambiguate cases of recursive nestings which are not
+    supported by basic Creole 1.0.
+
     JCX Span directives are placed exactly the same as Creole inline elements,
     with the exception that you must explicitly close JCX Spans (still under
     consideration whether to auto-close them).
@@ -96,8 +101,15 @@ CREATE ELEMENTS
     Perhaps the most useful consequence of this is that table cells or list
     items may contain JCX Divs.
     A JCX Div may contain inline elements and other JCX Divs.  I.e. they
-    support recursion.  But they can not contain tables or lists (if at some
-    point I can get the parser to allow these, I'll make it so).
+    support recursion.  But they can not contain paragraphs, tables, or lists
+    (if at some point I can get the parser to allow these, I'll make it so).
+
+    A general consequence of the previous rules is that with plain 1.0 Creole,
+    the Creole line-beginning statements like *, =, {{{ will work anywhere,
+    because tables and lists auto-close when any non-table/non-list line
+    follows and paras auto-close when the *, =, {{{, etc. are encountered.
+    These line-beginning statements are not honored inside of jcxBlocks,
+    however, because jcxBlocks do not auto-close.
 
 
 STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element

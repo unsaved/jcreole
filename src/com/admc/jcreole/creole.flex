@@ -132,17 +132,14 @@ w = [a-zA-Z0-9_]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 %%
 
-// WARNING!!
+// GOTCHA!
 // ** Be careful of effects of pushback on ^.
 // ** If you don't push back all characters after the line-break, you will
 // ** lose the ability to match ^.
 
-// Force high-priorioty of these very short captures
-// Transition to LISTATE from any state other than LISTATE
-<JCXBLOCKSTATE> "<<"{s}*"]"{s}*">>" {
-    yybegin(popState());
-    return newToken(Terminals.END_JCXBLOCK);
-}
+// ********************************************************
+// State changes from YYINITIAL.
+// URLs and a couple special cases are handled elsewhere.
 <YYINITIAL> ^[ \t]+ / "**" {
     pushState();
     yybegin(PSTATE);
@@ -158,6 +155,63 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*"["{s}*">>" {
+    // Note the recursion for JCXBLOCKSTATE
+    pushState();
+    yybegin(JCXBLOCKSTATE);
+    return newToken(Terminals.JCXBLOCK);
+}
+<YYINITIAL> ^[ \t]*=+ {
+    // No need to push or pop for HEADSTATE.  Will revert to YYINITIAL.
+    // If you wnat a HEADING from inside a jcxBlock, exit the jcxBlock first.
+    yypushback(yylength());
+    yybegin(HEADSTATE);
+}
+<YYINITIAL> ^[ \t]*[|] {
+    yypushback(yylength());
+    pushState();
+    yybegin(TABLESTATE);
+}
+<YYINITIAL> "//" {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.EM_TOGGLE);
+}
+<YYINITIAL> "**" {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.STRONG_TOGGLE);
+}
+<YYINITIAL> . {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext());
+}
+<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
+    pushState();
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
+<YYINITIAL> "<<"{s}*addClass[ \t] {
+    // Undesirable situation here.
+    // We don't know whether the Styler directive at root level is intended for
+    // a para, list, table, or jcxBlock.
+    // Until figure out how to determine, assume para, which may cause
+    // unnecessary switching back and forth to paras.
+    // Probably not worth fixing, since the page author can always avoid this
+    // situation by not using <<addClass +jcxBlock...>> at the root level.
+    // I.e. if the author wants to style a root-level jcxBlock, then use a
+    // <<addClass =jcxBlock...>> instead.
+    pushState();
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
+// ********************************************************
+
+<JCXBLOCKSTATE> "<<"{s}*"]"{s}*">>" {
+    yybegin(popState());
+    return newToken(Terminals.END_JCXBLOCK);
+}
 <LISTATE> ^[ \t]*((#+)|("*"+)) {
     Matcher m = ListLevelPattern.matcher(yytext());
     if (!m.matches())
@@ -166,21 +220,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             + yytext() + '"', yychar, yyline, yycolumn);
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
-}
-<YYINITIAL> ^[ \t]*"<<"{s}*"["{s}*">>" {
-    pushState();
-    yybegin(JCXBLOCKSTATE);
-    return newToken(Terminals.JCXBLOCK);
-}
-<YYINITIAL> ^[ \t]*=+ {
-    // No need to push or pop for HEADSTATE.  Will rever tto YYINITIAL.
-    yypushback(yylength());
-    yybegin(HEADSTATE);
-}
-<YYINITIAL> ^[ \t]*[|] {
-    yypushback(yylength());
-    pushState();
-    yybegin(TABLESTATE);
 }
 <PSTATE> ^[ \t]*[#*] {
     yypushback(yylength());
@@ -196,7 +235,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
-} <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
+}
+<TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
 <TABLESTATE> \n / [ \t]*[^|] {
     yybegin(popState());
@@ -221,6 +261,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
 
 <YYINITIAL> ^[ \t]*"<<"{s}*"!" ~ ">>" {
+    // HTML comments starting at ^[ \t] inside jcxBlocks handled by INLINE_...
     int startIndex = yytext().indexOf('!');
     return newToken(Terminals.BLOCK_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
@@ -231,6 +272,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yytext().substring(startIndex+1, yylength() - 2));
 }
 <YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
+    // Raw HTML starting at ^[ \t] inside jcxBlocks handled by INLINE_...
     int startIndex = yytext().indexOf('~');
     return newToken(Terminals.BLOCK_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
@@ -241,6 +283,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yytext().substring(startIndex+1, yylength() - 2));
 }
 <YYINITIAL> ^("{{{"\n) ~ (\n"}}}"\n) {
+    // Pres starting at ^[ \t] inside jcxBlocks handled by INLINE_...
     Matcher m = BlockPrePattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(
@@ -304,6 +347,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // General/Global stuff
 <YYINITIAL> [ \t]*\n { return newToken(Terminals.ROOTLVL_NEWLINE); }
 <<EOF>> { return newToken(Terminals.EOF); }
+// Following statement is for developers to TEMPORARY enable for debugging.
 //. { if (yylength() != 1) throw new CreoleParseException("Match length != 1 for '.'  UNMATCHED: [" + yytext() + ']', yychar, yyline, yycolumn); }
 
 
@@ -312,24 +356,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <ESCURL> . {
     yybegin(urlDeferringState);  // Already been pushed, if necessary
     return newToken(Terminals.TEXT, yytext());
-}
-<JCXBLOCKSTATE> . { return newToken(Terminals.TEXT, yytext()); }
-<JCXBLOCKSTATE> "//" { return newToken(Terminals.EM_TOGGLE); }
-<JCXBLOCKSTATE> "**" { return newToken(Terminals.STRONG_TOGGLE); }
-<YYINITIAL> . {
-    pushState();
-    yybegin(PSTATE);
-    return newToken(Terminals.TEXT, yytext());
-}
-<YYINITIAL> "//" {
-    pushState();
-    yybegin(PSTATE);
-    return newToken(Terminals.EM_TOGGLE);
-}
-<YYINITIAL> "**" {
-    pushState();
-    yybegin(PSTATE);
-    return newToken(Terminals.STRONG_TOGGLE);
 }
 // Following case prevent falsely identified URLs by no attempting to link if
 // URL is internal to a word.
@@ -341,20 +367,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
-<JCXBLOCKSTATE, LISTATE, TABLESTATE, HEADSTATE, PSTATE> [0-9a-zA-Z]
-/ (https|http|ftp):"/"{S}*{NONPUNC} {
+[0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {  // YYINITIAL handled already
     urlDeferringState = yystate();
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
 // In PSTATE we write TEXT tokens until we encounter a blank line
 <JCXBLOCKSTATE, PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "//" {
-    return newToken(Terminals.EM_TOGGLE);
-}
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "**" {
-    return newToken(Terminals.STRONG_TOGGLE);
-}
+"//" { return newToken(Terminals.EM_TOGGLE); }  // YYINITIAL handled already
+"**" { return newToken(Terminals.STRONG_TOGGLE); } // YYINITIAL handled already
 // End PSTATE to make way for another element:
 <PSTATE> \n / ("{{{" \n) {
     yybegin(popState());
@@ -378,9 +399,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
     pushState();
     yybegin(PSTATE);
-    return newToken(Terminals.TEXT, yytext().substring(1));
-}
-<JCXBLOCKSTATE> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
 "~" (https|http|ftp):"/"{S}*{NONPUNC} {
@@ -443,16 +461,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
     return newToken((yytext().indexOf('{') < 0)
             ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
-}
-<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
-    pushState();
-    yypushback(yylength());
-    yybegin(PSTATE);
-}
-<YYINITIAL> "<<"{s}*addClass[ \t] {
-    pushState();
-    yypushback(yylength());
-    yybegin(PSTATE);
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{w}+{s}*">>" {
