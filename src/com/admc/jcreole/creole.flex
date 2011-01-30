@@ -49,6 +49,8 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("\\s*([#*]+)");
     private static final Pattern NormalPluginPattern =
             Pattern.compile("(?s)<<\\s*(\\w+)\\s+(.*\\S)\\s*>>");
+    private static final Pattern JcxPattern =
+            Pattern.compile("(?s)<<\\s*([\\[{])\\s*(.*\\S)?\\s*>>");
 
     private Token newToken(short id) {
         return new Token(id, null, yychar, yyline, yycolumn);
@@ -130,7 +132,7 @@ S = [^ \t\f\n]
 s = [ \t\f\n]
 //w = [a-zA-Z0-9_]
 wsdash = [- a-zA-Z0-9_]
-wdash = [-a-zA-Z0-9_]
+//wdash = [-a-zA-Z0-9_]
 NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 %%
 
@@ -157,11 +159,21 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
-<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*"["{s}*">>" {
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*"["{wsdash}*">>" {
+    Matcher m = JcxPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(
+            "JcxBlock directive doesn't match our pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "JCX Matcher captured " + m.groupCount() + " groups");
+    String classNames = m.group(2);
     // Note the recursion for JCXBLOCKSTATE
     pushState();
     yybegin(JCXBLOCKSTATE);
-    return newToken(Terminals.JCXBLOCK);
+    return newToken(Terminals.JCXBLOCK,
+            (classNames == null) ? "" : classNames.replaceAll("\\s+", " "));
 }
 <YYINITIAL> ^[ \t]*=+ {
     // No need to push or pop for HEADSTATE.  Will revert to YYINITIAL.
@@ -460,9 +472,21 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 
 // PLUGINs.  Must leave these below the <<< matcher I think.
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{}]{s}*">>" {
-    return newToken((yytext().indexOf('{') < 0)
-            ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[}]{s}*">>" {
+    return newToken(Terminals.END_JCXSPAN);
+}
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{]{wsdash}*">>" {
+    Matcher m = JcxPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(
+            "JcxBlock directive doesn't match our pattern: \""
+            + yytext() + '"', yychar, yyline, yycolumn);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "JCX Matcher captured " + m.groupCount() + " groups");
+    String classNames = m.group(2);
+    return newToken(Terminals.JCXSPAN,
+            (classNames == null) ? "" : classNames.replaceAll("\\s+", " "));
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {

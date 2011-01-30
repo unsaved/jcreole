@@ -8,7 +8,7 @@ Now <<addClass +jcxSpan jcx3css>>effect next paragraph.
 ==Level 2 <<{>>Heading<<}>>
 
 ===Table heading <<{>>here<<addClass =jcxSpan tableHead>><<addClass +jcxSpan tableProper>><<}>>
-|=head<<{>>er1<<}>>|=header2<<addClass +jcxSpan r2c2>>
+|=head<<{cName1   cName2  cName3>>er1<<}>>|=header2<<addClass +jcxSpan r2c2>>
 |row1col1|row1col2
 |row2col1|row<<{>>2c<<}>>ol2
 * it<<{>>em<<}>> 1

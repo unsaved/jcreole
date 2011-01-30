@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import com.admc.jcreole.CreoleParseException;
 import com.admc.jcreole.TagType;
+import static com.admc.jcreole.CreoleParser.CssNamesPattern;
 
 /**
  * Adds CSS class to HTML tags in the output buffer.
@@ -29,8 +30,6 @@ import com.admc.jcreole.TagType;
  * @since 1.1
  */
 public class Styler extends BufferMarker {
-    private static final Pattern CssNamesPattern =
-            Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     enum Direction { PREVIOUS, CONTAINER, NEXT }
 
     protected String[] classNames;

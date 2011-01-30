@@ -47,6 +47,8 @@
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
             "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
+    public static final Pattern CssNamesPattern =
+            Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
 
     private boolean wrote;  // Just used to write block-separating blank lines
@@ -469,6 +471,7 @@
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
 %typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET = "String";
+%typeof JCXSPAN, JCXBLOCK, jcxblockStart = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -550,28 +553,30 @@ leafblock = BLOCK_PRE.text {:
 
 jcxblockOrInline = jcxblock | inline;
 
-jcxblock = jcxblockStart jcxblockOrInline.f+ END_JCXBLOCK {:
-log.fatal("PRE: " + inlineModeStack);
+jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
             StringBuilder b = joinWashedSymbols(_list_f);
             // Purpose of the following is to keep the </div> on same line as
             // the last content of the div.
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             b.append(autoCloseInlines().toString());
-log.fatal("POST: " + inlineModeStack);
             inlineModeStacks.remove(0);
             inlineModeStack = inlineModeStacks.get(0);
             return new WashedSymbol("<div class=\"jcx"
+                    + ((classNames.length() > 0) ? (" " + classNames) : "")
                     + markJcxblock() + "\">" + b
                     + markClose(null, TagType.JCXBLOCK) + "</div>\n");
         :};
 
 // Only purpose for this one is to push inlineModeStack before the block
 // contents are evaluated.
-jcxblockStart = JCXBLOCK {:
+jcxblockStart = JCXBLOCK.text {:
+        if (text.length() > 0 && !CssNamesPattern.matcher(text).matches())
+            throw new CreoleParseException(
+                    "Malformatted class name(s) in JCX directive: " + text);
         inlineModeStack = new ArrayDeque<InlineMode>(3);
         inlineModeStacks.add(0, inlineModeStack);
-        return DUMMY_SYMBOL;
+        return new Symbol(text);
     :};
 
 table = lastrow.lr {:
@@ -617,9 +622,13 @@ inline = INLINE_PRE.text {:
                     + markInline("span", false, true)
                     + "\">" + clean(text) + "</span>");
         :}
-        | JCXSPAN {:
+        | JCXSPAN.text {:
+            if (text.length() > 0 && !CssNamesPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted class name(s) in JCX directive: " + text);
             inlineModeStack.push(InlineMode.JCXSPAN);
             return new WashedSymbol("<span class=\"jcx"
+                    + ((text.length() > 0) ? (" " + text) : "")
                     + markJcxspan() + "\">");
         :}
         | END_JCXSPAN.tok {:
