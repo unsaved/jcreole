@@ -386,11 +386,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     // No level change
                     // Intentionally empty
                 }
-log.fatal("Lvl " + (headingLevel-1) + " from " + curSequences[headingLevel-1]);
                 if (headingM.getFormatReset() != null)
                     curSequences[headingLevel-1] = -1;
                 curSequences[headingLevel-1] += 1;
-log.fatal(" TO " + curSequences[headingLevel-1]);
                 sh.setSequences(curSequences);
             }
         }
