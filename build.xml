@@ -261,7 +261,7 @@ copy the resources accordingly.</echo>
   </target>
 
   <target name="dist" description="Build binary distribution zip file"
-          depends="stage, condl-javadoc">
+          depends="ref, condl-javadoc">
     <zip destfile="dist/${ant.project.name}-${version}.zip"
          filesonly="true" whenempty="fail">
       <zipfileset prefix="${ant.project.name}-${version}"
@@ -272,6 +272,8 @@ copy the resources accordingly.</echo>
                   dir="dist" excludes="**/.*" includes="apidocs/**"/>
       <zipfileset prefix="${ant.project.name}-${version}/doc"
                   file="README.txt"/>
+      <zipfileset prefix="${ant.project.name}-${version}/doc"
+                  dir="tmp" includes="jcreole-ref.html"/>
     </zip>
   </target>
 
@@ -297,7 +299,8 @@ copy the resources accordingly.</echo>
       <srcfileset dir="src" excludes="**/.*"/>
       <targetfileset dir="dist/apidocs"/>
     </dependset>
-    <available file="dist/apidocs" type="dir" property="javadoc.skip"/>
+    <available file="dist/apidocs/index.html"
+               type="file" property="javadoc.skip"/>
     <antcall target="javadoc"/>
   </target>
 
@@ -334,5 +337,18 @@ copy the resources accordingly.</echo>
     <copy file="template-jul.properties" tofile="${jul.cfgfile}"/>
     <echo>Local logging cfg file created.  Edit per your needs:
     ${jul.cfgfile}</echo>
+  </target>
+
+  <target name="ref" description="Generate JCreole Reference doc"
+          depends="stage, -run-init">
+    <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
+    <java jar="tmp/stage/jcreole-${version}.jar"
+          classpathref="run.ivyrefid" failonerror="true" fork="true">
+      <arg value="-o"/>
+      <arg value="tmp/jcreole-ref.html"/>
+      <arg value="jcreole-ref.creole"/>
+      <sysproperty key="java.util.logging.config.file" value="${jul.cfgfile}"/>
+    </java>
+    <echo message="HTML reference written to 'tmp/jcreole-ref.html'"/>
   </target>
 </project>

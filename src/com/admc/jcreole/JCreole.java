@@ -50,7 +50,7 @@ public class JCreole {
 
     public static final String SYNTAX_MSG =
             "java -jar .../jcreole-*.jar [-r /classpath/boiler.html] "
-            + "[-f /fs/boiler.html] [-o fspath/out.html] fspath/input.creole\n"
+            + "[-f /fs/boiler.html] [-o fspath/out.html] pathto/input.creole\n"
             + "Where either classpath or filesystem boiler plate page includes "
             + "'${content}' at the point(s)\n"
             + "where you want content generated from your Creole inserted.\n"
@@ -59,6 +59,9 @@ public class JCreole {
             + "write generated page to stdout.\n"
             + "If the outputfile already exists, it will be silently "
             + "overwritten\n"
+            + "The input Creole file is sought first in the classpath "
+            + "(relative to classpath roots)\n"
+            + "then falls back to looking for a filesystem file.\n"
             + "Output is always written with UTF-8 encoding.";
 
     protected CreoleParser parser = new CreoleParser();
@@ -139,13 +142,26 @@ public class JCreole {
             throw new RuntimeException(
                     "Internal error.  Neither bpResPath " + "nor bpFsPath set");
         }
-        File inFile = new File(inPath);
+        String creoleResPath =
+                (inPath.length() > 0 && inPath.charAt(0) == '/')
+                ? inPath.substring(1)
+                : inPath;
+            // Classloader lookups are ALWAYS relative to CLASSPATH roots,
+            // and will abort if you specify a beginning "/".
+        InputStream creoleStream = Thread.currentThread()
+                .getContextClassLoader().getResourceAsStream(creoleResPath);
+        File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = new JCreole(rawBoilerPlate);
-        jCreole.setPageTitle(inFile.getName().replaceFirst("[.][^.]*", ""));
+        jCreole.setPageTitle((inFile == null)
+                ? creoleResPath.replaceFirst("[.][^.]*$", "")
+                    .replaceFirst(".*[/\\\\.]", "")
+                : inFile.getName().replaceFirst("[.][^.]*$", ""));
         jCreole.setPluginPrivileges(
                 EnumSet.complementOf(EnumSet.of(PluginPrivilege.RAWHTML)));
-        String html = jCreole.generateHtmlPage(
-                inFile, SystemUtils.LINE_SEPARATOR);
+        String html = (creoleStream == null)
+                ? jCreole.generateHtmlPage(inFile, SystemUtils.LINE_SEPARATOR)
+                : jCreole.generateHtmlPage(
+                        creoleStream, SystemUtils.LINE_SEPARATOR);
         if (outPath == null) {
             System.out.print(html);
         } else {
@@ -249,7 +265,27 @@ public class JCreole {
      */
     public String generateHtmlPage(File creoleFile, String outputEol)
             throws IOException {
-        String gendHtml = parseCreole(creoleFile);
+        return postProcess(parseCreole(creoleFile), outputEol);
+    }
+
+    /**
+     * Just like the generateHtmlPage(File, String) method, but gets the
+     * Creole input from the supplied input stream.
+     *
+     * @see #generateHtmlPage(File, String)
+     */
+    public String generateHtmlPage(InputStream creoleStream, String outputEol)
+            throws IOException {
+        return postProcess(parseCreole(
+                new StringBuilder(IOUtils.toString(creoleStream, "UTF-8"))),
+                outputEol);
+    }
+
+    /**
+     * Wraps supplied HTML in a nice frame.
+     */
+    protected String postProcess(String gendHtml, String outputEol)
+            throws IOException {
         StringBuilder html = new StringBuilder(pageBoilerPlate);
         int index = html.indexOf("${content}");
         html.replace(index, index + "${content}".length(), gendHtml);

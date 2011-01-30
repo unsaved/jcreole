@@ -1,0 +1,79 @@
+<<enumFormats x1a_xx>>
+
+= JCreole Reference
+
+<<toc>>
+
+The //author// is the person writing the markup.\\
+The //wikitext// is the text that the author writes.
+
+== Base Creole
+
+=== **Plain text** is grouped into (HTML) paragraphs.
+Separate paragraphs with blank lines in the wikitext.
+Paragraphs will automatically end without a blank like if you trigger a
+list, paragraph, or heading as described below (though it won't hurt anything
+if you add a blank line also).
+
+=== **Strong text**
+is delimited like ##~**this~**##.
+
+=== **Emphasized text**
+is delimited like ##~//this~//##.
+
+=== **Table rows**
+are on lines beginning with the ##|## character.
+Use | to separate each cell.
+Add a ##=## immediately after the | to mark the cell as a heading cell
+(as opposed to a data cell).
+
+=== **Numbered list items**
+are on lines beginning with one or more ##{{{#}}}## characters, where the number of #'s indicates the list level.
+There is a constraint on the list item levels allowed.
+The level (number of #'s) of a row line must be less than, equal to, or one level higher than the level of the row on the previous line.
+Consequently, you must //start// numbered lists with a line starting with just one #.
+
+=== **Unordered list items**
+Same as Numbered lists, but use ##*## characters instead of the # characters to
+identify the rows and indicate levels.
+
+=== **Headings**
+Begin the line with from one to six ##=## characters.
+One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## meand a lowest-level heading.
+
+=== **Bare URLs**
+like ##~http://cnn.com/some/page ##  are automatically made into hyperlinks with a
+label matching the URL.
+
+=== **Explicit Hyperlinks**
+are inside of square brackets like ##{{{[[http://cnn.com/some/page]]}}}##.
+To show a label as something other than the URL, add a pipe character and the
+label text right after the URL, 
+like {{{[[http://cnn.com/some/page|like this]]}}}.
+
+=== **Horizontal Rules**
+Just write ##----## on a line all by itself.
+
+=== **Inline Images**
+are included by putting the URLs inside of curly brackets ##{{{likethis.png}}}##.
+You can add a hyper-link for the inline image
+##{{{http://cnn.com/some/page|likethis.png}}}##.
+
+=== **Avoid markup interpretation**
+By prefixing the special character(s) with ~, or by enclosing the text with
+~{{{ and ~}}}.
+These tactics are called //escaping//, and the last method is called //Nowiki//.
+(Nowiki also encloses the escaped text in a HTML //pre// element).
+
+
+== JCreole Additions
+
+See the file ##additions.html## in the doc directory of JCreole distributions
+for more complete descriptions.
+
+=== **Automatic id's to use as hyperlink targets**
+Take a look at the generated code and you will see id attributes written to all
+of your heading elements.
+You can use these as targets from ~[[...~]] links on the same page, as targets
+from external pages, to use in CSS selectors, or for any other purpose.
+(They are also used for the TOC feature described elsewhere).

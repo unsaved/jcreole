@@ -34,7 +34,8 @@ abstract public class TagMarker extends BufferMarker {
     private boolean atomic;
 
     /**
-     * @writeAttr  whether to write the 'class' attribute name (and = and "),
+     * @param writeAttr  whether to write the 'class' attribute name
+     *             (and = and "),
      *             as opposed to just inserting names of classes.
      */
     public TagMarker(
