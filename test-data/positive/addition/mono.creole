@@ -1,4 +1,4 @@
-One two ##monspaced text here## but not here.
+One two ##monospaced text here## but not here.
 
 One Two ##unclosed monospace.
 

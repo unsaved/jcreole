@@ -37,9 +37,9 @@ Auto-Id & Auto-link-labels
 
 Monospace.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
-NOT IMPLEMENTED YET:  Superscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
+Superscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
-NOT IMPLEMENTED YET:  Subscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
+Subscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
 NOT IMPLEMENTED YET:  Underline.  See http://wiki.wikicreole.org/Creole%201.0/additions
 

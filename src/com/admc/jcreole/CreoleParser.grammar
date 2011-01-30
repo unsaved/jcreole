@@ -227,7 +227,13 @@
     }
 
     private enum InlineMode {
-        EMPHASIZED("em"), STRONG("strong"), JCXSPAN("span"), MONO("tt");
+        EMPHASIZED("em"),
+        STRONG("strong"),
+        JCXSPAN("span"),
+        MONO("tt"),
+        SUP("sup"),
+        SUB("sub");
+
         private String tagName;
         private InlineMode(String tagName) { this.tagName = tagName; }
         public String toString() { return tagName; }
@@ -508,6 +514,7 @@
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
+%terminals SUB_TOGGLE, SUP_TOGGLE;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATRESET;
@@ -746,6 +753,12 @@ inline = INLINE_PRE.text {:
         :}
         | MONO_TOGGLE.t {:
             return toggleInlineMode(InlineMode.MONO, (Token) t);
+        :}
+        | SUP_TOGGLE.t {:
+            return toggleInlineMode(InlineMode.SUP, (Token) t);
+        :}
+        | SUB_TOGGLE.t {:
+            return toggleInlineMode(InlineMode.SUB, (Token) t);
         :}
         | STRONG_TOGGLE.t {:
             return toggleInlineMode(InlineMode.STRONG, (Token) t);

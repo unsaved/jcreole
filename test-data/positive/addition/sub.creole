@@ -1,0 +1,14 @@
+One two ,,subscript text here,, but not here.
+
+One Two ,,unclosed subscript.
+
+*list item1
+**list item2a
+**list item2b
+some regular text and some ,,subscript text,, too.
+**list item2c has ,,unclosed sub
+**This one intermixes //italic and **bold and ,,subscript
+** and then reverts
+**Same thing //italic and **bold and ,,subscript and exiting list.
+
+Closing plain paragaph.
