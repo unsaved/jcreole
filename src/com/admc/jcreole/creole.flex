@@ -126,6 +126,15 @@ import org.apache.commons.io.input.CharSequenceReader;
             //sb.append('\n');
         return new CreoleScanner(new CharSequenceReader(sb));
     }
+
+    private Matcher matcher(Pattern p) {
+        Matcher m = p.matcher(yytext());
+        if (!m.matches())
+            throw new CreoleParseException(String.format(
+                "Creole directive markup text doesn't match expected pattern: "
+                + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+        return m;
+    }
 %}
 
 %states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE
@@ -162,11 +171,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.LI, "*", 1);
 }
 <YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*"["{wsdash}*">>" {
-    Matcher m = JcxPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "JcxBlock directive doesn't match our pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
+    Matcher m = matcher(JcxPattern);
     if (m.groupCount() != 2)
         throw new RuntimeException(
                 "JCX Matcher captured " + m.groupCount() + " groups");
@@ -229,11 +234,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.END_JCXBLOCK);
 }
 <LISTATE> ^[ \t]*((#+)|("*"+)) {
-    Matcher m = ListLevelPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "List-Item-start text doesn't match our pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
+    Matcher m = matcher(ListLevelPattern);
     return newToken(Terminals.LI,
             Character.toString(m.group(1).charAt(0)), m.group(1).length());
 }
@@ -288,11 +289,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yytext().substring(startIndex+1, yylength() - 2));
 }
 <YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*toc ~ ">>" {
-    Matcher m = OptParamPluginPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(String.format(
-            "Plugin Directive text doesn't match our Plugin Directive pattern: "
-            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    Matcher m = matcher(OptParamPluginPattern);
     if (m.groupCount() != 2)
         throw new RuntimeException(
                 "JCX Matcher captured " + m.groupCount() + " groups");
@@ -311,20 +308,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 <YYINITIAL> ^("{{{"\n) ~ (\n"}}}"\n) {
     // Pres starting at ^[ \t] inside jcxBlocks handled by INLINE_...
-    Matcher m = BlockPrePattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "BLOCK_PRE text doesn't match our block Pref pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
-    return newToken(Terminals.BLOCK_PRE, m.group(1));
+    return newToken(Terminals.BLOCK_PRE, matcher(BlockPrePattern).group(1));
 }
 "{{{" ~ ("}"* "}}}") {
-    Matcher m = InlinePrePattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "INLINE_PRE text doesn't match our inline Pref pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
-    return newToken(Terminals.INLINE_PRE, m.group(1));
+    return newToken(Terminals.INLINE_PRE, matcher(InlinePrePattern).group(1));
 }
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
@@ -471,20 +458,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.HOR);
 }
 <JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
-    Matcher m = ParamPluginPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(String.format(
-            "Plugin Directive text doesn't match our Plugin Directive pattern: "
-            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
-    return newToken(Terminals.STYLESHEET, m.group(2));
+    return newToken(Terminals.STYLESHEET, matcher(ParamPluginPattern).group(2));
 }
 <JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*enumFormats ~ ">>" {
-    Matcher m = ParamPluginPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(String.format(
-            "Plugin Directive text doesn't match our Plugin Directive pattern: "
-            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
-    return newToken(Terminals.ENUM_FORMATS, m.group(2));
+    return newToken(
+            Terminals.ENUM_FORMATS, matcher(ParamPluginPattern).group(2));
 }
 
 "<<<" | ">>>" {
@@ -493,15 +471,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 
 // PLUGINs.  Must leave these below the <<< matcher I think.
+<HEADSTATE, YYINITIAL> "<<"[ \t]*enumFormatSwitch ~ ">>" {
+    return newToken(Terminals.ENUMFORMATSWITCH);
+}
 <JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[}]{s}*">>" {
     return newToken(Terminals.END_JCXSPAN);
 }
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[{]{wsdash}*">>" {
-    Matcher m = JcxPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(
-            "JcxBlock directive doesn't match our pattern: \""
-            + yytext() + '"', yychar, yyline, yycolumn);
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE>
+"<<"{s}*[{]{wsdash}*">>" {
+    Matcher m = matcher(JcxPattern);
     if (m.groupCount() != 2)
         throw new RuntimeException(
                 "JCX Matcher captured " + m.groupCount() + " groups");
@@ -510,21 +488,14 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             (classNames == null) ? null : classNames.replaceAll("\\s+", " "));
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
-<PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
-    Matcher m = ParamPluginPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(String.format(
-            "Plugin Directive text doesn't match our Plugin Directive pattern: "
-            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
-    return newToken(Terminals.STYLER, m.group(2));
+<PSTATE, HEADSTATE>
+"<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
+    return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
-<JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
-    Matcher m = ParamPluginPattern.matcher(yytext());
-    if (!m.matches())
-        throw new CreoleParseException(String.format(
-            "Plugin Directive text doesn't match our Plugin Directive pattern: "
-            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
-    return newToken(Terminals.STYLER, m.group(2));
+<JCXBLOCKSTATE, LISTATE, TABLESTATE>
+"<<"{s}*addClass[ \t]+[-=+]
+("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
+    return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
 
 

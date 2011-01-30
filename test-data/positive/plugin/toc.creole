@@ -5,7 +5,8 @@
 == This is a very very very long title That Has Length To it.
 == Another one interceded
 === Very nested
-=== and again
+=== and <<enumFormatSwitch>>again
+=== and yet again
 == Returned
 === Other
 = Second Title

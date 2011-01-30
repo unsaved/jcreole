@@ -469,7 +469,7 @@
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, STYLER;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
-%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS;
+%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATSWITCH;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
@@ -493,7 +493,7 @@ topblock = HOR {:
             return new WashedSymbol(
                     "<hr" + markBlock("hr", true, true) + ">\n");
         :}
-        | HEADING.h inline.f+ END_H {:
+        | HEADING.h hinline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
             StringBuilder b = joinWashedSymbols(_list_f);
             String strippedText = stripMeta(b.toString());
@@ -585,7 +585,7 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
             inlineModeStacks.remove(0);
             inlineModeStack = inlineModeStacks.get(0);
             return new WashedSymbol("<div class=\"jcx"
-                    + ((classNames.length() > 0) ? (" " + classNames) : "")
+                    + ((classNames == null) ? "" : (" " + classNames))
                     + markJcxblock() + "\">" + b
                     + markClose(null, TagType.JCXBLOCK) + "</div>\n");
         :};
@@ -639,6 +639,9 @@ lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
                 return li;
             :};
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
+
+hinline = inline
+        | ENUMFORMATSWITCH {: return new WashedSymbol("+++++++++++++++++++++++++++++"); :};
 
 inline = INLINE_PRE.text {:
             return new WashedSymbol("<span class=\"jcreole_pref"
