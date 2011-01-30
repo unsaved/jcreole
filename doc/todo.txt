@@ -2,10 +2,6 @@ SHORT TERM
 
 Allow <<[>> and <<{>> to give initial class names:  <<[class1 class2>> ,etc.
 
-Implement jcxBlock
-    Top-level:  Review that other top-levels all work.  Raw HTML, NoWiki, etc.
-    Implement nested.
-
 Implement section-counting.
     Rigorous testing of nesting and sequencing.
     Implement sequenceLabeling.
