@@ -17,6 +17,7 @@
 
 package com.admc.jcreole.marker;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
@@ -182,7 +183,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         typedQueue = queuedInlineClassNames;
                 }
                 if (typedQueue != null) {
-                    for (String className : typedQueue) tagM.add(className);
+                    tagM.addCssClasses(typedQueue.toArray(new String[0]));
                     typedQueue.clear();
                 }
             } else if (m instanceof CloseMarker) {
@@ -255,7 +256,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof Styler) {
                 Styler styler = (Styler) m;
                 TagType targetType = styler.getTargetType();
-                String className = styler.getClassName();
+                String[] classNames = styler.getClassNames();
                 // Get this validation over with so rest of this block can
                 // assume targetType is an instance of one of these types.
                 switch (targetType) {
@@ -326,13 +327,13 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         typedQueue = queuedJcxBlockClassNames;
                         break;
                     }
-                    typedQueue.add(className);
+                    typedQueue.addAll(Arrays.asList(classNames));
                     break;
                   default:
                     throw new RuntimeException("Unexpected direction value: "
                             + styler.getTargetDirection());
                 }
-                if (targetTag != null) targetTag.add(className);
+                if (targetTag != null) targetTag.addCssClasses(classNames);
             } else if (m instanceof LinkMarker) {
                 lMarker = (LinkMarker) m;
                 linkText = lMarker.getLinkText();

@@ -126,8 +126,11 @@ STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
     <<addClass =jcx className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
-    Same as above, but with "-" instead of "=".  Target the preceding closed
-    element instead of the immediate containing element:
+    To simplify and shorten these descriptions, I'm specifying only one class,
+    but you can give any number of class names.
+
+    Next is same as above, but with "-" instead of "=".  Target the preceding
+    closed element instead of the immediate containing element:
 
     <<addClass -block className>>
         Add CSS class to the immediate containing non-JCX block element.
@@ -136,7 +139,7 @@ STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
     <<addClass -jcx className>>
         Add CSS class to the immediate containing JCX SPAN element.
 
-    Same as above, but with "+".  Target the next
+    Next is same as above, but with "+".  Target the next
     element instead of the immediate containing element:
 
     <<addClass +block className>>
@@ -150,6 +153,16 @@ STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
     element opened.  So, with nested "em" and "strong" elements, if we have
         //emphasized **strong** closing// <<addClass -inline aName>>
     the name applies to the last inline CLOSED, which here is <em> for the //.
+
+(CONVENIENCE:  <<{>> and <<[>> also take optional class names, in which case
+the directive is equivalent to the corresponding open directive + addClass
+directives.  E.g.:
+    "<<{class1 class2}>>"
+    ==
+    "<<{>><<addClass =jcxSpan class1>><<addClass =jcxSpan class2>>
+    ==
+    "<<{>><<addClass =jcxSpan class1 class2>>
+)
 
 
 DEFINE CSS STYLES

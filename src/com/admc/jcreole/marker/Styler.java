@@ -29,25 +29,25 @@ import com.admc.jcreole.TagType;
  * @since 1.1
  */
 public class Styler extends BufferMarker {
-    private static final Pattern CssNamePattern =
-            Pattern.compile("[a-zA-Z_][-\\w]*");
+    private static final Pattern CssNamesPattern =
+            Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     enum Direction { PREVIOUS, CONTAINER, NEXT }
 
-    protected String className;
+    protected String[] classNames;
     protected Direction targetDirection;
     protected TagType targetType;
 
     public Styler(int id,
-            String newClassName, char directionChar, String tagTypeStr) {
+            String newClassNames, char directionChar, String tagTypeStr) {
         super(id);
-        if (newClassName == null)
+        if (newClassNames == null)
             throw new NullPointerException(
-                    "Styler specifies no CSS class name");
-        Matcher m = CssNamePattern.matcher(newClassName);
+                    "Styler specifies no CSS class names");
+        Matcher m = CssNamesPattern.matcher(newClassNames);
         if (!m.matches())
             throw new CreoleParseException(
-                    "Illegal class name: " + newClassName);
-        this.className = newClassName;
+                    "Malformatted class name(s): " + newClassNames);
+        classNames = newClassNames.split("\\s+", -1);
         switch (directionChar) {
           case '-':
             targetDirection = Direction.PREVIOUS;
@@ -69,7 +69,7 @@ public class Styler extends BufferMarker {
                     "Unexpected tag type specifier: " + tagTypeStr);
     }
 
-    public String getClassName() { return className; }
+    public String[] getClassNames() { return classNames; }
     public Direction getTargetDirection() { return targetDirection; }
     public TagType getTargetType() { return targetType; }
 }

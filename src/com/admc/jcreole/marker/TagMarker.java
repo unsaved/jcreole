@@ -49,8 +49,9 @@ abstract public class TagMarker extends BufferMarker {
         return tagName;
     }
 
-    public void add(String className) {
-        if (!cssClasses.contains(className)) cssClasses.add(className);
+    public void addCssClasses(String[] newNames) {
+        for (String name : newNames)
+            if (!cssClasses.contains(name)) cssClasses.add(name);
     }
 
     /**

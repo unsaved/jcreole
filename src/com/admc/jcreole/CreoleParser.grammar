@@ -46,7 +46,7 @@
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
-            "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+([a-zA-Z_][-\\w]*)");
+            "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
 
     private boolean wrote;  // Just used to write block-separating blank lines

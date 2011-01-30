@@ -1,6 +1,6 @@
 <<addClass +jcxSpan jcx1cssA>><<{>>jcx1<<addClass =jcxSpan jcx1cssB>><<}>><<addClass -jcxSpan jcx1cssC>>
 
-Alpha<<addClass +jcxSpan jcx2cssA>>beta<<{>>jcx2<<addClass =jcxSpan jcx2cssB>>gamma<<}>>delta<<addClass -jcxSpan jcx2cssC>>mu.
+Alpha<<addClass +jcxSpan jcx2cssA>>beta<<{>>jcx2<<addClass =jcxSpan jcx2cssB>>gamma<<}>>delta<<addClass -jcxSpan jcx2cssC jcx2cssD jcx2cssE>>mu.
 
 Now <<addClass +jcxSpan jcx3css>>effect next paragraph.
 
