@@ -17,6 +17,7 @@
 
 package com.admc.jcreole;
 
+import java.util.EnumSet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -59,6 +60,10 @@ public class JCreole {
             + "If the outputfile already exists, it will be silently "
             + "overwritten\n"
             + "Output is always written with UTF-8 encoding.";
+
+    protected CreoleParser parser = new CreoleParser();
+    private String pageBoilerPlate;
+    private String pageTitle;
 
     /**
      * Run this method with no parameters to see syntax requirements and the
@@ -134,9 +139,13 @@ public class JCreole {
             throw new RuntimeException(
                     "Internal error.  Neither bpResPath " + "nor bpFsPath set");
         }
+        File inFile = new File(inPath);
         JCreole jCreole = new JCreole(rawBoilerPlate);
+        jCreole.setPageTitle(inFile.getName().replaceFirst("[.][^.]*", ""));
+        jCreole.setPluginPrivileges(
+                EnumSet.complementOf(EnumSet.of(PluginPrivilege.RAWHTML)));
         String html = jCreole.generateHtmlPage(
-                new File(inPath), SystemUtils.LINE_SEPARATOR);
+                inFile, SystemUtils.LINE_SEPARATOR);
         if (outPath == null) {
             System.out.print(html);
         } else {
@@ -242,13 +251,26 @@ public class JCreole {
         int index = html.indexOf("${content}");
         html.replace(index, index + "${content}".length(), gendHtml);
         index = html.indexOf("${headers}");
-        html.replace(index, index + "${headers}".length(),
-                parser.getHeaderInsertion());
+        if (index > -1)
+            html.replace(index, index + "${headers}".length(),
+                    parser.getHeaderInsertion());
+        index = html.indexOf("${pageTitle}");
+        if (pageTitle != null && index > -1)
+            html.replace(index, index + "${pageTitle}".length(), pageTitle);
         return (outputEol == null || outputEol.equals("\n"))
                 ? html.toString() : html.toString().replace("\n", outputEol);
                 // Amazing that StringBuilder can't do a multi-replace like this
     }
 
-    protected CreoleParser parser = new CreoleParser();
-    private String pageBoilerPlate;
+    public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
+        parser.setPluginPrivileges(pluginPrivs);
+    }
+
+    public EnumSet<PluginPrivilege> getPluginPrivileges() {
+        return parser.getPluginPrivileges();
+    }
+
+    public void setPageTitle(String pageTitle) {
+        this.pageTitle = pageTitle;
+    }
 }

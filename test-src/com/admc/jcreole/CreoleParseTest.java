@@ -20,6 +20,7 @@ package com.admc.jcreole;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,8 +110,22 @@ public class CreoleParseTest {
                     + htmlExpectFile.getAbsolutePath(), htmlFile);
         Object retVal = null;
         try {
-            retVal = new CreoleParser().parse(CreoleScanner.newCreoleScanner(
-                    creoleFile, false));
+            CreoleParser parser = new CreoleParser();
+            parser.setPluginPrivileges(EnumSet.allOf(PluginPrivilege.class));
+            /* Replace the statement above with something like this to test
+             * privileges:
+            parser.setPluginPrivileges(EnumSet.of(
+                    PluginPrivilege.ENUMFORMATS,
+                    PluginPrivilege.TOC,
+                    PluginPrivilege.RAWHTML,
+                    PluginPrivilege.STYLESHEET,
+                    PluginPrivilege.JCXBLOCK,
+                    PluginPrivilege.JCXSPAN,
+                    PluginPrivilege.STYLER
+            ));
+            */
+            retVal = parser.parse(
+                    CreoleScanner.newCreoleScanner(creoleFile, false));
         } catch (Exception e) {
             if (!shouldSucceed) return;  // A ok.  No output file to write.
             AssertionError ae =

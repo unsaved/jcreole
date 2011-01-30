@@ -21,6 +21,7 @@
 %import "java.net.MalformedURLException";
 %import "java.util.regex.Pattern";
 %import "java.util.Set";
+%import "java.util.EnumSet";
 %import "java.util.HashSet";
 %import "java.util.List";
 %import "java.util.Map";
@@ -59,6 +60,8 @@
      * or in TOCs) and skips heading levels 5 and 6 in TOCs.
      */
     public static final String DEFAULT_ENUMERATION_FORMATS = "____xx";
+    public static final EnumSet<PluginPrivilege> DEFAULT_PLUGIN_PRIVILEGES =
+        EnumSet.noneOf(PluginPrivilege.class);
 
     private boolean wrote;  // Just used to write block-separating blank lines
     private String urlBase;
@@ -84,6 +87,15 @@
     private String sectIdPrefix = "jcsect_";
     private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
     private Character formatResetChar;
+    private EnumSet<PluginPrivilege> pluginPrivs = DEFAULT_PLUGIN_PRIVILEGES;
+
+    public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
+        this.pluginPrivs = pluginPrivs;
+    }
+
+    public EnumSet<PluginPrivilege> getPluginPrivileges() {
+        return pluginPrivs;
+    }
 
     public void setSectIdPrevix(String sectIdPrefix) {
         this.sectIdPrefix = sectIdPrefix;
@@ -471,6 +483,14 @@
         return new WashedSymbol(sb.append(markClose("table", TagType.BLOCK))
                 .append("</table>\n").toString());
     }
+
+    private void require(PluginPrivilege pluginPriv, Symbol s) {
+        if (!(s instanceof Token))
+            throw new RuntimeException("Symbol not a Token");
+        if (!pluginPrivs.contains(pluginPriv))
+            throw new CreoleParseException(
+                    "You lack the required privilege " + pluginPriv, (Token) s);
+    }
 :};
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
@@ -525,6 +545,7 @@ topblock = HOR {:
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | STYLESHEET.text {:
+            require(PluginPrivilege.STYLESHEET, _symbol_text);
             cssHrefs.add(clean(absoluteUrl(text)));
             return DUMMY_WASHEDSYMBOL;
         :}
@@ -585,6 +606,7 @@ leafblock = BLOCK_PRE.text {:
                     + markClose("p", TagType.BLOCK) + "</p>\n");
         :}
         | TOC.text {:
+            require(PluginPrivilege.TOC, _symbol_text);
             if (text != null && !EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -617,6 +639,7 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
 // Only purpose for this one is to push inlineModeStack before the block
 // contents are evaluated.
 jcxblockStart = JCXBLOCK.text {:
+        require(PluginPrivilege.JCXBLOCK, _symbol_text);
         if (text != null && !CssNamesPattern.matcher(text).matches())
             throw new CreoleParseException(
                     "Malformatted class name(s) in JCX directive: " + text,
@@ -666,6 +689,7 @@ liel     = LI.listart {: return new LiSymbol((Token) listart); :};
 
 hinline = inline
         | ENUMFORMATRESET.formatStr {:
+            require(PluginPrivilege.ENUMFORMATS, _symbol_formatStr);
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
                         "Malformatted format char in enumFormatReset "
@@ -681,6 +705,7 @@ inline = INLINE_PRE.text {:
                     + "\">" + clean(text) + "</span>");
         :}
         | JCXSPAN.text {:
+            require(PluginPrivilege.JCXSPAN, _symbol_text);
             if (text != null && !CssNamesPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted class name(s) in JCX directive: " + text,
@@ -777,6 +802,7 @@ inline = INLINE_PRE.text {:
                 + markInline("img", true, true) + '>');
         :}
         | STYLER.text {:
+            require(PluginPrivilege.STYLER, _symbol_text);
             Matcher m = StylerPattern.matcher(text);
             if (!m.matches())
                 throw new CreoleParseException(
@@ -795,6 +821,7 @@ inline = INLINE_PRE.text {:
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | INLINE_RAWHTML.text {:
+            require(PluginPrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
         :}
         ;
