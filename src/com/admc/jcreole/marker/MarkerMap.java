@@ -33,14 +33,22 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
     private List<SectionHeading> sectionHeadings;
     private Map<String, String> idToTextMap = new HashMap<String, String>();
+    private String enumerationFormats;
 
-    public String apply(StringBuilder sb) {
+    /**
+     * @param enumerationFormats is the enumerationFormats used for header
+     *        elements in the main body, and also serves as the default
+     *        enumerationFormats for TOCs.
+     */
+    public String apply(StringBuilder sb, String enumerationFormats) {
+        this.enumerationFormats = enumerationFormats;
         int offset = 0;
         BufferMarker marker;
         SectionHeading sectionHeading;
         List<Integer> markerOffsets = new ArrayList<Integer>();
         String idString;
         int id;
+        HeadingMarker hm;
         while ((offset = sb.indexOf("\u001a", offset)) > -1) {
             // Unfortunately StringBuilder has no indexOf(char).
             // We could make do StringBuilder.toString().indexOf(char), but
@@ -70,7 +78,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         if (size() > 0) {
             for (BufferMarker m : values())
                 if (m instanceof HeadingMarker) {
-                    sectionHeading = ((HeadingMarker) m).getSectionHeading();
+                    hm = (HeadingMarker) m;
+                    hm.setEnumerationFormats(enumerationFormats);
+                    sectionHeading = hm.getSectionHeading();
                     idToTextMap.put(sectionHeading.getXmlId(),
                             sectionHeading.getText());
                 }
@@ -123,9 +133,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         BlockMarker prevBlock = null;
         InlineMarker prevInline = null;
         int headingLevel = 0;
-        // We won't use slot 0 of nextSequence, so we can code using
-        // headingLevel as the index.
-        int[] nextSequence = new int[7];
+        int[] curSequences = new int[] {-1, -1, -1, -1, -1, -1};
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof TagMarker) {
                 tagM = (TagMarker) m;
@@ -346,6 +354,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 if (lookedUpLabel == null)
                     lMarker.wrapLabel("<span class=\"jcreole_orphanlink\">",
                             "</span>");
+            } else if (m instanceof TocMarker) {
+                ((TocMarker) m).setSectionHeadings(sectionHeadings);
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "
@@ -358,14 +368,17 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 if (newLevel > headingLevel) {
                     headingLevel = newLevel;
                 } else if (newLevel < headingLevel) {
-                    for (int i = headingLevel; i >= newLevel; i--)
-                        nextSequence[i] = 0;
+                    for (int i = headingLevel; i > newLevel; i--)
+                        curSequences[i-1] = -1;
                     headingLevel = newLevel;
                 } else {
                     // No level change
                     // Intentionally empty
                 }
-                sh.setSequence(nextSequence[headingLevel]++);
+log.fatal("Lvl " + (headingLevel-1) + " from " + curSequences[headingLevel-1]);
+                curSequences[headingLevel-1] += 1;
+log.fatal(" TO " + curSequences[headingLevel-1]);
+                sh.setSequences(curSequences);
             }
         }
         if (stack.size() != 0)

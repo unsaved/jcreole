@@ -1,6 +1,13 @@
+<<enumFormats A-aa>>
+<<toc>>
 = First Title
 = Second Title
 == This is a very very very long title That Has Length To it.
+== Another one interceded
+=== Very nested
+=== and again
+== Returned
+=== Other
 = Second Title
 == This is a very very very long title That Has Length To it.
 = This is a very very very long title That Has Length To it.

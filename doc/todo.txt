@@ -1,18 +1,13 @@
 SHORT TERM
 
-Implement section-counting.
-    Rigorous testing of nesting and sequencing.
-    Implement sequenceLabeling.
-    Implement <<toc>> Plugin.
-    Defer all default link label generation to a new first post-processing pass.
-        If URL begins with #, look up the URL in hIdMap and set the label.
-
-Make a reference.creole.
+Rigorous testing of nesting and sequencing.
 
 Make every extension instance-togglable.  Either throw or silently ignore
 extension X if extension X is not enabled.
 
 Implement features listed in "additions.txt".
+
+Make a reference.creole.
 
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.

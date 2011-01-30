@@ -47,8 +47,10 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern ListLevelPattern =
             Pattern.compile("\\s*([#*]+)");
-    private static final Pattern NormalPluginPattern =
+    private static final Pattern ParamPluginPattern =
             Pattern.compile("(?s)<<\\s*(\\w+)\\s+(.*\\S)\\s*>>");
+    private static final Pattern OptParamPluginPattern =
+            Pattern.compile("(?s)<<\\s*(\\w+)(?:\\s+(.*\\S))?\\s*>>");
     private static final Pattern JcxPattern =
             Pattern.compile("(?s)<<\\s*([\\[{])\\s*(.*\\S)?\\s*>>");
 
@@ -173,7 +175,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     pushState();
     yybegin(JCXBLOCKSTATE);
     return newToken(Terminals.JCXBLOCK,
-            (classNames == null) ? "" : classNames.replaceAll("\\s+", " "));
+            (classNames == null) ? null : classNames.replaceAll("\\s+", " "));
 }
 <YYINITIAL> ^[ \t]*=+ {
     // No need to push or pop for HEADSTATE.  Will revert to YYINITIAL.
@@ -284,6 +286,17 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     int startIndex = yytext().indexOf('!');
     return newToken(Terminals.INLINE_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
+}
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*toc ~ ">>" {
+    Matcher m = OptParamPluginPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(String.format(
+            "Plugin Directive text doesn't match our Plugin Directive pattern: "
+            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "JCX Matcher captured " + m.groupCount() + " groups");
+    return newToken(Terminals.TOC, m.group(2));
 }
 <YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
     // Raw HTML starting at ^[ \t] inside jcxBlocks handled by INLINE_...
@@ -458,12 +471,20 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.HOR);
 }
 <JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
-    Matcher m = NormalPluginPattern.matcher(yytext());
+    Matcher m = ParamPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
             "Plugin Directive text doesn't match our Plugin Directive pattern: "
             + "\"%s\"", yytext()), yychar, yyline, yycolumn);
     return newToken(Terminals.STYLESHEET, m.group(2));
+}
+<JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*enumFormats ~ ">>" {
+    Matcher m = ParamPluginPattern.matcher(yytext());
+    if (!m.matches())
+        throw new CreoleParseException(String.format(
+            "Plugin Directive text doesn't match our Plugin Directive pattern: "
+            + "\"%s\"", yytext()), yychar, yyline, yycolumn);
+    return newToken(Terminals.ENUM_FORMATS, m.group(2));
 }
 
 "<<<" | ">>>" {
@@ -486,11 +507,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
                 "JCX Matcher captured " + m.groupCount() + " groups");
     String classNames = m.group(2);
     return newToken(Terminals.JCXSPAN,
-            (classNames == null) ? "" : classNames.replaceAll("\\s+", " "));
+            (classNames == null) ? null : classNames.replaceAll("\\s+", " "));
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
-    Matcher m = NormalPluginPattern.matcher(yytext());
+    Matcher m = ParamPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
             "Plugin Directive text doesn't match our Plugin Directive pattern: "
@@ -498,7 +519,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.STYLER, m.group(2));
 }
 <JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
-    Matcher m = NormalPluginPattern.matcher(yytext());
+    Matcher m = ParamPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
             "Plugin Directive text doesn't match our Plugin Directive pattern: "

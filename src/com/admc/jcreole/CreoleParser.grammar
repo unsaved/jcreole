@@ -49,6 +49,8 @@
             "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     public static final Pattern CssNamesPattern =
             Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
+    public static final Pattern EnumFormatPattern =
+            Pattern.compile("[- aA01]{1,6}?");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
 
     private boolean wrote;  // Just used to write block-separating blank lines
@@ -72,6 +74,7 @@
     // hIds is only for checking ID uniqueness
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
+    private String enumerationFormats;
 
     public void setSectIdPrevix(String sectIdPrefix) {
         this.sectIdPrefix = sectIdPrefix;
@@ -269,27 +272,27 @@
 
     private String markBlock(
             String tagName, boolean writeAttr, boolean atomic) {
-        BufferMarker cI =
+        BufferMarker bm =
                 new BlockMarker(++lastMarkerId, tagName, writeAttr, atomic);
-        markers.put(Integer.valueOf(lastMarkerId), cI);
-        return cI.getMarkerString();
+        markers.put(Integer.valueOf(lastMarkerId), bm);
+        return bm.getMarkerString();
     }
     private String markInline(
             String tagName, boolean writeAttr, boolean atomic) {
-        BufferMarker cI =
+        BufferMarker mI =
                 new InlineMarker(++lastMarkerId, tagName, writeAttr, atomic);
-        markers.put(Integer.valueOf(lastMarkerId), cI);
-        return cI.getMarkerString();
+        markers.put(Integer.valueOf(lastMarkerId), mI);
+        return mI.getMarkerString();
     }
     private String markJcxspan() {
-        BufferMarker cI = new JcxSpanMarker(++lastMarkerId);
-        markers.put(Integer.valueOf(lastMarkerId), cI);
-        return cI.getMarkerString();
+        BufferMarker js = new JcxSpanMarker(++lastMarkerId);
+        markers.put(Integer.valueOf(lastMarkerId), js);
+        return js.getMarkerString();
     }
     private String markJcxblock() {
-        BufferMarker cI = new JcxBlockMarker(++lastMarkerId);
-        markers.put(Integer.valueOf(lastMarkerId), cI);
-        return cI.getMarkerString();
+        BufferMarker jb = new JcxBlockMarker(++lastMarkerId);
+        markers.put(Integer.valueOf(lastMarkerId), jb);
+        return jb.getMarkerString();
     }
 
     private String markClose(String tagName, TagType targetType) {
@@ -466,12 +469,12 @@
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, STYLER;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
-%terminals BLOCK_RAWHTML, INLINE_RAWHTML;
+%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
-%typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET = "String";
-%typeof JCXSPAN, JCXBLOCK, jcxblockStart = "String";
+%typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET, TOC = "String";
+%typeof JCXSPAN, JCXBLOCK, ENUM_FORMATS, jcxblockStart = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -481,7 +484,7 @@ blocks = topblock.b+ {:
                     .insert(0, "<div class=\"jcreole\">\n")
                     .append("</div>\n");
             log.debug("PRE-PostProcess[" + sb + ']');
-            return new WashedSymbol(markers.apply(sb));
+            return new WashedSymbol(markers.apply(sb, enumerationFormats));
         :}
         |;  // This last allows for empty document
 
@@ -501,14 +504,21 @@ topblock = HOR {:
             markers.put(Integer.valueOf(lastMarkerId), hm);
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
-                    + hm.getMarkerString() + '>'
-                    + b + autoCloseInlines()
+                    + hm.getMarkerString() + b + autoCloseInlines()
                     + markClose("h" + hLevel, TagType.BLOCK)
                     + "</h" + hLevel + ">\n");
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | STYLESHEET.text {:
             cssHrefs.add(clean(absoluteUrl(text)));
+            return new WashedSymbol("");  // No-op return val
+        :}
+        | ENUM_FORMATS.text {:
+            if (!EnumFormatPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted enumFormats: " + text,
+                        (Token) _symbol_text);
+            enumerationFormats = text;
             return new WashedSymbol("");  // No-op return val
         :}
         | masterblock
@@ -533,7 +543,8 @@ leafblock = BLOCK_PRE.text {:
         | BLOCK_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
-                        "'--' prohibited inside of XML comments");
+                        "'--' prohibited inside of XML comments", 
+                        (Token) _symbol_text);
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | BLOCK_RAWHTML.text {:
@@ -548,6 +559,17 @@ leafblock = BLOCK_PRE.text {:
             return new WashedSymbol("<p" + markBlock("p", true, false)
                     + '>' + b + autoCloseInlines()
                     + markClose("p", TagType.BLOCK) + "</p>\n");
+        :}
+        | TOC.text {:
+            if (text != null && !EnumFormatPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted enumFormats: " + text,
+                        (Token) _symbol_text);
+            BufferMarker tm = new TocMarker(++lastMarkerId,
+                    (text == null) ? enumerationFormats : text);
+            markers.put(Integer.valueOf(lastMarkerId), tm);
+            return new WashedSymbol("<div class=\"jcreole_toc\">\n"
+                    + tm.getMarkerString() + "\n</div>\n");
         :}
         ;
 
@@ -571,12 +593,13 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
 // Only purpose for this one is to push inlineModeStack before the block
 // contents are evaluated.
 jcxblockStart = JCXBLOCK.text {:
-        if (text.length() > 0 && !CssNamesPattern.matcher(text).matches())
+        if (text != null && !CssNamesPattern.matcher(text).matches())
             throw new CreoleParseException(
-                    "Malformatted class name(s) in JCX directive: " + text);
+                    "Malformatted class name(s) in JCX directive: " + text,
+                    (Token) _symbol_text);
         inlineModeStack = new ArrayDeque<InlineMode>(3);
         inlineModeStacks.add(0, inlineModeStack);
-        return new Symbol(text);
+        return _symbol_text;
     :};
 
 table = lastrow.lr {:
@@ -623,12 +646,13 @@ inline = INLINE_PRE.text {:
                     + "\">" + clean(text) + "</span>");
         :}
         | JCXSPAN.text {:
-            if (text.length() > 0 && !CssNamesPattern.matcher(text).matches())
+            if (text != null && !CssNamesPattern.matcher(text).matches())
                 throw new CreoleParseException(
-                        "Malformatted class name(s) in JCX directive: " + text);
+                        "Malformatted class name(s) in JCX directive: " + text,
+                        (Token) _symbol_text);
             inlineModeStack.push(InlineMode.JCXSPAN);
             return new WashedSymbol("<span class=\"jcx"
-                    + ((text.length() > 0) ? (" " + text) : "")
+                    + ((text != null) ? (" " + text) : "")
                     + markJcxspan() + "\">");
         :}
         | END_JCXSPAN.tok {:
@@ -721,7 +745,8 @@ inline = INLINE_PRE.text {:
             Matcher m = StylerPattern.matcher(text);
             if (!m.matches())
                 throw new CreoleParseException(
-                        "Malformatted Style specification: " + text);
+                        "Malformatted Style specification: " + text,
+                        (Token) _symbol_text);
             Styler styler = new Styler(++lastMarkerId, m.group(3),
                     m.group(1).charAt(0), m.group(2));
             markers.put(Integer.valueOf(lastMarkerId), styler);
@@ -730,7 +755,8 @@ inline = INLINE_PRE.text {:
         | INLINE_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
-                        "'--' prohibited inside of XML comments");
+                        "'--' prohibited inside of XML comments",
+                        (Token) _symbol_text);
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | INLINE_RAWHTML.text {:

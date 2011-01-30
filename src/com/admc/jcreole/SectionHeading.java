@@ -33,11 +33,13 @@ public class SectionHeading {
     private final String text;
     private final String xmlId;  // HTML/XML Id
     private final int level;
-    private int sequence;
-    private String sequenceLabel;
+    private int[] sequences = new int[] {-1, -1, -1, -1, -1, -1};
 
     public String getXmlId() { return xmlId; }
 
+    /**
+     * Level here is the 'h' level, which begins at 1 not 0.
+     */
     public SectionHeading(String xmlId, int level, String text) {
         if (level < 1 || level > MAX_LEVEL)
             throw new IllegalArgumentException(
@@ -47,17 +49,13 @@ public class SectionHeading {
         this.text = text;
     }
 
-    public void setSequence(int sequence) {
-        this.sequence = sequence;
-    }
-
-    public void setSequenceLabel(String SequenceLabel) {
-        this.sequenceLabel = sequenceLabel;
+    public void setSequences(int[] sequences) {
+        System.arraycopy(sequences, 0, this.sequences, 0, sequences.length);
     }
 
     public String toString() {
-        return String.format("%s=> %d/%d %s \"%s\"",
-                xmlId, level, sequence, sequenceLabel, text);
+        return String.format(
+                "%s=> %d/%d \"%s\"", xmlId, level, sequences[level-1], text);
     }
 
     public int getLevel() {
@@ -68,46 +66,97 @@ public class SectionHeading {
         return text;
     }
 
+    public String getSequenceLabel(String enumerationFormats) {
+        return getSequenceLabel(enumerationFormats, level);
+    }
+
+    public String getDottedSequenceLabel(String enumerationFormats) {
+        String segment = getSequenceLabel(enumerationFormats);
+        if (segment == null) return null;
+        StringBuilder sb = new StringBuilder(segment);
+        for (int i = level - 1; i >0; i--) {
+            segment = getSequenceLabel(enumerationFormats, i);
+            if (segment != null) sb.insert(0, '.').insert(0, segment);
+        }
+        return sb.toString();
+    }
+
+    public String getSequenceLabel(String enumerationFormats, int aLevel) {
+        if (enumerationFormats == null || enumerationFormats.length() < aLevel)
+            return null;
+        char labelType = enumerationFormats.charAt(aLevel-1);
+        switch (labelType) {
+          case ' ':
+          case '-':
+            return null;
+          case 'a':
+            return Character.toString((char) ('a' + sequences[aLevel-1]));
+          case 'A':
+            return Character.toString((char) ('A' + sequences[aLevel-1]));
+          case '0':
+            return Integer.toString(sequences[aLevel-1]);
+          case '1':
+            return Integer.toString(sequences[aLevel-1] + 1);
+          default:
+            throw new IllegalArgumentException(
+                    "Unexpected label type: " + labelType);
+        }
+    }
+
     /**
-     * @param levelsToDisplay is an array that must contain non-null String
-     *        (incl. "") for each level to display.
-     *        N.b. this array is 0-based, with index 0 corresponding to h1.
+     * @param enumerationFormats is a String of length &lt;= 6, with each
+     *        character
+     *        specifying the enumerationFormat for the corresponding header
+     *        level.  The 1st character (index 0) specifies the enumeration
+     *        format for h1 sections, or the space character ' ' to not display
+     *        enumerate and the hyphen character '-' to skip the entry entirely.
+     *        Levels higher than the number of specified characters default to
+     *        '-' (i.e. headers of this level are skipped).
+     *        If given enumerationFormats is null, then the default will be
+     *        used which is "    " (h1 to h4 no label, h5 and h6 skipped).
      */
     public static String generateToc(
-            List<SectionHeading> shs, String[] levelsToDisplay) {
+            List<SectionHeading> shs, String tocEnumFormats) {
+        if (tocEnumFormats == null)
+            tocEnumFormats = "    ";
+        if (tocEnumFormats.length() > 6)
+            throw new IllegalArgumentException(
+                    "tocEnumFormats must be a String of length 0 to 6 "
+                    + " but is: " + tocEnumFormats);
         if (shs == null) return null;
         if (shs.size() < 1) return "";
-        // menuLevels is 0-based just like levelsToDisplay.
+        // menuLevels is 0-based just like tocEnumFormats.
         int[] menuLevels = new int[6];
         int nextLevel = 0;
-        for (int i = 0; i < levelsToDisplay.length; i++)
-            menuLevels[i] = (levelsToDisplay[i] == null) ? -1 : nextLevel++;
+        for (int i = 0; i < tocEnumFormats.length(); i++)
+            menuLevels[i] = (tocEnumFormats.charAt(i) == '-')
+                          ? -1 : nextLevel++;
         int menuLevel = 0, newMenuLevel;
         String seqLabel;
-        StringBuilder sb = new StringBuilder("<ol class=\"jcreole_toc\">\n");
+        StringBuilder sb = new StringBuilder("<ul class=\"jcreole_toc\">\n");
         for (SectionHeading sh : shs) {
             // sh level is 1 more than array indexes
             newMenuLevel = menuLevels[sh.level - 1];
             if (newMenuLevel < 0) continue;  // Don't display this level
             if (newMenuLevel > menuLevel) {
                 for (int i = menuLevel + 1; i <= newMenuLevel; i++)
-                    sb.append(CreoleParser.indent(i)).append("<li><ol>\n");
+                    sb.append(CreoleParser.indent(i)).append("<li><ul>\n");
             } else if (newMenuLevel < menuLevel) {
                 for (int i = menuLevel; i >= newMenuLevel + 1; i--)
-                    sb.append(CreoleParser.indent(i)).append("</ol></li>\n");
+                    sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
             }
             menuLevel = newMenuLevel;
             sb.append(CreoleParser.indent(menuLevel+1))
-                    .append("<li><a href=#\"").append(sh.xmlId).append("\">");
-            seqLabel = sh.sequenceLabel;
+                    .append("<li><a href=\"#").append(sh.xmlId).append("\">");
+            seqLabel = sh.getSequenceLabel(tocEnumFormats);
             if (seqLabel != null) {
                 sb.append("<span class=\"jcx_seqLabel\">")
-                .append(seqLabel).append("</span>");
+                .append(seqLabel).append("</span> ");
             }
-            sb.append(sh.text).append("</li>\n");
+            sb.append(sh.text).append("</a></li>\n");
         }
         for (int i = menuLevel; i >= 1; i--)
-            sb.append(CreoleParser.indent(i)).append("</ol></li>\n");
-        return sb.append("</ol>").toString();
+            sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
+        return sb.append("</ul>").toString();
     }
 }

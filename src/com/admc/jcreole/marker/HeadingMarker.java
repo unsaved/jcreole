@@ -25,6 +25,7 @@ import com.admc.jcreole.SectionHeading;
  */
 public class HeadingMarker extends BlockMarker {
     private SectionHeading sectionHeading;
+    private String enumerationFormats;
 
     public HeadingMarker(
             int id, String xmlId, int level, String text) {
@@ -34,5 +35,17 @@ public class HeadingMarker extends BlockMarker {
 
     public SectionHeading getSectionHeading() {
         return sectionHeading;
+    }
+
+    public void setEnumerationFormats(String enumerationFormats) {
+        this.enumerationFormats = enumerationFormats;
+    }
+
+    public void updateBuffer() {
+        String sequenceLabel = (enumerationFormats == null) ? null
+                : sectionHeading.getDottedSequenceLabel(enumerationFormats);
+        targetSb.insert(offset + 5, (sequenceLabel == null) ? ">"
+                : ("><span class=\"jcsec_enum\">" + sequenceLabel + "<span> "));
+        super.updateBuffer();
     }
 }
