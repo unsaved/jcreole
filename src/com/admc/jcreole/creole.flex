@@ -465,7 +465,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             ? Terminals.END_JCXSPAN : Terminals.JCXSPAN);
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
-<PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}*{wdash}{s}*">>" {
+<PSTATE, HEADSTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
     Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
@@ -473,7 +473,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             + "\"%s\"", yytext()), yychar, yyline, yycolumn);
     return newToken(Terminals.STYLER, m.group(2));
 }
-<JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}*{wdash}{s}*">>" {
+<JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
     Matcher m = NormalPluginPattern.matcher(yytext());
     if (!m.matches())
         throw new CreoleParseException(String.format(
