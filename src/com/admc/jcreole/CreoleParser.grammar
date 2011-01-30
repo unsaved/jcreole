@@ -232,7 +232,9 @@
         JCXSPAN("span"),
         MONO("tt"),
         SUP("sup"),
-        SUB("sub");
+        SUB("sub"),
+        STRIKE("del"),
+        UNDER("u");
 
         private String tagName;
         private InlineMode(String tagName) { this.tagName = tagName; }
@@ -514,7 +516,7 @@
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
-%terminals SUB_TOGGLE, SUP_TOGGLE;
+%terminals SUB_TOGGLE, SUP_TOGGLE, UNDER_TOGGLE, STRIKE_TOGGLE;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATRESET;
@@ -750,6 +752,12 @@ inline = INLINE_PRE.text {:
         | HARDLINE {: return new WashedSymbol("<br>"); :}
         | EM_TOGGLE.t {:
             return toggleInlineMode(InlineMode.EMPHASIZED, (Token) t);
+        :}
+        | STRIKE_TOGGLE.t {:
+            return toggleInlineMode(InlineMode.STRIKE, (Token) t);
+        :}
+        | UNDER_TOGGLE.t {:
+            return toggleInlineMode(InlineMode.UNDER, (Token) t);
         :}
         | MONO_TOGGLE.t {:
             return toggleInlineMode(InlineMode.MONO, (Token) t);

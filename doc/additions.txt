@@ -15,6 +15,20 @@ The individual features implemented are listed below.
 I am considering documenting why I have chosen not to implement some
 Creole-suggested additions that I do not like.
 
+I will give a justification for one critical objection to several Additions that
+I have implemented.  It is deplored to write HTML elements <tt>, <u>, and <del>
+(and possibly <sup> and <sub>) because those are display directives better left
+to CSS or other mechanisms to decide.  I agree with that, but unfortunately the
+Creole 1.0 spec requires writing of <strong> and <em> elements which suffer from
+the same exact problem.
+I have decided,for now, to honor the Creole spec, and therefore for consistency
+I must write those other presentation elements.
+If I decide it is more important to write good content than to honor the Creole
+spec, or if Creole 2 comes out and stops recommending <strong> and <em>, I'll
+change all of these elements to write spans with a CSS class name convention
+(which integrators will need to satisfy) instead.
+
+
 Auto-Id & Auto-link-labels
 
     Unique HTML element id's are generated for all heading elements.
@@ -41,8 +55,9 @@ Superscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
 Subscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
-NOT IMPLEMENTED YET:  Underline.  See http://wiki.wikicreole.org/Creole%201.0/additions
+Underline.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
-NOT IMPLEMENTED YET:  Strike.  See http://www.wikicreole.org/wiki/Strike
+Strike.  See http://www.wikicreole.org/wiki/Strike
 
-NOT IMPLEMENTED YET:  References/footnotes.  See http://www.wikicreole.org/wiki/Reference
+NOT IMPLEMENTED YET:  References/footnotes.
+See http://www.wikicreole.org/wiki/Reference

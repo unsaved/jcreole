@@ -1,7 +1,5 @@
 SHORT TERM
 
-Implement features listed in "additions.txt".
-
 Make a reference.creole.
 
 Consider how to allow author to specify link target, or at least whether to

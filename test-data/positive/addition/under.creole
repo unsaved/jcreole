@@ -1,0 +1,14 @@
+One two __underlined text here__ but not here.
+
+One Two __unclosed underlined.
+
+*list item1
+**list item2a
+**list item2b
+some regular text and some __under text__ too.
+**list item2c has __unclosed under
+**This one intermixes //italic and **bold and __underlined
+** and then reverts
+**Same thing //italic and **bold and __underlined and exiting list.
+
+Closing plain paragaph.
