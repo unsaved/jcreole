@@ -35,7 +35,7 @@ Auto-Id & Auto-link-labels
     will generate something like
         <a href="#jsect_WashingClothesInTheWild">Washing Clothes in the Wild</a>
 
-NOT IMPLEMENTED YET:  Monospace.  See http://wiki.wikicreole.org/Creole%201.0/additions
+Monospace.  See http://wiki.wikicreole.org/Creole%201.0/additions
 
 NOT IMPLEMENTED YET:  Superscript.  See http://wiki.wikicreole.org/Creole%201.0/additions
 

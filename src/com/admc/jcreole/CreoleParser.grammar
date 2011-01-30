@@ -227,7 +227,7 @@
     }
 
     private enum InlineMode {
-        EMPHASIZED("em"), STRONG("strong"), JCXSPAN("span");
+        EMPHASIZED("em"), STRONG("strong"), JCXSPAN("span"), MONO("tt");
         private String tagName;
         private InlineMode(String tagName) { this.tagName = tagName; }
         public String toString() { return tagName; }
@@ -255,9 +255,9 @@
         for (LiSymbol liSymbol : liSymbolList) {
             tagName = (liSymbol.getType() == '#') ? "ol" : "ul";
             if (liSymbol.getLevel() == curLevel + 1) {
-                sb.append(indent(liSymbol.getLevel()-1))
-                        .append('<')
-                        .append(tagName)
+                sb.append(indent(liSymbol.getLevel()-1));
+                if (curLevel > 0) sb.append("<li>");
+                sb.append('<').append(tagName)
                         .append(markBlock(tagName, true, false))
                         .append(">\n");
                 levelTypeMap.put(Integer.valueOf(liSymbol.getLevel()),
@@ -269,7 +269,7 @@
                             == '#') ? "ol" : "ul";
                     sb.append(indent(hiLevel-1)).append("</").append(tagName)
                             .append(markClose(tagName, TagType.BLOCK))
-                            .append(">\n");
+                            .append("></li>\n");
                 }
                 if (liSymbol.getType() !=
                         levelTypeMap.get(liSymbol.getLevel()).charValue())
@@ -296,7 +296,9 @@
                     == '#') ? "ol" : "ul";
             sb.append(indent(hiLevel-1)).append("</")
                     .append(markClose(tagName, TagType.BLOCK))
-                    .append(tagName).append(">\n");
+                    .append(tagName).append('>');
+            if (hiLevel > 1) sb.append("</li>");
+            sb.append('\n');
         }
         return new WashedSymbol(sb.toString());
     }
@@ -505,7 +507,7 @@
 
 %terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, STYLER;
+%terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATRESET;
@@ -741,6 +743,9 @@ inline = INLINE_PRE.text {:
         | HARDLINE {: return new WashedSymbol("<br>"); :}
         | EM_TOGGLE.t {:
             return toggleInlineMode(InlineMode.EMPHASIZED, (Token) t);
+        :}
+        | MONO_TOGGLE.t {:
+            return toggleInlineMode(InlineMode.MONO, (Token) t);
         :}
         | STRONG_TOGGLE.t {:
             return toggleInlineMode(InlineMode.STRONG, (Token) t);

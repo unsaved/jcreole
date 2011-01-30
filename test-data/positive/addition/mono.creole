@@ -1,0 +1,14 @@
+One two ##monspaced text here## but not here.
+
+One Two ##unclosed monospace.
+
+*list item1
+**list item2a
+**list item2b
+some regular text and some ##mono text## too.
+**list item2c has ##unclosed mono
+**This one intermixes //italic and **bold and ##monospace
+** and then reverts
+**Same thing //italic and **bold and ##monospace and exiting list.
+
+Closing plain paragaph.

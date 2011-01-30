@@ -198,6 +198,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.EM_TOGGLE);
 }
+<YYINITIAL> ## {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.MONO_TOGGLE);
+}
 <YYINITIAL> "**" {
     pushState();
     yybegin(PSTATE);
@@ -337,6 +342,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // ANYWHERES
 "~**" { return newToken(Terminals.TEXT, "**"); }
 "~//" { return newToken(Terminals.TEXT, "//"); }
+"~##" { return newToken(Terminals.TEXT, "##"); }
 "~[[" { return newToken(Terminals.TEXT, "[["); }
 "~]]" { return newToken(Terminals.TEXT, "]]"); }
 "~\\\\" { return newToken(Terminals.TEXT, "\\\\"); }
@@ -389,6 +395,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // In PSTATE we write TEXT tokens until we encounter a blank line
 <JCXBLOCKSTATE, PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
 "//" { return newToken(Terminals.EM_TOGGLE); }  // YYINITIAL handled already
+## { return newToken(Terminals.MONO_TOGGLE); }  // YYINITIAL handled already
 "**" { return newToken(Terminals.STRONG_TOGGLE); } // YYINITIAL handled already
 // End PSTATE to make way for another element:
 <PSTATE> \n / ("{{{" \n) {
