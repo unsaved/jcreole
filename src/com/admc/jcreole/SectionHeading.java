@@ -34,6 +34,7 @@ public class SectionHeading {
     private final String xmlId;  // HTML/XML Id
     private final int level;
     private int[] sequences = new int[] {-1, -1, -1, -1, -1, -1};
+    private String enumerationFormats;
 
     public String getXmlId() { return xmlId; }
 
@@ -49,13 +50,21 @@ public class SectionHeading {
         this.text = text;
     }
 
+    public void setEnumerationFormats(String enumerationFormats) {
+        if (enumerationFormats == null)
+            throw new NullPointerException(
+                    "enumerationFormats may not be null");
+        this.enumerationFormats = enumerationFormats;
+    }
+
     public void setSequences(int[] sequences) {
         System.arraycopy(sequences, 0, this.sequences, 0, sequences.length);
     }
 
     public String toString() {
         return String.format(
-                "%s=> %d/%d \"%s\"", xmlId, level, sequences[level-1], text);
+                "%s=> %d/%d %s \"%s\"", xmlId,
+                level, sequences[level-1], getDottedSequenceLabel(), text);
     }
 
     public int getLevel() {
@@ -66,28 +75,32 @@ public class SectionHeading {
         return text;
     }
 
-    public String getSequenceLabel(String enumerationFormats) {
-        return getSequenceLabel(enumerationFormats, level);
+    public String getSequenceLabel() {
+        return getSequenceLabel(level);
     }
 
-    public String getDottedSequenceLabel(String enumerationFormats) {
-        String segment = getSequenceLabel(enumerationFormats);
+    public String getDottedSequenceLabel() {
+        String segment = getSequenceLabel();
         if (segment == null) return null;
         StringBuilder sb = new StringBuilder(segment);
         for (int i = level - 1; i >0; i--) {
-            segment = getSequenceLabel(enumerationFormats, i);
+            segment = getSequenceLabel(i);
             if (segment != null) sb.insert(0, '.').insert(0, segment);
         }
         return sb.toString();
     }
 
-    public String getSequenceLabel(String enumerationFormats, int aLevel) {
-        if (enumerationFormats == null || enumerationFormats.length() < aLevel)
-            return null;
+    public String getSequenceLabel(int aLevel) {
+        if (enumerationFormats == null)
+            throw new IllegalStateException("enumerationFormats is null");
+        if (enumerationFormats.length() < aLevel)
+            throw new IllegalStateException(
+                    "enumerationFormats is of insufficient length: "
+                    + enumerationFormats.length() + " vs. " + aLevel);
         char labelType = enumerationFormats.charAt(aLevel-1);
         switch (labelType) {
-          case ' ':
-          case '-':
+          case 'x':
+          case '_':
             return null;
           case 'a':
             return Character.toString((char) ('a' + sequences[aLevel-1]));
@@ -104,32 +117,27 @@ public class SectionHeading {
     }
 
     /**
-     * @param enumerationFormats is a String of length &lt;= 6, with each
-     *        character
-     *        specifying the enumerationFormat for the corresponding header
-     *        level.  The 1st character (index 0) specifies the enumeration
-     *        format for h1 sections, or the space character ' ' to not display
-     *        enumerate and the hyphen character '-' to skip the entry entirely.
-     *        Levels higher than the number of specified characters default to
-     *        '-' (i.e. headers of this level are skipped).
-     *        If given enumerationFormats is null, then the default will be
-     *        used which is "    " (h1 to h4 no label, h5 and h6 skipped).
+     * @param levelInclusions  char array of length 6.  Each char is just
+     *        checked for 'x' to indicate to skip that level in the TOC.
+     *        If the char for an index is not 'x', then a record for that
+     *        heading/section will be written according to the SectionHeading
+     *        record.
      */
     public static String generateToc(
-            List<SectionHeading> shs, String tocEnumFormats) {
-        if (tocEnumFormats == null)
-            tocEnumFormats = "    ";
-        if (tocEnumFormats.length() > 6)
+            List<SectionHeading> shs, String levelInclusions) {
+        if (levelInclusions == null)
+            throw new NullPointerException("levelInclusions may not be null");
+        if (levelInclusions.length() != 6)
             throw new IllegalArgumentException(
-                    "tocEnumFormats must be a String of length 0 to 6 "
-                    + " but is: " + tocEnumFormats);
+                    "levelInclusions has length " + levelInclusions.length()
+                    + " inead of 6:  " + levelInclusions);
         if (shs == null) return null;
         if (shs.size() < 1) return "";
-        // menuLevels is 0-based just like tocEnumFormats.
+        // menuLevels is 0-based just like levelInclusions.
         int[] menuLevels = new int[6];
         int nextLevel = 0;
-        for (int i = 0; i < tocEnumFormats.length(); i++)
-            menuLevels[i] = (tocEnumFormats.charAt(i) == '-')
+        for (int i = 0; i < levelInclusions.length(); i++)
+            menuLevels[i] = (levelInclusions.charAt(i) == 'x')
                           ? -1 : nextLevel++;
         int menuLevel = 0, newMenuLevel;
         String seqLabel;
@@ -148,7 +156,7 @@ public class SectionHeading {
             menuLevel = newMenuLevel;
             sb.append(CreoleParser.indent(menuLevel+1))
                     .append("<li><a href=\"#").append(sh.xmlId).append("\">");
-            seqLabel = sh.getSequenceLabel(tocEnumFormats);
+            seqLabel = sh.getSequenceLabel();
             if (seqLabel != null) {
                 sb.append("<span class=\"jcx_seqLabel\">")
                 .append(seqLabel).append("</span> ");

@@ -471,8 +471,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 
 // PLUGINs.  Must leave these below the <<< matcher I think.
-<HEADSTATE, YYINITIAL> "<<"[ \t]*enumFormatSwitch ~ ">>" {
-    return newToken(Terminals.ENUMFORMATSWITCH,
+<HEADSTATE, YYINITIAL> "<<"[ \t]*enumFormatReset ~ ">>" {
+    return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }
 <JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[}]{s}*">>" {

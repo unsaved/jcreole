@@ -1,0 +1,2 @@
+<<enumFormats AAAAAA>>
+<<enumFormats aAAAAA>>

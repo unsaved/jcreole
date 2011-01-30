@@ -36,11 +36,17 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private String enumerationFormats;
 
     /**
-     * @param enumerationFormats is the enumerationFormats used for header
-     *        elements in the main body, and also serves as the default
-     *        enumerationFormats for TOCs.
+     * @param enumerationFormats is the starting numerationFormats used for
+     *        header elements in the main body (the current body
+     *        enumerationFormats can change as HeadingMarkers are encountered).
+     *        This setting is independent of TOC levelInclusions, which is
+     *        encapsulated nicely in TocMarker instances and not changed here
+     *        (or elsewhere).
      */
     public String apply(StringBuilder sb, String enumerationFormats) {
+        if (enumerationFormats == null)
+            throw new NullPointerException(
+                    "enumerationFormats may not be null");
         this.enumerationFormats = enumerationFormats;
         int offset = 0;
         BufferMarker marker;
@@ -79,12 +85,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             for (BufferMarker m : values())
                 if (m instanceof HeadingMarker) {
                     hm = (HeadingMarker) m;
-                    hm.setEnumerationFormats(enumerationFormats);
                     sectionHeading = hm.getSectionHeading();
                     idToTextMap.put(sectionHeading.getXmlId(),
                             sectionHeading.getText());
                 }
-            validateAndSetClasses(sortedMarkers);
+            forwardPass(sortedMarkers);
             log.debug(Integer.toString(sectionHeadings.size())
                     + " Section headings: " + sectionHeadings);
             // The list of markers MUST BE REVERSE SORTED before applying.
@@ -104,13 +109,14 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     }
 
     /**
-     * Validates tag nesting and updates CSS classes of all TagMarkers.
-     * Also populates the ordered sectionHeadings list.
-     *
-     * For efficiency of the iteration, these two disparate functions are both
-     * performed by this one function.
+     * Does lots of stuff during a strictly forward-direction iteration of
+     * all Markers .
+     * <p>
+     * In particular, any automatic behavior dependent upon position within the
+     * document must be implemented here.
+     * </p>
      */
-    private void validateAndSetClasses(List<BufferMarker> sortedMarkers) {
+    private void forwardPass(List<BufferMarker> sortedMarkers) {
         sectionHeadings = new ArrayList<SectionHeading>();
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
@@ -121,7 +127,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         List<String> typedQueue = null;
         String linkText;
         CloseMarker closeM;
-        LinkMarker lMarker;
+        LinkMarker linkM;
+        HeadingMarker headingM;
         TagMarker lastTag, tagM;
         final List<JcxSpanMarker> jcxSpanStack = new ArrayList<JcxSpanMarker>();
         final List<JcxBlockMarker> jcxBlockStack =
@@ -343,16 +350,16 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 }
                 if (targetTag != null) targetTag.addCssClasses(classNames);
             } else if (m instanceof LinkMarker) {
-                lMarker = (LinkMarker) m;
-                linkText = lMarker.getLinkText();
+                linkM = (LinkMarker) m;
+                linkText = linkM.getLinkText();
                 String lookedUpLabel =
-                        idToTextMap.get(lMarker.getLinkText().substring(1));
-                if (lMarker.getLabel() == null)
-                    lMarker.setLabel((lookedUpLabel == null)
-                            ? lMarker.getLinkText()
+                        idToTextMap.get(linkM.getLinkText().substring(1));
+                if (linkM.getLabel() == null)
+                    linkM.setLabel((lookedUpLabel == null)
+                            ? linkM.getLinkText()
                             : lookedUpLabel);
                 if (lookedUpLabel == null)
-                    lMarker.wrapLabel("<span class=\"jcreole_orphanlink\">",
+                    linkM.wrapLabel("<span class=\"jcreole_orphanlink\">",
                             "</span>");
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setSectionHeadings(sectionHeadings);
@@ -362,7 +369,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         + m.getClass().getName());
             }
             if (m instanceof HeadingMarker) {
-                SectionHeading sh = ((HeadingMarker) m).getSectionHeading();
+                headingM = (HeadingMarker) m;
+                SectionHeading sh = headingM.getSectionHeading();
+                enumerationFormats =
+                        headingM.updatedEnumerationFormats(enumerationFormats);
+                sh.setEnumerationFormats(enumerationFormats);
                 sectionHeadings.add(sh);
                 int newLevel = sh.getLevel();
                 if (newLevel > headingLevel) {
@@ -376,6 +387,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     // Intentionally empty
                 }
 log.fatal("Lvl " + (headingLevel-1) + " from " + curSequences[headingLevel-1]);
+                if (headingM.getFormatReset() != null)
+                    curSequences[headingLevel-1] = -1;
                 curSequences[headingLevel-1] += 1;
 log.fatal(" TO " + curSequences[headingLevel-1]);
                 sh.setSequences(curSequences);

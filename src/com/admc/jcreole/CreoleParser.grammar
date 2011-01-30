@@ -50,14 +50,20 @@
     public static final Pattern CssNamesPattern =
             Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     public static final Pattern EnumFormatPattern =
-            Pattern.compile("[- aA01]{1,6}?");
+            Pattern.compile("[_xaA01]{6}");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
     private static final WashedSymbol DUMMY_WASHEDSYMBOL
             = new WashedSymbol(null);
+    /**
+     * Defaults to displaying no section enumeration labels (in body headings
+     * or in TOCs) and skips heading levels 5 and 6 in TOCs.
+     */
+    public static final String DEFAULT_ENUMERATION_FORMATS = "____xx";
 
     private boolean wrote;  // Just used to write block-separating blank lines
     private String urlBase;
     private String pathBase;
+    private boolean authorSetEnumFormats;
     // Following is just for testing.
     // Before use this class in a real product, remove the assignment so it
     // will default to null, thereby disabling intra-wiki linking.
@@ -76,8 +82,8 @@
     // hIds is only for checking ID uniqueness
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
-    private String enumerationFormats;
-    private Character formatSwitchChar;
+    private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
+    private Character formatResetChar;
 
     public void setSectIdPrevix(String sectIdPrefix) {
         this.sectIdPrefix = sectIdPrefix;
@@ -472,10 +478,10 @@
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, STYLER;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
-%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATSWITCH;
+%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATRESET;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
-%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ENUMFORMATSWITCH = "String";
+%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET, TOC = "String";
 %typeof JCXSPAN, JCXBLOCK, ENUM_FORMATS, jcxblockStart = "String";
 %typeof listnest = "WashedSymbol";
@@ -487,6 +493,8 @@ blocks = topblock.b+ {:
                     .insert(0, "<div class=\"jcreole\">\n")
                     .append("</div>\n");
             log.debug("PRE-PostProcess[" + sb + ']');
+            // Following sets formats for headers and default section labels in
+            // TOCs, but has no effect on TOC inclusion.
             return new WashedSymbol(markers.apply(sb, enumerationFormats));
         :}
         |;  // This last allows for empty document
@@ -504,8 +512,9 @@ topblock = HOR {:
 
             HeadingMarker hm = new HeadingMarker(
                     ++lastMarkerId, xmlId, hLevel, strippedText);
-            if (formatSwitchChar != null) {
-                formatSwitchChar = null;
+            if (formatResetChar != null) {
+                hm.setFormatReset(formatResetChar.charValue());
+                formatResetChar = null;
             }
             markers.put(Integer.valueOf(lastMarkerId), hm);
 
@@ -524,6 +533,15 @@ topblock = HOR {:
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
                         (Token) _symbol_text);
+            if (authorSetEnumFormats)
+                throw new CreoleParseException(
+                        "Attempted to set enumFormats a second time.  "
+                        + "This is a global and location-independent setting, "
+                        + "so remove the setting that you don't want.  "
+                        + "Use enumFormatReset directive if you want to change "
+                        + "formatting in a location-dependent way.",
+                        (Token) _symbol_text);
+            authorSetEnumFormats = true;
             enumerationFormats = text;
             return DUMMY_WASHEDSYMBOL;
         :}
@@ -647,13 +665,13 @@ lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
 
 hinline = inline
-        | ENUMFORMATSWITCH.formatStr {:
+        | ENUMFORMATRESET.formatStr {:
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
-                        "Malformatted format char in enumFormatSwitch "
+                        "Malformatted format char in enumFormatReset "
                         + "directive: " + formatStr,
                         (Token) _symbol_formatStr);
-            formatSwitchChar = Character.valueOf(formatStr.charAt(0));
+            formatResetChar = Character.valueOf(formatStr.charAt(0));
             return DUMMY_WASHEDSYMBOL;
         :};
 

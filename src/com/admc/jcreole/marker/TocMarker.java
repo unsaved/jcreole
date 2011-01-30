@@ -26,16 +26,16 @@ import com.admc.jcreole.SectionHeading;
  */
 public class TocMarker extends BufferMarker {
     private List<SectionHeading> sectionHeadings;
-    String enumerationFormats;
+    String levelInclusions;
 
     /**
-     * @param enumerationFormats  See param enumerationFormats for method
+     * @param levelInclusions  See param levelInclusions for method
      *        SectionHeading.generateToc().
      * @see SectionHeading#generateToc
      */
-    public TocMarker(int id, String enumerationFormats) {
+    public TocMarker(int id, String levelInclusions) {
         super(id);
-        this.enumerationFormats = enumerationFormats;
+        this.levelInclusions = levelInclusions;
     }
 
     public void setSectionHeadings(List<SectionHeading> sectionHeadings) {
@@ -52,6 +52,6 @@ public class TocMarker extends BufferMarker {
                     "Can't generate TOC until sectionHeadings are assigned");
         super.updateBuffer();
         targetSb.insert(offset, SectionHeading.generateToc(
-                sectionHeadings, enumerationFormats));
+                sectionHeadings, levelInclusions));
     }
 }

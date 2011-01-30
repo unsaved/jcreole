@@ -25,7 +25,7 @@ import com.admc.jcreole.SectionHeading;
  */
 public class HeadingMarker extends BlockMarker {
     private SectionHeading sectionHeading;
-    private String enumerationFormats;
+    private Character formatReset;
 
     public HeadingMarker(
             int id, String xmlId, int level, String text) {
@@ -33,19 +33,35 @@ public class HeadingMarker extends BlockMarker {
         sectionHeading = new SectionHeading(xmlId, level, text);
     }
 
+    public String updatedEnumerationFormats(String inFormats) {
+        if (inFormats == null)
+            throw new NullPointerException("inFormats may not be null");
+        if (formatReset == null) return inFormats;
+        int sectionLevel = sectionHeading.getLevel();
+        char oldFormat = inFormats.charAt(sectionLevel - 1);
+        char newFormat = formatReset.charValue();
+        if (oldFormat == newFormat) return inFormats;
+        StringBuilder sb = new StringBuilder(inFormats);
+        sb.setCharAt(sectionLevel - 1, newFormat);
+        return sb.toString();
+    }
+
+    public void setFormatReset(char formatResetChar) {
+        formatReset = Character.valueOf(formatResetChar);
+    }
+
+    public Character getFormatReset() {
+        return formatReset;
+    }
+
     public SectionHeading getSectionHeading() {
         return sectionHeading;
     }
 
-    public void setEnumerationFormats(String enumerationFormats) {
-        this.enumerationFormats = enumerationFormats;
-    }
-
     public void updateBuffer() {
-        String sequenceLabel = (enumerationFormats == null) ? null
-                : sectionHeading.getDottedSequenceLabel(enumerationFormats);
+        String sequenceLabel = sectionHeading.getDottedSequenceLabel();
         targetSb.insert(offset + 5, (sequenceLabel == null) ? ">"
-                : ("><span class=\"jcsec_enum\">" + sequenceLabel + "<span> "));
+                : ("><span class=\"jcsec_enum\">&sect;" + sequenceLabel + "<span> "));
         super.updateBuffer();
     }
 }

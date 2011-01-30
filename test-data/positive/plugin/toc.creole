@@ -1,14 +1,25 @@
-<<enumFormats A-aa>>
+<<enumFormats A1a_0a>>
 <<toc>>
+----
+<<toc __xxxx>>
+----
 = First Title
 = Second Title
 == This is a very very very long title That Has Length To it.
 == Another one interceded
 === Very nested
-=== and <<enumFormatSwitch>>again
+=== and <<enumFormatReset 0>>again
 === and yet again
 == Returned
 === Other
 = Second Title
 == This is a very very very long title That Has Length To it.
+=== Going to level 3
+=== Going to level 31
+====Gone to level 4 / 1
+====Gone to level 4 / 2
+=====Level 5/1
+=====Level 5/2
+====Gone to level 4 / 3
+=====Level 5/3
 = This is a very very very long title That Has Length To it.

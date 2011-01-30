@@ -1,7 +1,5 @@
 SHORT TERM
 
-Rigorous testing of nesting and sequencing.
-
 Make every extension instance-togglable.  Either throw or silently ignore
 extension X if extension X is not enabled.
 
