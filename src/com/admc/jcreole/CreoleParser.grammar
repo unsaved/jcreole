@@ -52,6 +52,8 @@
     public static final Pattern EnumFormatPattern =
             Pattern.compile("[- aA01]{1,6}?");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
+    private static final WashedSymbol DUMMY_WASHEDSYMBOL
+            = new WashedSymbol(null);
 
     private boolean wrote;  // Just used to write block-separating blank lines
     private String urlBase;
@@ -75,6 +77,7 @@
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
     private String enumerationFormats;
+    private Character formatSwitchChar;
 
     public void setSectIdPrevix(String sectIdPrefix) {
         this.sectIdPrefix = sectIdPrefix;
@@ -472,7 +475,7 @@
 %terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATSWITCH;
 
 %typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
-%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT = "String";
+%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ENUMFORMATSWITCH = "String";
 %typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET, TOC = "String";
 %typeof JCXSPAN, JCXBLOCK, ENUM_FORMATS, jcxblockStart = "String";
 %typeof listnest = "WashedSymbol";
@@ -501,6 +504,9 @@ topblock = HOR {:
 
             HeadingMarker hm = new HeadingMarker(
                     ++lastMarkerId, xmlId, hLevel, strippedText);
+            if (formatSwitchChar != null) {
+                formatSwitchChar = null;
+            }
             markers.put(Integer.valueOf(lastMarkerId), hm);
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
@@ -511,7 +517,7 @@ topblock = HOR {:
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | STYLESHEET.text {:
             cssHrefs.add(clean(absoluteUrl(text)));
-            return new WashedSymbol("");  // No-op return val
+            return DUMMY_WASHEDSYMBOL;
         :}
         | ENUM_FORMATS.text {:
             if (!EnumFormatPattern.matcher(text).matches())
@@ -519,7 +525,7 @@ topblock = HOR {:
                         "Malformatted enumFormats: " + text,
                         (Token) _symbol_text);
             enumerationFormats = text;
-            return new WashedSymbol("");  // No-op return val
+            return DUMMY_WASHEDSYMBOL;
         :}
         | masterblock
         | leafblock
@@ -641,7 +647,15 @@ lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
 
 hinline = inline
-        | ENUMFORMATSWITCH {: return new WashedSymbol("+++++++++++++++++++++++++++++"); :};
+        | ENUMFORMATSWITCH.formatStr {:
+            if (formatStr.length() != 1)
+                throw new CreoleParseException(
+                        "Malformatted format char in enumFormatSwitch "
+                        + "directive: " + formatStr,
+                        (Token) _symbol_formatStr);
+            formatSwitchChar = Character.valueOf(formatStr.charAt(0));
+            return DUMMY_WASHEDSYMBOL;
+        :};
 
 inline = INLINE_PRE.text {:
             return new WashedSymbol("<span class=\"jcreole_pref"

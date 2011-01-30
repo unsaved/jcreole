@@ -33,6 +33,6 @@ class WashedSymbol extends Token {
     }
 
     public String toString() {
-        return cleanString;
+        return (cleanString == null) ? "" : cleanString;
     }
 }
