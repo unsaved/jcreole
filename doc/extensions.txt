@@ -25,11 +25,10 @@ DESIGN
     The purpose of the other exceptions here is to defeat markup parsing, so
     as they are special beasts, it is intuitive for them to appear special.
 
-    THIS DETAIL NOT IMPLEMENTED YET:
-    Some (or possibly all) extensions are enabled/disabled at the Scanner
+    All security-impacting extensions are enabled/disabled at the Scanner
     instance level.  This can be used, for example, to prevent "comment"
-    authors from altering style, or to only allow authorized users to pass
-    through HTML directly.
+    authors from altering style, or to only allow authorized users to code
+    raw HTML.
 
     Still under consideration, but though I "could" allow for setting element
     IDs and HTML tag attributes, I think that purposefully not supporting
@@ -96,7 +95,6 @@ CREATE ELEMENTS
     __ and ** will continue to auto-close where necessary, but jcxSpans and
     (and jcxBlocks) will not.
 
-    DETAILS NOT FINALIZED, as I am adjusting and testing the grammar right now:
     JCX Div directives may be placed at the top/root document level (i.e. where
     you could put a "=" element), plus anyplace where you can put inline
     elements (like //), with the following special cases.
@@ -114,7 +112,8 @@ CREATE ELEMENTS
     because tables and lists auto-close when any non-table/non-list line
     follows and paras auto-close when the *, =, {{{, etc. are encountered.
     These line-beginning statements are not honored inside of jcxBlocks,
-    however, because jcxBlocks do not auto-close.
+    however, because jcxBlocks do not auto-close (i.e. jcxBlocks do auto-close
+    other elements, but jcxBlocks themselves to not get auto-closed).
 
 
 STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
@@ -202,11 +201,59 @@ COMMENTS
     These will not be visible as HTML comments in the generated HTML.
 
 
-Coming Soon!  TOC
+SECTION ENUMERATION
+    
+    <<enumFormats A1a1_x>
 
-    <<toc>>
-    (The character "^" is tentative.  Accepting suggestions.).
-    Insert a little TOC table or list, with hyperlinks to all headings.
+    By default, sections enumerations are not shown in the page body headings
+    nor in TOCs.  Use the directive above or the
+    CreoleParser.setEnumerationFormats() method to enable display of
+    header/section enumeration labels.
+
+    <<enumFormatReset  A>>   only inside Headings
+
+    This command resets sequencing for the heading level of the current
+    (containing) Heading.  The single character serves the same purpose as the
+    6 characters of the enumerationFormats string, but for just the current
+    heading level (the character values are described in the next paragraph).
+    (See example below).
+
+    The characters of the 6-char enumerationFormats String indicate whether to
+    enumerate that heading level and with what kind of enumeration.
+    As of today, the options are 'a', 'A', '0', '1', '_', and 'x'.
+    '_' and 'x' are equivalent (they are differentiated only so that you can
+    use the same string as a TOC levelInclusions string as described in the
+    next section).  The other characters indicate what the enumeration label
+    will be for the first items at that level.
+    (TODO:  Add I and i for upper-case and lower-case Roman numerals).
+
+    Example:
+        <<enumFormats _1a1ax>>
+        == First section
+        ...  Your main document body, including may sections
+        == <<enumFormatReset  A>> First Appendix
+    In this example, the main body will have section enumeration like
+    "2.c.4.b" (author does not want to use h1).  But when the Appendix starts,
+    enumeration will be reset and the enumeration format changed so that the
+    first appendix will be labeled like a fancy version of "A  First Appendix".
+
+
+TABLE OF CONTENTS
+
+    Insert a TOC list, with hyperlinks to all headings.
+
+    <<toc>>  or <<toc ___xxx>>
+
+    Where the 6-character "levelInclusion" string ("___xxx" in the sample)
+    specifies which header levels to include (and which to skip) in the TOC.
+
+    Entries in the table with display section enumerations according to the
+    section enumeration settings described in the previous section.
+    The generated HTML is designed to facilitate external styling via CSS.
+
+    Each character of the levelInclusion string is either 'x' to skip entries
+    for that level, or '_' (or 'a', 'A', '0', or '1' equivalently if you will
+    also use the string as an enumerationFormats String).
 
 
 Coming Maybe.  UNDER CONSIDERATION

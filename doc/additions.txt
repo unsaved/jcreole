@@ -4,6 +4,9 @@ For compatibility purposes, features in JCreole are normally impemented as
 plugins.  But some features require no page-author involvement, and others are
 already documented as optional Creole 1.0 "additions".  These features are
 documented here.
+(Some overlap is unavoidable.  To avoid duplicating my efforts, my tactic is to
+document each feature in "additions.txt" or "extensions.txt" based on whether
+or not plugins are central or critical to the feature's usage.)
 
 Creole 1.0 optional Additions are documented at
 http://wiki.wikicreole.org/Creole%201.0/additions and a couple under "Will
@@ -20,7 +23,7 @@ Auto-Id & Auto-link-labels
     Implementation of this feature involves just generation of legal XML id
     attributes, and needs no page author involvement whatsoever.
     If a page author wants to link to headings, just use the generated id's
-    in hrefs (the names begin with "jcxsect_" and are easy to infer).
+    in hrefs (the names begin with "jcsect_" and are easy to infer).
     These id's are leveraged by the section-counting and TOC plugin features,
     which are described in the extensions.txt file (because there are plugin
     directives to customize both of these sub-features).

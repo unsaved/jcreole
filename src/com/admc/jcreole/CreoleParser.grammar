@@ -89,6 +89,16 @@
     private Character formatResetChar;
     private EnumSet<PluginPrivilege> pluginPrivs = DEFAULT_PLUGIN_PRIVILEGES;
 
+    public void setEnumerationFormats(String enumerationFormats) {
+        if (enumerationFormats == null)
+            throw new NullPointerException(
+                    "enumerationFormats may not be null");
+        if (!EnumFormatPattern.matcher(enumerationFormats).matches())
+            throw new IllegalArgumentException(
+                    "Malformatted enumerationFormats: " + enumerationFormats);
+        this.enumerationFormats = enumerationFormats;
+    }
+
     public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
         this.pluginPrivs = pluginPrivs;
     }

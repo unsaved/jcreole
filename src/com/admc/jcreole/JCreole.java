@@ -262,14 +262,38 @@ public class JCreole {
                 // Amazing that StringBuilder can't do a multi-replace like this
     }
 
+    /**
+     * Specify what plugin directives may be used by Creole page authors.
+     */
     public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
         parser.setPluginPrivileges(pluginPrivs);
     }
 
+    /**
+     * Set enumeration formats to display section/heading enumerations in TOCs
+     * (if any) and in headings.
+     * <p>
+     * By default, no section/header enumerations are shown.
+     * Creole authors can alternatively use the &lt;&lt;enumFormats&gt;&gt;
+     * plugin directive to accomplish the same thing (assuming that they have
+     * adequate privileges to do so).
+     * </p>
+     */
+    public void setEnumerationFormats(String enumerationFormats) {
+        parser.setEnumerationFormats(enumerationFormats);
+    }
+
+    /**
+     * @see #setPluginPrivileges
+     */
     public EnumSet<PluginPrivilege> getPluginPrivileges() {
         return parser.getPluginPrivileges();
     }
 
+    /**
+     * Set what HTML page title will be displayed if your boilerplate makes
+     * use of ${pageTitle}.
+     */
     public void setPageTitle(String pageTitle) {
         this.pageTitle = pageTitle;
     }
