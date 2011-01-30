@@ -552,3 +552,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.END_H);
 }
 <HEADSTATE> . { return newToken(Terminals.TEXT, yytext()); }
+
+"<<" {
+    throw new CreoleParseException("Unknown plugin", yychar, yyline, yycolumn);
+}

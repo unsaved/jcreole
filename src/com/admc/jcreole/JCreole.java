@@ -164,7 +164,8 @@ public class JCreole {
      * Returns a HTML <strong>FRAGMENT</strong> from the specified Creole
      * Wikitext.
      *
-     * @throws if can not generate output, or if the run generates 0 output.
+     * @throws CreoleParseException
+     *         if can not generate output, or if the run generates 0 output.
      *         If the problem is due to input formatting, in most cases you
      *         will get a CreoleParseException, which is a RuntimException, and
      *         CreoleParseException has getters for locations in the source
@@ -182,6 +183,8 @@ public class JCreole {
             throw cpe;
         } catch (beaver.Parser.Exception bpe) {
             throw new CreoleParseException(bpe);
+        } catch (RuntimeException rte) {
+            throw new CreoleParseException("Unexpected problem", rte);
         }
         if (retVal == null)
             throw new IllegalArgumentException("Input generated no output");
@@ -296,5 +299,9 @@ public class JCreole {
      */
     public void setPageTitle(String pageTitle) {
         this.pageTitle = pageTitle;
+    }
+
+    public CreoleParser getParser() {
+        return parser;
     }
 }
