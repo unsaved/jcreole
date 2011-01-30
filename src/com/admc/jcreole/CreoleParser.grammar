@@ -39,7 +39,6 @@
 %embed {:
     private static Log log = LogFactory.getLog(CreoleParser.class);
 
-    private boolean wrote;  // Just used to write block-separating blank lines
     // TODO:  urlBase and pathBase need to be instance vars set by setter or
     //        constructor param.
     // TODO:  Think about whether this generous whitespace stripping is ok.
@@ -48,6 +47,9 @@
     private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
     private static Pattern StylerPattern = Pattern.compile(
             "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+([a-zA-Z_][-\\w]*)");
+    private static final Symbol DUMMY_SYMBOL = new Symbol(null);
+
+    private boolean wrote;  // Just used to write block-separating blank lines
     private String urlBase;
     private String pathBase;
     // Following is just for testing.
@@ -188,11 +190,24 @@
                 .replace('\b', '&');
     }
 
-    private enum FontMode {
-        EMPHASIZED("em"), STRONG("strong");
+    private enum InlineMode {
+        EMPHASIZED("em"), STRONG("strong"), JCXSPAN("span");
         private String tagName;
-        private FontMode(String tagName) { this.tagName = tagName; }
+        private InlineMode(String tagName) { this.tagName = tagName; }
         public String toString() { return tagName; }
+    }
+
+    private WashedSymbol toggleInlineMode(InlineMode mode, Token tok) {
+        if (mode == inlineModeStack.peekFirst()) {
+            inlineModeStack.pop();
+            return new WashedSymbol(markClose(mode.toString(), TagType.INLINE)
+                    + "</" + mode + '>');
+        }
+        if (inlineModeStack.contains(mode))
+            throw new CreoleParseException("Inline modes are tangled", tok);
+        inlineModeStack.push(mode);
+        return new WashedSymbol("<" + mode
+                + markInline(mode.toString(), true, false) + '>');
     }
 
     public WashedSymbol newListNest(List<LiSymbol> liSymbolList) {
@@ -289,14 +304,24 @@
         return StringUtils.repeat(INDENT_STRING, num);
     }
 
-    Deque<FontMode> fontModeStack = new ArrayDeque<FontMode>(2);
+    List<Deque<InlineMode>> inlineModeStacks =
+            new ArrayList<Deque<InlineMode>>();
+    Deque<InlineMode> inlineModeStack = new ArrayDeque<InlineMode>(3);
 
-    private StringBuilder fontCaps() {
+    {
+        inlineModeStacks.add(inlineModeStack);
+    }
+
+    private StringBuilder autoCloseInlines() {
+        return autoCloseInlines(null);
+    }
+
+    private StringBuilder autoCloseInlines(InlineMode untilMode) {
         StringBuilder b = new StringBuilder();
-        FontMode fm;
+        InlineMode fm;
         String tagName;
-        while (fontModeStack.peekFirst() != null) {
-            tagName = fontModeStack.removeFirst().toString();
+        while (inlineModeStack.peekFirst() != untilMode) {
+            tagName = inlineModeStack.removeFirst().toString();
             b.append("</").append(markClose(tagName, TagType.INLINE))
                     .append(tagName).append('>');
         }
@@ -474,7 +499,8 @@ topblock = HOR {:
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
                     + hm.getMarkerString() + '>'
-                    + b + fontCaps() + markClose("h" + hLevel, TagType.BLOCK)
+                    + b + autoCloseInlines()
+                    + markClose("h" + hLevel, TagType.BLOCK)
                     + "</h" + hLevel + ">\n");
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
@@ -517,23 +543,36 @@ leafblock = BLOCK_PRE.text {:
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return new WashedSymbol("<p" + markBlock("p", true, false)
-                    + '>' + b + fontCaps() + markClose("p", TagType.BLOCK)
-                    + "</p>\n");
+                    + '>' + b + autoCloseInlines()
+                    + markClose("p", TagType.BLOCK) + "</p>\n");
         :}
         ;
 
 jcxblockOrInline = jcxblock | inline;
 
-jcxblock = JCXBLOCK jcxblockOrInline.f+ END_JCXBLOCK {:
+jcxblock = jcxblockStart jcxblockOrInline.f+ END_JCXBLOCK {:
+log.fatal("PRE: " + inlineModeStack);
             StringBuilder b = joinWashedSymbols(_list_f);
             // Purpose of the following is to keep the </div> on same line as
             // the last content of the div.
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
+            b.append(autoCloseInlines().toString());
+log.fatal("POST: " + inlineModeStack);
+            inlineModeStacks.remove(0);
+            inlineModeStack = inlineModeStacks.get(0);
             return new WashedSymbol("<div class=\"jcx"
-                    + markJcxblock() + "\">" + b + fontCaps()
+                    + markJcxblock() + "\">" + b
                     + markClose(null, TagType.JCXBLOCK) + "</div>\n");
         :};
+
+// Only purpose for this one is to push inlineModeStack before the block
+// contents are evaluated.
+jcxblockStart = JCXBLOCK {:
+        inlineModeStack = new ArrayDeque<InlineMode>(3);
+        inlineModeStacks.add(0, inlineModeStack);
+        return DUMMY_SYMBOL;
+    :};
 
 table = lastrow.lr {:
             return buildTreeSymbol(Collections.singletonList(lr));
@@ -548,7 +587,7 @@ row   = cell.c+ END_ROW;
 lastrow   = cell.c+ FINAL_ROW;
 cell  = CELL.c jcxblockOrInline.l+ {: return new WashedSymbol(
                     ((((Token) c).getIntParam() == 1) ? "\u0001" : "")
-                    + joinWashedSymbols(_list_l) + fontCaps()); :};
+                    + joinWashedSymbols(_list_l) + autoCloseInlines()); :};
 
 listnest = lastli.llitem {:
                 // A single <li> list.
@@ -563,12 +602,12 @@ listnest = lastli.llitem {:
 
 li       = liel.li jcxblockOrInline.l+ END_LI {:
                 ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
-                        + fontCaps());
+                        + autoCloseInlines());
                 return li;
             :};
 lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
                 ((LiSymbol) li).setContent(joinWashedSymbols(_list_l).toString()
-                        + fontCaps());
+                        + autoCloseInlines());
                 return li;
             :};
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
@@ -579,12 +618,18 @@ inline = INLINE_PRE.text {:
                     + "\">" + clean(text) + "</span>");
         :}
         | JCXSPAN {:
+            inlineModeStack.push(InlineMode.JCXSPAN);
             return new WashedSymbol("<span class=\"jcx"
                     + markJcxspan() + "\">");
         :}
-        | END_JCXSPAN {:
-            return new WashedSymbol(
-                    markClose(null, TagType.JCXSPAN) + "</span>");
+        | END_JCXSPAN.tok {:
+            StringBuilder caps = autoCloseInlines(InlineMode.JCXSPAN);
+            if (InlineMode.JCXSPAN != inlineModeStack.peekFirst())
+                throw new CreoleParseException(
+                    "jcxSpan modes are tangled", (Token) tok);
+            inlineModeStack.pop();
+            return new WashedSymbol(caps.toString()
+                    + markClose(null, TagType.JCXSPAN) + "</span>");
         :}
         | TEXT.f+ {: return mkWashedSymbol((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedSymbol("&nbsp;"); :}
@@ -592,31 +637,10 @@ inline = INLINE_PRE.text {:
         // to the <br>, they should write "<br>\n".
         | HARDLINE {: return new WashedSymbol("<br>"); :}
         | EM_TOGGLE.t {:
-            Token token = (Token) t;
-            if (FontMode.EMPHASIZED.equals(fontModeStack.peekFirst())) {
-                fontModeStack.pop();
-                return new WashedSymbol(
-                        markClose("em", TagType.INLINE) + "</em>");
-            }
-            if (fontModeStack.contains(FontMode.EMPHASIZED))
-                throw new CreoleParseException(
-                        "Font presentations modes are tangled", token);
-            fontModeStack.push(FontMode.EMPHASIZED);
-            return new WashedSymbol("<em" + markInline("em", true, false) + '>');
+            return toggleInlineMode(InlineMode.EMPHASIZED, (Token) t);
         :}
         | STRONG_TOGGLE.t {:
-            Token token = (Token) t;
-            if (FontMode.STRONG.equals(fontModeStack.peekFirst())) {
-                fontModeStack.pop();
-                return new WashedSymbol(
-                        markClose("strong", TagType.INLINE) + "</strong>");
-            }
-            if (fontModeStack.contains(FontMode.STRONG))
-                throw new CreoleParseException(
-                        "Font presentations modes are tangled", token);
-            fontModeStack.push(FontMode.STRONG);
-            return new WashedSymbol(
-                    "<strong" + markInline("strong", true, false) + '>');
+            return toggleInlineMode(InlineMode.STRONG, (Token) t);
         :}
         | URL.text {:
             Token token = (Token) _symbol_text;

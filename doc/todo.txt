@@ -1,7 +1,5 @@
 SHORT TERM
 
-Implement and add tests for auto-closing of jcxSpans.
-
 Allow <<[>> and <<{>> to give initial class names:  <<[class1 class2>> ,etc.
 
 Implement jcxBlock

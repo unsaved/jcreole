@@ -79,15 +79,22 @@ CREATE ELEMENTS
 
     You should obviously always pair <<[>> with <<]>>,and pair <<{>> with <<}>>.
 
-    N.b. unlike JCreole paragraphs, lists, and tables, jcxBlocks do not
-    auto-close.  You must always explicitly close with <<]>>.
-    This is required to disambiguate cases of recursive nestings which are not
-    supported by basic Creole 1.0.
+    N.b. unlike JCreole paragraphs, lists, and tables, neither jcxBlocks nor
+    jcxSpans auto-close.  You must always explicitly close with <<]>> or <<}>>.
+    This is required to disambiguate cases of recursive nestings which basic
+    Creole deals with by just prohibiting it.
 
     JCX Span directives are placed exactly the same as Creole inline elements.
     I.e., you can add "<<{>>" wherever you can add, for example, "//"; and
     between "<<{>>" and "<<}>>" you can insert anything that you can insert
     between two "//"s.
+
+    As Creole page authors are responsible for balancing and not tangling __
+    and ** directives, JCreole page authors are responsible for balancing and
+    not tangling __, **, and <<{>>/<<}>> directives.
+    Unlike Creole ** and __ directives, however, jcxSpans are self-nestable.
+    __ and ** will continue to auto-close where necessary, but jcxSpans and
+    (and jcxBlocks) will not.
 
     DETAILS NOT FINALIZED, as I am adjusting and testing the grammar right now:
     JCX Div directives may be placed at the top/root document level (i.e. where
