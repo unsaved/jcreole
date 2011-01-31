@@ -38,6 +38,15 @@ public class TocMarker extends BufferMarker {
         this.levelInclusions = levelInclusions;
     }
 
+    /**
+     * Set levelInclusions only if one has not been set already (and if the
+     * levelInclusions parameter of the constructor was null).
+     */
+    public void setDefaultLevelInclusions(String levelInclusions) {
+        if (this.levelInclusions == null)
+            this.levelInclusions = levelInclusions;
+    }
+
     public void setSectionHeadings(Sections sectionHeadings) {
         this.sectionHeadings = sectionHeadings;
     }
@@ -50,6 +59,9 @@ public class TocMarker extends BufferMarker {
         if (sectionHeadings == null)
             throw new IllegalStateException(
                     "Can't generate TOC until sectionHeadings are assigned");
+        if (levelInclusions == null)
+            throw new IllegalStateException(
+                    "Can't generate TOC until levelInclusions is set");
         super.updateBuffer();
         targetSb.insert(offset, sectionHeadings.generateToc(levelInclusions));
     }

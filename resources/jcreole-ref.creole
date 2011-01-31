@@ -6,6 +6,9 @@
 
 == Base Creole
 
+See the [[http://wikicreole.org/wiki/Creole1.0|Creole 1.0 Spec]] for more
+details about basic Crole directives and behavior.
+
 === Plain text
 Plain text is grouped into (HTML) paragraphs.
 Separate paragraphs with blank lines in the wikitext.
@@ -27,6 +30,12 @@ Row lines must begin with the ##|## character.
 Use | to separate each cell.
 Add a ##=## immediately after the | to mark the cell as a heading cell
 (as opposed to a data cell).
+Note that These tables are not suitable for formatting purposes (as HTML tables
+are), but only for displaying tabular data.
+
+Without coding anything special, all content for a table row must be specified
+on a single wikitext line, ~-- as you may imaging, that can be quite inconvenient.
+To split a single table into multiple rows, you can end a row line with the tilde character ##~##, or use a [[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlock]].
 |=Looks|=Like|=this
 |and|like|this
 |and|like|this
@@ -56,28 +65,31 @@ One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## meand a 
 (The line above that says "Headings" serves as an example).
 
 === Bare URLs
-Like **##~http://cnn.com/some/page ##**\\
+Like **##~http://wikicreole.org/wiki/Creole1.0 ##**\\
 Automatically made into hyperlinks with a label matching the URL.\\
-~http://cnn.com/like/this
+~http://wikicreole.org/wiki/Creole1.0
 
-=== Explicit Hyperlinks
-Like **##{{{[[http://cnn.com/some/page]]}}}##**\\
+=== Explicit hyperlinks
+Like **##{{{[[http://wikicreole.org/wiki/Creole1.0]]}}}##**\\
 To show a label as something other than the URL, add a pipe character and the
 label text right after the URL, 
-{{{[[http://cnn.com/some/page|like this]]}}}.\\
-Looks [[http://cnn.com/some/page|like this]].
+{{{[[http://wikicreole.org/wiki/Creole1.0|like this]]}}}.\\
+Looks [[http://wikicreole.org/wiki/Creole1.0|like this]].
 
-=== Horizontal Rules
+=== Horizontal rules
 Like **{{{----}}}**, but on a line all by itself.\\
 Looks like...
 ----
 
-=== Inline Images
+=== Inline images
 Like **##~{{this.png~}}##**\\
-You can add a hyper-link for the inline image
-##{{{http://cnn.com/some/page|likethis.png}}}##.\\
+You can add alternate text for non-graphical page viewers\\
+like **##~{{this.png|alternate text~}}##**\\
+You embed the ##~{{...~}}## inside of a ##~[[link...~]]## to have the image hot
+linked with a target URL,\\
+Like **##{{{[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]}}}##**\\
 Looks like\\
-{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}
+[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]
 
 === Avoid markup interpretation
 By prefixing the special character(s) with ~, or by enclosing the text with
@@ -96,7 +108,7 @@ Can use multiple to create blank lines.\\\\Looks like that.
 See the file ##additions.html## in the doc directory of JCreole distributions
 for more complete descriptions.
 
-=== Automatic id's to use as hyperlink targets
+=== Automatic id's to use as Hyperlink Targets
 Take a look at the generated code and you will see id attributes written to all
 of your heading elements.
 You can use these as targets from ~[[...~]] links on the same page, as targets
@@ -108,9 +120,10 @@ from external pages, to use in CSS selectors, or for any other purpose.
 Links are created automatically when you write intra-page links.
 Note that we prefix all of these header link names with ##jcsect_##, to prevent
 naming collisions with your own content or third party products.\\
-Looks like [[#jcsect_PlainText]].
+An auto-labelled link to the Plain text section looks like this:
+[[#jcsect_PlainText]].
 
-=== Character Entities
+=== Character entities
 **##&amp;quot;##**\\
 Just add named (not numerical) character entities and they will be preserved.\\
 &quot;see?&quot;.
@@ -151,12 +164,12 @@ for more complete descriptions.
 If you do not have the privilege needed to use a specific directive, you will
 get given a precise message to that effect when you submit the wikitext.
 
-=== **Raw HTML**
+=== Raw HTML
 **##{{{<<~...>>}}}##**\\
 Code HTML right into your wikitext page.
 This directive is usually restricted to users with special authorization.
 
-=== **jcxBlock: Create custom-stylable Block element**
+=== jcxBlock: Create custom-stylable Block element
 **##{{{<<[>>> ... <<]>>}}}##**\\
 or\\
 **##{{{<<[cssClassName1 cssClassName2>>> ... <<]>>}}}##**\\
@@ -168,7 +181,7 @@ element) inside of a HTML paragraph.
 
 <<[yellow>>Here is a sample that Colors a block yellow.<<]>>
 
-=== **jcxSpan: Create custom-stylable Inline element**
+=== jcxSpan: Create custom-stylable Inline element
 **##{{{<<{>> ... <<}>>}}}##**\\
 or\\
 **##{{{<<{cssClassName1 cssClassName2>>> ... <<}>>}}}##**\\
@@ -202,15 +215,15 @@ This works for all 4 element types.
 This is a sample that colors this HTML p element yellow.
 
 
-=== Style Sheets
+=== Style sheets
 **##{{{styleSheet urlToFile.css}}}##**\\
 CSS file links will be inserted into the HTML pages's head section.
 
-=== Author Comments
+=== Author comments
 **##{{{<<# author comments>>}}}##**\\
 Comments written this way never make it to the HTML page.
 
-=== HTML Comments
+=== HTML comments
 **##{{{<<! HTML comments>>}}}##**\\
 These comments can be seen by end-users who know how to view source HTML.
 

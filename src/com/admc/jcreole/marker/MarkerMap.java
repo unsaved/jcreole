@@ -35,6 +35,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private Sections sections;
     private Map<String, String> idToTextMap = new HashMap<String, String>();
     private String enumerationFormats;
+    private StringBuilder buffer;
 
     /**
      * @param enumerationFormats is the starting numerationFormats used for
@@ -48,49 +49,20 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         if (enumerationFormats == null)
             throw new NullPointerException(
                     "enumerationFormats may not be null");
+        buffer = sb;
         this.enumerationFormats = enumerationFormats;
-        int offset = 0;
-        BufferMarker marker;
-        SectionHeading sectionHeading;
-        List<Integer> markerOffsets = new ArrayList<Integer>();
-        String idString;
-        int id;
-        HeadingMarker hm;
-        while ((offset = sb.indexOf("\u001a", offset)) > -1) {
-            // Unfortunately StringBuilder has no indexOf(char).
-            // We could make do StringBuilder.toString().indexOf(char), but
-            // that's a pretty expensive copy operation.
-            markerOffsets.add(Integer.valueOf(offset));
-            if (sb.length() < offset + 4)
-                throw new CreoleParseException(
-                        "Marking too close to end of output");
-            idString = sb.substring(offset + 1, offset + 5);
-            id = Integer.parseInt(idString, 16);
-            marker = get(Integer.valueOf(id));
-            if (marker == null)
-                throw new IllegalStateException("Lost marker with id " + id);
-            marker.setContext(sb, offset);
-            offset += 5;  // Move past the marker that we just found
-        }
+        int markerCount = unorderedPass();
         List<BufferMarker> sortedMarkers = new ArrayList(values());
         Collections.sort(sortedMarkers);
-        log.debug(Integer.toString(markerOffsets.size())
-                + " markings: " + markerOffsets);
-        if (markerOffsets.size() != sortedMarkers.size())
+        if (markerCount != sortedMarkers.size())
             throw new IllegalStateException(
-                    "Markings/markers mismatch.  " + markerOffsets.size()
+                    "Markings/markers mismatch.  " + markerCount
                     + " markings found, but there are " + size()
                     + " markers");
         // Can not run insert() until after the markers have been sorted.
         if (size() > 0) {
-            for (BufferMarker m : values())
-                if (m instanceof HeadingMarker) {
-                    hm = (HeadingMarker) m;
-                    sectionHeading = hm.getSectionHeading();
-                    idToTextMap.put(sectionHeading.getXmlId(),
-                            sectionHeading.getText());
-                }
-            forwardPass(sortedMarkers);
+            forwardPass1(sortedMarkers);
+            forwardPass2(sortedMarkers);
             log.debug(Integer.toString(sections.size())
                     + " Section headings: " + sections);
             // The list of markers MUST BE REVERSE SORTED before applying.
@@ -106,7 +78,54 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             }
             log.debug("MARKERS:  " + markerReport.toString());
         }
-        return sb.toString();
+        return buffer.toString();
+    }
+
+    /**
+     * @return Number of markers found
+     */
+    private int unorderedPass() {
+        BufferMarker marker;
+        List<Integer> markerOffsets = new ArrayList<Integer>();
+        String idString;
+        int id;
+        int offset = 0;
+        while ((offset = buffer.indexOf("\u001a", offset)) > -1) {
+            // Unfortunately StringBuilder has no indexOf(char).
+            // We could make do StringBuilder.toString().indexOf(char), but
+            // that's a pretty expensive copy operation.
+            markerOffsets.add(Integer.valueOf(offset));
+            if (buffer.length() < offset + 4)
+                throw new CreoleParseException(
+                        "Marking too close to end of output");
+            idString = buffer.substring(offset + 1, offset + 5);
+            id = Integer.parseInt(idString, 16);
+            marker = get(Integer.valueOf(id));
+            if (marker == null)
+                throw new IllegalStateException("Lost marker with id " + id);
+            marker.setContext(buffer, offset);
+            offset += 5;  // Move past the marker that we just found
+        }
+        log.debug(Integer.toString(markerOffsets.size())
+                + " markings: " + markerOffsets);
+        return markerOffsets.size();
+    }
+
+    /**
+     * Marker prep which must occur completely before forwardPass2
+     */
+    private void forwardPass1(List<BufferMarker> sortedMarkers) {
+        HeadingMarker hm;
+        SectionHeading sectionHeading;
+        for (BufferMarker m : values())
+            if (m instanceof HeadingMarker) {
+                hm = (HeadingMarker) m;
+                sectionHeading = hm.getSectionHeading();
+                idToTextMap.put(sectionHeading.getXmlId(),
+                        sectionHeading.getText());
+            } else if (m instanceof TocMarker) {
+                ((TocMarker) m).setDefaultLevelInclusions(enumerationFormats);
+            }
     }
 
     /**
@@ -117,7 +136,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
      * document must be implemented here.
      * </p>
      */
-    private void forwardPass(List<BufferMarker> sortedMarkers) {
+    private void forwardPass2(List<BufferMarker> sortedMarkers) {
         sections = new Sections();
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;

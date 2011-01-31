@@ -40,8 +40,9 @@ public class Sections extends ArrayList<SectionHeading> {
         if (levelInclusions.length() != 6)
             throw new IllegalArgumentException(
                     "levelInclusions has length " + levelInclusions.length()
-                    + " inead of 6:  " + levelInclusions);
+                    + " instead of 6:  " + levelInclusions);
 
+        String ulCloser;
         List<String> unravelStack = new ArrayList<String>();
         // menuLevels is 0-based just like levelInclusions.
         int[] menuLevels = new int[6];
@@ -61,19 +62,20 @@ public class Sections extends ArrayList<SectionHeading> {
                 sb.append("</li>\n");
             } else if (newMenuLevel > menuLevel) {
                 for (int i = menuLevel + 1; i <= newMenuLevel; i++) {
-                    sb.append(CreoleParser.indent(i)).append((i == 0)
+                    sb.append((i == 0)
                             ? "<ul class=\"jcreole_toc\">\n"
-                            : "<ul>\n");
-                    unravelStack.add(0, (i == newMenuLevel) ? "</li>" : "");
-                    // When back out, do need to close a li?
+                            : (((i == menuLevel + 1)
+                                ? "" : CreoleParser.indent(i))
+                              + "<ul>\n"));
+                    ulCloser = "\n" + CreoleParser.indent(i) + "</ul>";
+                    unravelStack.add(0, (i == newMenuLevel)
+                            ? ("</li>" + ulCloser) : ulCloser);
+                            // When back out, do need to close a li?
                 }
             } else if (newMenuLevel < menuLevel) {
-                unravelStack.remove(0); // Can only get here if we wrote an li
-                                       // at this level on previous iteration.
+                for (int i = menuLevel; i > newMenuLevel; i--)
+                    sb.append(unravelStack.remove(0));
                 sb.append("</li>\n");
-                for (int i = menuLevel; i >= newMenuLevel + 1; i--)
-                    sb.append(CreoleParser.indent(i))
-                            .append(unravelStack.remove(0)).append("</ul>");
             }
             menuLevel = newMenuLevel;
             sb.append(CreoleParser.indent(menuLevel+1))
@@ -84,12 +86,9 @@ public class Sections extends ArrayList<SectionHeading> {
                 sb.append("<span class=\"jcx_seqLabel\">")
                 .append(seqLabel).append("</span> ");
             }
-            sb.append(sh.getText()).append("</a>\n");
+            sb.append(sh.getText()).append("</a>");
         }
-        unravelStack.remove(0); // Can only get here if we wrote an li
-                               // at this level on previous iteration.
-        for (int i = menuLevel; i >= 1; i--)
-            sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
-        return sb.append("</ul>").toString();
+        while (unravelStack.size() > 0) sb.append(unravelStack.remove(0));
+        return sb.toString();
     }
 }

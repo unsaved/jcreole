@@ -118,18 +118,19 @@
     private static String stripMeta(String anyString) {
         return anyString
                 .replaceAll("\\u001a\\w{4}", "").replaceAll("<[^>]+>", "")
-                .replaceAll("&\\w+;", "")
-                .trim().replaceAll("[^\\w\\s]", "").replaceAll("\\s+", " ");
+                .replaceAll("&\\w+;", "").trim().replaceAll("\\s+", " ");
     }
 
     private String mkXmlId(String strippedString) {
-        String s = sectIdPrefix + WordUtils.capitalizeFully(strippedString)
+        String safeString = strippedString
+                .replaceAll("[^\\w\\s]", " ").replaceAll("\\s+", " ");
+        String s = sectIdPrefix + WordUtils.capitalizeFully(safeString)
                 .replaceAll("\\s+", "");
         if (s.length() < 50 && !hIds.contains(s)) {
             hIds.add(s);
             return s;
         }
-        s = sectIdPrefix + WordUtils.initials(strippedString).toLowerCase();
+        s = sectIdPrefix + WordUtils.initials(safeString).toLowerCase();
         if (hIds.contains(s)) for (int i = 1; i < 10000; i++)
             if (!hIds.contains(s + i)) { s += i; break; }
         hIds.add(s);
@@ -637,8 +638,7 @@ leafblock = BLOCK_PRE.text {:
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
                         (Token) _symbol_text);
-            BufferMarker tm = new TocMarker(++lastMarkerId,
-                    (text == null) ? enumerationFormats : text);
+            BufferMarker tm = new TocMarker(++lastMarkerId, text);
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcreole_toc\">\n"
                     + tm.getMarkerString() + "\n</div>\n");
