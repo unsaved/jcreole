@@ -261,31 +261,35 @@
                 new HashMap<Integer, Character>();
         String tagName = null;
         for (LiSymbol liSymbol : liSymbolList) {
+            // At each iteration we are either at root (far left col) or
+            // we are at the end of a line after li "content".
             tagName = (liSymbol.getType() == '#') ? "ol" : "ul";
-            if (liSymbol.getLevel() == curLevel + 1) {
-                sb.append(indent(liSymbol.getLevel()-1));
-                if (curLevel > 0) sb.append("<li>");
+            if (liSymbol.getLevel() == curLevel) {
+                if (liSymbol.getType()
+                        != levelTypeMap.get(curLevel).charValue())
+                    throw new CreoleParseException(
+                            "Illegal type transition", liSymbol);
+                sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
+            } else if (liSymbol.getLevel() == curLevel + 1) {
                 sb.append('<').append(tagName)
                         .append(markBlock(tagName, true, false))
                         .append(">\n");
                 levelTypeMap.put(Integer.valueOf(liSymbol.getLevel()),
                         Character.valueOf(liSymbol.getType()));
             } else if (liSymbol.getLevel() < curLevel) {
+                sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
                 for (int hiLevel = curLevel;
                         hiLevel > liSymbol.getLevel(); hiLevel--) {
                     tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                             == '#') ? "ol" : "ul";
-                    sb.append(indent(hiLevel-1)).append("</").append(tagName)
+                    sb.append(indent(hiLevel-1))
                             .append(markClose(tagName, TagType.BLOCK))
-                            .append("></li>\n");
+                            .append("</").append(tagName).append('>')
+                            .append(markClose("li", TagType.BLOCK))
+                            .append("</li>\n");
                 }
                 if (liSymbol.getType() !=
                         levelTypeMap.get(liSymbol.getLevel()).charValue())
-                    throw new CreoleParseException(
-                            "Illegal type transition", liSymbol);
-            } else if (liSymbol.getLevel() == curLevel) {
-                // All we do in this case is to validate the type.
-                if (liSymbol.getType() != levelTypeMap.get(curLevel).charValue())
                     throw new CreoleParseException(
                             "Illegal type transition", liSymbol);
             } else {
@@ -295,17 +299,18 @@
             }
             sb.append(indent(liSymbol.getLevel())).append("<li")
                     .append(markBlock("li", true, false)).append('>')
-                    .append(liSymbol.getContent())
-                    .append(markClose("li", TagType.BLOCK)).append("</li>\n");
+                    .append(liSymbol.getContent());
             curLevel = liSymbol.getLevel();
         }
-        for (int hiLevel = curLevel; hiLevel > 0; hiLevel--) {
+        sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
+        for (int hiLevel = curLevel; hiLevel >= 1; hiLevel--) {
             tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                     == '#') ? "ol" : "ul";
-            sb.append(indent(hiLevel-1)).append("</")
+            sb.append(indent(hiLevel-1))
                     .append(markClose(tagName, TagType.BLOCK))
-                    .append(tagName).append('>');
-            if (hiLevel > 1) sb.append("</li>");
+                    .append("</").append(tagName).append('>');
+            if (hiLevel > 1)
+                sb.append(markClose("li", TagType.BLOCK)).append("</li>");
             sb.append('\n');
         }
         return new WashedSymbol(sb.toString());

@@ -139,19 +139,32 @@ public class SectionHeading {
         for (int i = 0; i < levelInclusions.length(); i++)
             menuLevels[i] = (levelInclusions.charAt(i) == 'x')
                           ? -1 : nextLevel++;
-        int menuLevel = 0, newMenuLevel;
+        int menuLevel = -1, newMenuLevel;
         String seqLabel;
-        StringBuilder sb = new StringBuilder("<ul class=\"jcreole_toc\">\n");
+        List<String> unravelStack = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+            new StringBuilder(>\n")
         for (SectionHeading sh : shs) {
             // sh level is 1 more than array indexes
             newMenuLevel = menuLevels[sh.level - 1];
             if (newMenuLevel < 0) continue;  // Don't display this level
-            if (newMenuLevel > menuLevel) {
-                for (int i = menuLevel + 1; i <= newMenuLevel; i++)
-                    sb.append(CreoleParser.indent(i)).append("<li><ul>\n");
+            if (newMenuLevel == menuLevel) {
+                sb.append("</li>\n");
+            } else if (newMenuLevel > menuLevel) {
+                for (int i = menuLevel + 1; i <= newMenuLevel; i++) {
+                    sb.append(CreoleParser.indent(i)).append((i == 0)
+                            ? "<ul class=\"jcreole_toc\">\n"
+                            : "<ul>\n");
+                    unravelStack.add(0, (i == newMenuLevel) ? "</li>" : "");
+                    // When back out, do need to close a li?
+                }
             } else if (newMenuLevel < menuLevel) {
+                unravelStack.remove(); // Can only get here if we wrote an li
+                                       // at this level on previous iteration.
+                sb.append("</li>\n");
                 for (int i = menuLevel; i >= newMenuLevel + 1; i--)
-                    sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
+                    sb.append(CreoleParser.indent(i))
+                            .append(unravelStack.remove().append("</ul>");
             }
             menuLevel = newMenuLevel;
             sb.append(CreoleParser.indent(menuLevel+1))
@@ -161,8 +174,10 @@ public class SectionHeading {
                 sb.append("<span class=\"jcx_seqLabel\">")
                 .append(seqLabel).append("</span> ");
             }
-            sb.append(sh.text).append("</a></li>\n");
+            sb.append(sh.text).append("</a>\n");
         }
+        unravelStack.remove(); // Can only get here if we wrote an li
+                               // at this level on previous iteration.
         for (int i = menuLevel; i >= 1; i--)
             sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
         return sb.append("</ul>").toString();
