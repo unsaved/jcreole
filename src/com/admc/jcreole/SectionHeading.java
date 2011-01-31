@@ -17,8 +17,6 @@
 
 package com.admc.jcreole;
 
-import java.util.List;
-
 /**
  * Encapsulates details about a HTML Heading (h1, h2, etc.) that allow it to be
  * used effectively as a section delimiter.
@@ -114,72 +112,5 @@ public class SectionHeading {
             throw new IllegalArgumentException(
                     "Unexpected label type: " + labelType);
         }
-    }
-
-    /**
-     * @param levelInclusions  char array of length 6.  Each char is just
-     *        checked for 'x' to indicate to skip that level in the TOC.
-     *        If the char for an index is not 'x', then a record for that
-     *        heading/section will be written according to the SectionHeading
-     *        record.
-     */
-    public static String generateToc(
-            List<SectionHeading> shs, String levelInclusions) {
-        if (levelInclusions == null)
-            throw new NullPointerException("levelInclusions may not be null");
-        if (levelInclusions.length() != 6)
-            throw new IllegalArgumentException(
-                    "levelInclusions has length " + levelInclusions.length()
-                    + " inead of 6:  " + levelInclusions);
-        if (shs == null) return null;
-        if (shs.size() < 1) return "";
-        // menuLevels is 0-based just like levelInclusions.
-        int[] menuLevels = new int[6];
-        int nextLevel = 0;
-        for (int i = 0; i < levelInclusions.length(); i++)
-            menuLevels[i] = (levelInclusions.charAt(i) == 'x')
-                          ? -1 : nextLevel++;
-        int menuLevel = -1, newMenuLevel;
-        String seqLabel;
-        List<String> unravelStack = new ArrayList<String>();
-        StringBuilder sb = new StringBuilder();
-            new StringBuilder(>\n")
-        for (SectionHeading sh : shs) {
-            // sh level is 1 more than array indexes
-            newMenuLevel = menuLevels[sh.level - 1];
-            if (newMenuLevel < 0) continue;  // Don't display this level
-            if (newMenuLevel == menuLevel) {
-                sb.append("</li>\n");
-            } else if (newMenuLevel > menuLevel) {
-                for (int i = menuLevel + 1; i <= newMenuLevel; i++) {
-                    sb.append(CreoleParser.indent(i)).append((i == 0)
-                            ? "<ul class=\"jcreole_toc\">\n"
-                            : "<ul>\n");
-                    unravelStack.add(0, (i == newMenuLevel) ? "</li>" : "");
-                    // When back out, do need to close a li?
-                }
-            } else if (newMenuLevel < menuLevel) {
-                unravelStack.remove(); // Can only get here if we wrote an li
-                                       // at this level on previous iteration.
-                sb.append("</li>\n");
-                for (int i = menuLevel; i >= newMenuLevel + 1; i--)
-                    sb.append(CreoleParser.indent(i))
-                            .append(unravelStack.remove().append("</ul>");
-            }
-            menuLevel = newMenuLevel;
-            sb.append(CreoleParser.indent(menuLevel+1))
-                    .append("<li><a href=\"#").append(sh.xmlId).append("\">");
-            seqLabel = sh.getSequenceLabel();
-            if (seqLabel != null) {
-                sb.append("<span class=\"jcx_seqLabel\">")
-                .append(seqLabel).append("</span> ");
-            }
-            sb.append(sh.text).append("</a>\n");
-        }
-        unravelStack.remove(); // Can only get here if we wrote an li
-                               // at this level on previous iteration.
-        for (int i = menuLevel; i >= 1; i--)
-            sb.append(CreoleParser.indent(i)).append("</ul></li>\n");
-        return sb.append("</ul>").toString();
     }
 }

@@ -18,14 +18,14 @@
 package com.admc.jcreole.marker;
 
 import java.util.List;
-import com.admc.jcreole.SectionHeading;
+import com.admc.jcreole.Sections;
 
 /**
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
 public class TocMarker extends BufferMarker {
-    private List<SectionHeading> sectionHeadings;
+    private Sections sectionHeadings;
     String levelInclusions;
 
     /**
@@ -38,7 +38,7 @@ public class TocMarker extends BufferMarker {
         this.levelInclusions = levelInclusions;
     }
 
-    public void setSectionHeadings(List<SectionHeading> sectionHeadings) {
+    public void setSectionHeadings(Sections sectionHeadings) {
         this.sectionHeadings = sectionHeadings;
     }
 
@@ -51,7 +51,6 @@ public class TocMarker extends BufferMarker {
             throw new IllegalStateException(
                     "Can't generate TOC until sectionHeadings are assigned");
         super.updateBuffer();
-        targetSb.insert(offset, SectionHeading.generateToc(
-                sectionHeadings, levelInclusions));
+        targetSb.insert(offset, sectionHeadings.generateToc(levelInclusions));
     }
 }

@@ -28,10 +28,11 @@ import org.apache.commons.logging.LogFactory;
 import com.admc.jcreole.CreoleParseException;
 import com.admc.jcreole.TagType;
 import com.admc.jcreole.SectionHeading;
+import com.admc.jcreole.Sections;
 
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
-    private List<SectionHeading> sectionHeadings;
+    private Sections sections;
     private Map<String, String> idToTextMap = new HashMap<String, String>();
     private String enumerationFormats;
 
@@ -90,8 +91,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                             sectionHeading.getText());
                 }
             forwardPass(sortedMarkers);
-            log.debug(Integer.toString(sectionHeadings.size())
-                    + " Section headings: " + sectionHeadings);
+            log.debug(Integer.toString(sections.size())
+                    + " Section headings: " + sections);
             // The list of markers MUST BE REVERSE SORTED before applying.
             // Applying in forward order would change buffer offsets.
             Collections.reverse(sortedMarkers);
@@ -117,7 +118,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
      * </p>
      */
     private void forwardPass(List<BufferMarker> sortedMarkers) {
-        sectionHeadings = new ArrayList<SectionHeading>();
+        sections = new Sections();
         final List<TagMarker> stack = new ArrayList<TagMarker>();
         List<? extends TagMarker> typedStack = null;
         final List<String> queuedJcxSpanClassNames = new ArrayList<String>();
@@ -362,7 +363,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     linkM.wrapLabel("<span class=\"jcreole_orphanlink\">",
                             "</span>");
             } else if (m instanceof TocMarker) {
-                ((TocMarker) m).setSectionHeadings(sectionHeadings);
+                ((TocMarker) m).setSectionHeadings(sections);
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "
@@ -374,7 +375,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 enumerationFormats =
                         headingM.updatedEnumerationFormats(enumerationFormats);
                 sh.setEnumerationFormats(enumerationFormats);
-                sectionHeadings.add(sh);
+                sections.add(sh);
                 int newLevel = sh.getLevel();
                 if (newLevel > headingLevel) {
                     headingLevel = newLevel;
@@ -425,7 +426,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     + queuedInlineClassNames);
     }
 
-    public List<SectionHeading> getSectionHeadings() {
-        return sectionHeadings;
+    public Sections getSectionHeadings() {
+        return sections;
     }
 }
