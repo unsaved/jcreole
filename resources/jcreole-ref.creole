@@ -89,7 +89,7 @@ You embed the ##~{{...~}}## inside of a ##~[[link...~]]## to have the image hot
 linked with a target URL,\\
 Like **##{{{[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]}}}##**\\
 Looks like\\
-[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]
+[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png|Alternate text}}]]
 
 === Avoid markup interpretation
 By prefixing the special character(s) with ~, or by enclosing the text with

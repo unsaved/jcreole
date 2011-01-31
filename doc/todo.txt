@@ -6,8 +6,6 @@ togglables.
     Document in ref that not following spec recommendation, and indicate CSS
      class names used.
 
-Allow alternate image text inside of a [[...{{...}}]].
-
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 

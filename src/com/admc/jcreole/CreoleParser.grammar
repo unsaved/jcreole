@@ -814,8 +814,20 @@ inline = INLINE_PRE.text {:
             } else {
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
                 if (m.matches()) {
-                    label = "<img src=\"" + clean(absoluteUrl(m.group(1)))
-                            + '"' + markInline("img", true, true) + '>';
+                    String imgUrl = null;
+                    String altText = null;
+                    int pipeIndex = m.group(1).indexOf('|');
+                    if (pipeIndex > 0) {
+                        imgUrl = m.group(1).substring(0, pipeIndex);
+                        altText = m.group(1).substring(pipeIndex + 1);
+                    } else {
+                        imgUrl = m.group(1);
+                    }
+                    label = "<img src=\"" + clean(absoluteUrl(imgUrl))
+                            + '"' + markInline("img", true, true)
+                            + ((altText == null) ? ""
+                            : (" alt=\"" + altText + '"'))
+                            + '>';
                 } else {
                     if (text.startsWith("#" + sectIdPrefix)) {
                         // This causese MarkerMap to validate the link
