@@ -122,8 +122,10 @@ STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
         Add CSS class to the immediate containing non-JCX block element.
     <<addClass =inline className>>
         Add CSS class to the immediate containing non-JCX inline element.
-    <<addClass =jcx className>>
+    <<addClass =jcxSpan className>>
         Add CSS class to the immediate containing JCX SPAN element.
+    <<addClass =jcxBlock className>>
+        Add CSS class to the immediate containing JCX BLOCK element.
 
     To simplify and shorten these descriptions, I'm specifying only one class,
     but you can give any number of class names.
@@ -132,21 +134,25 @@ STYLERS == "addClass" plugin directives:  Assign a CSS class to an HTML element
     closed element instead of the immediate containing element:
 
     <<addClass -block className>>
-        Add CSS class to the immediate containing non-JCX block element.
+        Add CSS class to the preceding closed non-JCX block element.
     <<addClass -inline className>>
-        Add CSS class to the immediate containing non-JCX inline element.
-    <<addClass -jcx className>>
-        Add CSS class to the immediate containing JCX SPAN element.
+        Add CSS class to the preceding closed non-JCX inline element.
+    <<addClass -jcxSpan className>>
+        Add CSS class to the preceding closed JCX SPAN element.
+    <<addClass -jcxBlock className>>
+        Add CSS class to the preceding closed JCX BLOCK element.
 
     Next is same as above, but with "+".  Target the next
     element instead of the immediate containing element:
 
     <<addClass +block className>>
-        Add CSS class to the immediate containing non-JCX block element.
+        Add CSS class to the next non-JCX block element.
     <<addClass +inline className>>
-        Add CSS class to the immediate containing non-JCX inline element.
-    <<addClass +jcx className>>
-        Add CSS class to the immediate containing JCX SPAN element.
+        Add CSS class to the next non-JCX inline element.
+    <<addClass +jcxSpan className>>
+        Add CSS class to the next JCX SPAN element.
+    <<addClass +jcxBlock className>>
+        Add CSS class to the next JCX BLOCK element.
 
     Note that "<<... -..." means the last previous element CLOSED, not the last
     element opened.  So, with nested "em" and "strong" elements, if we have

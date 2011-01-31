@@ -4,66 +4,91 @@
 
 <<toc>>
 
-The //author// is the person writing the markup.\\
-The //wikitext// is the text that the author writes.
-
 == Base Creole
 
-=== **Plain text** is grouped into (HTML) paragraphs.
+=== Plain text
+Plain text is grouped into (HTML) paragraphs.
 Separate paragraphs with blank lines in the wikitext.
 Paragraphs will automatically end without a blank like if you trigger a
 list, paragraph, or heading as described below (though it won't hurt anything
 if you add a blank line also).
 
-=== **Strong text**
-is delimited like ##~**this~**##.
+=== Strong text
+**##~**Like this~**##**\\
+**See?**
 
-=== **Emphasized text**
-is delimited like ##~//this~//##.
+=== Emphasized text
+**##~//Like this~//##**\\
+//See?//
 
-=== **Table rows**
-are on lines beginning with the ##|## character.
+=== Table rows
+**##|col1 content|col2 content|col3 content##**\\
+Row lines must begin with the ##|## character.
 Use | to separate each cell.
 Add a ##=## immediately after the | to mark the cell as a heading cell
 (as opposed to a data cell).
+|=Looks|=Like|=this
+|and|like|this
+|and|like|this
 
-=== **Numbered list items**
-are on lines beginning with one or more ##{{{#}}}## characters, where the number of #'s indicates the list level.
+=== Numbered list items
+**## #Like this##**\\
+On lines beginning with one or more ##{{{#}}}## characters, where the number of #'s indicates the list level.
 There is a constraint on the list item levels allowed.
 The level (number of #'s) of a row line must be less than, equal to, or one level higher than the level of the row on the previous line.
 Consequently, you must //start// numbered lists with a line starting with just one #.
+#Looks like this
+##And
+##Like this
 
-=== **Unordered list items**
+=== Unordered list items
+**## *Like this##**\\
 Same as Numbered lists, but use ##*## characters instead of the # characters to
 identify the rows and indicate levels.
+*Looks like this
+**And
+**Like this
 
-=== **Headings**
+=== Headings
+**##=Like this##**\\
 Begin the line with from one to six ##=## characters.
-One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## meand a lowest-level heading.
+One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## meand a lowest-level heading.\\
+(The line above that says "Headings" serves as an example).
 
-=== **Bare URLs**
-like ##~http://cnn.com/some/page ##  are automatically made into hyperlinks with a
-label matching the URL.
+=== Bare URLs
+Like **##~http://cnn.com/some/page ##**\\
+Automatically made into hyperlinks with a label matching the URL.\\
+~http://cnn.com/like/this
 
-=== **Explicit Hyperlinks**
-are inside of square brackets like ##{{{[[http://cnn.com/some/page]]}}}##.
+=== Explicit Hyperlinks
+Like **##{{{[[http://cnn.com/some/page]]}}}##**\\
 To show a label as something other than the URL, add a pipe character and the
 label text right after the URL, 
-like {{{[[http://cnn.com/some/page|like this]]}}}.
+{{{[[http://cnn.com/some/page|like this]]}}}.\\
+Looks [[http://cnn.com/some/page|like this]].
 
-=== **Horizontal Rules**
-Just write ##----## on a line all by itself.
+=== Horizontal Rules
+Like **{{{----}}}**, but on a line all by itself.\\
+Looks like...
+----
 
-=== **Inline Images**
-are included by putting the URLs inside of curly brackets ##{{{likethis.png}}}##.
+=== Inline Images
+Like **##~{{this.png~}}##**\\
 You can add a hyper-link for the inline image
-##{{{http://cnn.com/some/page|likethis.png}}}##.
+##{{{http://cnn.com/some/page|likethis.png}}}##.\\
+Looks like\\
+{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}
 
-=== **Avoid markup interpretation**
+=== Avoid markup interpretation
 By prefixing the special character(s) with ~, or by enclosing the text with
 ~{{{ and ~}}}.
 These tactics are called //escaping//, and the last method is called //Nowiki//.
 (Nowiki also encloses the escaped text in a HTML //pre// element).
+Works {{{like this with <<>> __ \\ Special characters}}}.
+
+=== Hard linebreaks
+Like **##~\\##**\\
+Can use multiple to create blank lines.\\\\Looks like that.
 
 
 == JCreole Additions
@@ -71,9 +96,165 @@ These tactics are called //escaping//, and the last method is called //Nowiki//.
 See the file ##additions.html## in the doc directory of JCreole distributions
 for more complete descriptions.
 
-=== **Automatic id's to use as hyperlink targets**
+=== Automatic id's to use as hyperlink targets
 Take a look at the generated code and you will see id attributes written to all
 of your heading elements.
 You can use these as targets from ~[[...~]] links on the same page, as targets
 from external pages, to use in CSS selectors, or for any other purpose.
 (They are also used for the TOC feature described elsewhere).
+
+=== Automatic Link Labels
+**##{{{[[#jcsect_PlainText]]}}}##**\\
+Links are created automatically when you write intra-page links.
+Note that we prefix all of these header link names with ##jcsect_##, to prevent
+naming collisions with your own content or third party products.\\
+Looks like [[#jcsect_PlainText]].
+
+=== Character Entities
+**##&amp;quot;##**\\
+Just add named (not numerical) character entities and they will be preserved.\\
+&quot;see?&quot;.
+
+=== Hard spaces
+Like**##~~ ##**this\\
+(That is a tilde followed by a space character).\\
+This is equivalent to writing ##&amp;nbsp;##.\\
+Four such spaces looks like ~ ~ ~ ~ this.
+
+=== Monospace
+**##~##Like this~## ##**\\
+Regular ##Mono##
+
+=== Superscript
+**##~^^Like this~^^##**\\
+Regular ^^Super^^
+
+=== Subscript
+**##~,,Like this~,,##**\\
+Regular ,,Sub,,
+
+=== Underline
+**##~__Like this~__##**\\
+__See?__
+
+=== Overstrike
+**##~--Like this~--##**\\
+--See?--
+
+
+== JCreole Extensions via ~<<...>> Plugin Directives
+
+See the file ##extensions.html## in the doc directory of JCreole distributions
+for more complete descriptions.
+
+** Use of Plugin Directives is resticted.**
+If you do not have the privilege needed to use a specific directive, you will
+get given a precise message to that effect when you submit the wikitext.
+
+=== **Raw HTML**
+**##{{{<<~...>>}}}##**\\
+Code HTML right into your wikitext page.
+This directive is usually restricted to users with special authorization.
+
+=== **jcxBlock: Create custom-stylable Block element**
+**##{{{<<[>>> ... <<]>>}}}##**\\
+or\\
+**##{{{<<[cssClassName1 cssClassName2>>> ... <<]>>}}}##**\\
+You can assign CSS classes to your custom elements as shown by the second
+sample here, or by using Styler directives as shown below.
+
+Due to HTML syntax rules, you can not create a jcxBlock (or any HTML block
+element) inside of a HTML paragraph.
+
+<<[yellow>>Here is a sample that Colors a block yellow.<<]>>
+
+=== **jcxSpan: Create custom-stylable Inline element**
+**##{{{<<{>> ... <<}>>}}}##**\\
+or\\
+**##{{{<<{cssClassName1 cssClassName2>>> ... <<}>>}}}##**\\
+You can assign CSS classes to your custom elements as shown by the second
+sample here, or by using Styler directives as shown imediately below.
+
+Here is a sample that <<{yellow>>colors some text yellow<<}>>.
+
+=== Stylers:  Assign CSS classes to automatic or custom HTML elements.
+**##{{{<<addClass =block className1 classname2>>}}}##**\\
+or\\
+**##{{{<<addClass =inline className1>>}}}##**\\
+or\\
+**##{{{<<addClass =jcxBlock className1 className2 className3>>}}}##**\\
+or\\
+**##{{{<<addClass =jcxSpan className1>>}}}##**\\
+These samples show how to ass classes to immediate parent HTML block element,
+HTML inline element, jcxBlock, or jcxSpan element.
+
+**##{{{<<addClass -block className1 classname2>>}}}##**\\
+Just change the ##=## to ##-## to add the class name to the //previous//
+element which was closed.
+This works for all 4 element types.
+
+**##{{{<<addClass +block className1 classname2>>}}}##**\\
+Just change the direction character to ##+## to add the class name to the
+//next// element which was closed.
+This works for all 4 element types.
+
+<<addClass =block yellow>>
+This is a sample that colors this HTML p element yellow.
+
+
+=== Style Sheets
+**##{{{styleSheet urlToFile.css}}}##**\\
+CSS file links will be inserted into the HTML pages's head section.
+
+=== Author Comments
+**##{{{<<# author comments>>}}}##**\\
+Comments written this way never make it to the HTML page.
+
+=== HTML Comments
+**##{{{<<! HTML comments>>}}}##**\\
+These comments can be seen by end-users who know how to view source HTML.
+
+=== Section Enumeration
+**##{{{<<enumFormats A1a1_x>>}}}##**\\
+By default, no headings/sections in the generated page will be enumerated.
+The command above says to enumerate top-level (h1) headings like "A", "B',
+"C",... and to level the second-level (h2) headings like "1", "2"...
+This effects both headings in the main body and TOCs if you add any (see the
+[[#jcsect_TocTableOfContents]] directive below).
+
+See the file "extensions.txt" in the JCreole distribution for requirements and
+meaning of the characters in the //enumationFormats// string ("A1a1_x" above).
+
+=== Resetting Enumerations
+**##{{{<<enumFormatReset A>>}}}##**\\
+Far easier to explain this with an example.
+Assume we start a page out with numerical ("1") enumeration formatting and this:
+{{{
+    === First
+    === Second
+    === Third
+    === Fourth <<enumFormatReset A>>
+    === Fifth
+}}}
+The generated section enumerations will be "1", "2", "3", "A', "B".
+Note that the reset both changed the enumeration formatting and reset the
+sequence counting.
+If you assign the same formatting that was already in use ("1" here), then the
+only effect will be to reset the counting sequence.
+
+===TOC: Table of Contents
+**##{{{toc}}}##**\\
+or\\
+**##{{{toc ___xxx}}}##**\\
+These directives both generate a table of contents listing at the location where
+you code the directive~-- just like the one
+[[#jcsect_JcreoleReference|at the top of this page]].
+The first will include/exclude sections and enumerations formatting per the
+page settings.
+The second specifies section-inclusion/exclusion and enumeration formatting
+explicitly.
+
+You can include as many TOCs in a the page as you want to.
+The Java API also has getters for obtaining both TOC HTML and the data
+structures, so that you can write the TOC to a framing tile or header, using
+either the pre-fab or building it yourself.
