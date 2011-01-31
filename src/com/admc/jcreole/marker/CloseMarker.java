@@ -24,15 +24,13 @@ import com.admc.jcreole.TagType;
  * @since 1.1
  */
 public class CloseMarker extends BufferMarker {
-    private String tagName;
     private TagType targetType;
 
     /**
      * For HTML Block and Inline tags.
      */
-    public CloseMarker(int id, String tagName, TagType targetType) {
+    public CloseMarker(int id, TagType targetType) {
         super(id);
-        this.tagName = tagName;
         this.targetType =  targetType;
     }
 
@@ -43,13 +41,11 @@ public class CloseMarker extends BufferMarker {
         super(id);
     }
 
-    public String getTagName() { return tagName; }
-
     public TagType getTargetType() { return targetType; }
 
     public String toString() {
         StringBuilder sb = new StringBuilder(getIdString()).append('/')
-        .append(targetType).append(':').append(getTagName());
+                .append(targetType);
         if (applied) return sb.toString();
         return sb.append('@').append(offset).toString();
     }

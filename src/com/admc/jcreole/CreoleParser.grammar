@@ -228,31 +228,42 @@
     }
 
     private enum InlineMode {
-        EMPHASIZED("em"),
-        STRONG("strong"),
-        JCXSPAN("span"),
-        MONO("tt"),
+        EMPHASIZED("span", "jcreole_em"),
+        STRONG("span", "jcreole_strong"),
+        JCXSPAN("span"),  // cssClass attr not used for this one
+        MONO("span", "jcreole_monospace"),
         SUP("sup"),
         SUB("sub"),
-        STRIKE("del"),
-        UNDER("u");
+        STRIKE("span", "jcreole_strike"),
+        UNDER("span", "jcreole_underline")
+        ;
 
-        private String tagName;
-        private InlineMode(String tagName) { this.tagName = tagName; }
-        public String toString() { return tagName; }
+        private String tagName, cssClass;
+        private InlineMode(String tagName, String cssClass) {
+            this.tagName = tagName;
+            this.cssClass = cssClass;
+        }
+        private InlineMode(String tagName) {
+            this.tagName = tagName;
+        }
+        public String getTagName() { return tagName; }
+        public String getCssClass() { return cssClass; }
     }
 
     private WashedSymbol toggleInlineMode(InlineMode mode, Token tok) {
         if (mode == inlineModeStack.peekFirst()) {
             inlineModeStack.pop();
-            return new WashedSymbol(markClose(mode.toString(), TagType.INLINE)
-                    + "</" + mode + '>');
+            return new WashedSymbol(
+                    markClose(TagType.INLINE) + "</" + mode.getTagName() + '>');
         }
         if (inlineModeStack.contains(mode))
             throw new CreoleParseException("Inline modes are tangled", tok);
         inlineModeStack.push(mode);
-        return new WashedSymbol("<" + mode
-                + markInline(mode.toString(), true, false) + '>');
+        String cssClass = mode.getCssClass();
+        return new WashedSymbol("<" + mode.getTagName()
+                + ((cssClass == null) ? "" : (" class=\"" + cssClass))
+                + markInline(mode.getTagName(), (cssClass == null), false)
+                + ((cssClass == null) ? "" : "\"") + '>');
     }
 
     public WashedSymbol newListNest(List<LiSymbol> liSymbolList) {
@@ -270,7 +281,7 @@
                         != levelTypeMap.get(curLevel).charValue())
                     throw new CreoleParseException(
                             "Illegal type transition", liSymbol);
-                sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
+                sb.append(markClose(TagType.BLOCK)).append("</li>\n");
             } else if (liSymbol.getLevel() == curLevel + 1) {
                 sb.append('<').append(tagName)
                         .append(markBlock(tagName, true, false))
@@ -278,15 +289,15 @@
                 levelTypeMap.put(Integer.valueOf(liSymbol.getLevel()),
                         Character.valueOf(liSymbol.getType()));
             } else if (liSymbol.getLevel() < curLevel) {
-                sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
+                sb.append(markClose(TagType.BLOCK)).append("</li>\n");
                 for (int hiLevel = curLevel;
                         hiLevel > liSymbol.getLevel(); hiLevel--) {
                     tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                             == '#') ? "ol" : "ul";
                     sb.append(indent(hiLevel-1))
-                            .append(markClose(tagName, TagType.BLOCK))
+                            .append(markClose(TagType.BLOCK))
                             .append("</").append(tagName).append('>')
-                            .append(markClose("li", TagType.BLOCK))
+                            .append(markClose(TagType.BLOCK))
                             .append("</li>\n");
                 }
                 if (liSymbol.getType() !=
@@ -303,15 +314,15 @@
                     .append(liSymbol.getContent());
             curLevel = liSymbol.getLevel();
         }
-        sb.append(markClose("li", TagType.BLOCK)).append("</li>\n");
+        sb.append(markClose(TagType.BLOCK)).append("</li>\n");
         for (int hiLevel = curLevel; hiLevel >= 1; hiLevel--) {
             tagName = (levelTypeMap.remove(Integer.valueOf(hiLevel))
                     == '#') ? "ol" : "ul";
             sb.append(indent(hiLevel-1))
-                    .append(markClose(tagName, TagType.BLOCK))
+                    .append(markClose(TagType.BLOCK))
                     .append("</").append(tagName).append('>');
             if (hiLevel > 1)
-                sb.append(markClose("li", TagType.BLOCK)).append("</li>");
+                sb.append(markClose(TagType.BLOCK)).append("</li>");
             sb.append('\n');
         }
         return new WashedSymbol(sb.toString());
@@ -342,8 +353,8 @@
         return jb.getMarkerString();
     }
 
-    private String markClose(String tagName, TagType targetType) {
-        BufferMarker m = new CloseMarker(++lastMarkerId, tagName, targetType);
+    private String markClose(TagType targetType) {
+        BufferMarker m = new CloseMarker(++lastMarkerId, targetType);
         markers.put(Integer.valueOf(lastMarkerId), m);
         return m.getMarkerString();
     }
@@ -371,12 +382,10 @@
     private StringBuilder autoCloseInlines(InlineMode untilMode) {
         StringBuilder b = new StringBuilder();
         InlineMode fm;
-        String tagName;
-        while (inlineModeStack.peekFirst() != untilMode) {
-            tagName = inlineModeStack.removeFirst().toString();
-            b.append("</").append(markClose(tagName, TagType.INLINE))
-                    .append(tagName).append('>');
-        }
+        while (inlineModeStack.peekFirst() != untilMode)
+            b.append("</").append(markClose(TagType.INLINE))
+                    .append(inlineModeStack.removeFirst().getTagName())
+                    .append('>');
         return b;
     }
 
@@ -473,10 +482,10 @@
                             + (1+unfilledCells) + '"');
                     }
                     sb.append(markBlock("th", true, false))
-                    .append(markClose("th", TagType.BLOCK))
+                    .append(markClose(TagType.BLOCK))
                     .append('>').append(hCells[r][c]).append("</th>");
                 }
-                sb.append(markClose("tr", TagType.BLOCK)).append(" </tr>");
+                sb.append(markClose(TagType.BLOCK)).append(" </tr>");
             }
             sb.append('\n').append(indent(1)).append("</thead>\n");
         }
@@ -499,14 +508,14 @@
                     tagName = isHead[r][c] ? "th" : "td";
                     sb.append(markBlock(tagName, true, false))
                     .append('>').append(bCells[r][c]).append("</")
-                            .append(markClose(tagName, TagType.BLOCK))
+                            .append(markClose(TagType.BLOCK))
                             .append(tagName).append('>');
                 }
-                sb.append(markClose("tr", TagType.BLOCK)).append(" </tr>");
+                sb.append(markClose(TagType.BLOCK)).append(" </tr>");
             }
             sb.append('\n').append(indent(1)).append("</tbody>\n");
         }
-        return new WashedSymbol(sb.append(markClose("table", TagType.BLOCK))
+        return new WashedSymbol(sb.append(markClose(TagType.BLOCK))
                 .append("</table>\n").toString());
     }
 
@@ -567,7 +576,7 @@ topblock = HOR {:
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
                     + hm.getMarkerString() + b + autoCloseInlines()
-                    + markClose("h" + hLevel, TagType.BLOCK)
+                    + markClose(TagType.BLOCK)
                     + "</h" + hLevel + ">\n");
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
@@ -630,7 +639,7 @@ leafblock = BLOCK_PRE.text {:
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
             return new WashedSymbol("<p" + markBlock("p", true, false)
                     + '>' + b + autoCloseInlines()
-                    + markClose("p", TagType.BLOCK) + "</p>\n");
+                    + markClose(TagType.BLOCK) + "</p>\n");
         :}
         | TOC.text {:
             require(PluginPrivilege.TOC, _symbol_text);
@@ -659,7 +668,7 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
             return new WashedSymbol("<div class=\"jcx"
                     + ((classNames == null) ? "" : (" " + classNames))
                     + markJcxblock() + "\">" + b
-                    + markClose(null, TagType.JCXBLOCK) + "</div>\n");
+                    + markClose(TagType.JCXBLOCK) + "</div>\n");
         :};
 
 // Only purpose for this one is to push inlineModeStack before the block
@@ -736,6 +745,8 @@ inline = INLINE_PRE.text {:
                 throw new CreoleParseException(
                         "Malformatted class name(s) in JCX directive: " + text,
                         (Token) _symbol_text);
+            // N.b. we do not use toggleInlineMode with .JCXSPANs, so
+            // InlineMode.tagName and InlineMode.cssClass will not be used.
             inlineModeStack.push(InlineMode.JCXSPAN);
             return new WashedSymbol("<span class=\"jcx"
                     + ((text != null) ? (" " + text) : "")
@@ -748,7 +759,7 @@ inline = INLINE_PRE.text {:
                     "jcxSpan modes are tangled", (Token) tok);
             inlineModeStack.pop();
             return new WashedSymbol(caps.toString()
-                    + markClose(null, TagType.JCXSPAN) + "</span>");
+                    + markClose(TagType.JCXSPAN) + "</span>");
         :}
         | TEXT.f+ {: return mkWashedSymbol((List<String>) _list_f); :}
         | HARDSPACE {: return new WashedSymbol("&nbsp;"); :}

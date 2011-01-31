@@ -18,10 +18,12 @@ if you add a blank line also).
 
 === Strong text
 **##~**Like this~**##**\\
+See the section below about [[#jcsect_Styling]].\\
 **See?**
 
 === Emphasized text
 **##~//Like this~//##**\\
+See the section below about [[#jcsect_Styling]].\\
 //See?//
 
 === Table rows
@@ -95,8 +97,15 @@ Looks like\\
 By prefixing the special character(s) with ~, or by enclosing the text with
 ~{{{ and ~}}}.
 These tactics are called //escaping//, and the last method is called //Nowiki//.
-(Nowiki also encloses the escaped text in a HTML //pre// element).
+(Nowiki where ~{{{ and ~}}} are on separate lines with no blank space also
+cause the enclosed, escaped text to be wrapped in a HTML //pre// element).\\
 Works {{{like this with <<>> __ \\ Special characters}}}.
+
+Note that these methods escape Wikitext language interpretation, but do not
+prevent changing your input to be //HTML safe// (such as translating ##>## to
+##&amp;gt;##, etc.).
+To avoid this level of translation you would need to use the [[#jcsect_RawHtml]]
+directive.
 
 === Hard linebreaks
 Like **##~\\##**\\
@@ -134,9 +143,10 @@ Like**##~~ ##**this\\
 This is equivalent to writing ##&amp;nbsp;##.\\
 Four such spaces looks like ~ ~ ~ ~ this.
 
-=== Monospace
+=== Monospace fonts
 **##~##Like this~## ##**\\
-Regular ##Mono##
+See the section below about [[#jcsect_Styling]].\\
+Can you ##see?##
 
 === Superscript
 **##~^^Like this~^^##**\\
@@ -148,10 +158,12 @@ Regular ,,Sub,,
 
 === Underline
 **##~__Like this~__##**\\
+See the section below about [[#jcsect_Styling]].\\
 __See?__
 
 === Overstrike
 **##~--Like this~--##**\\
+See the section below about [[#jcsect_Styling]].\\
 --See?--
 
 
@@ -271,3 +283,56 @@ You can include as many TOCs in a the page as you want to.
 The Java API also has getters for obtaining both TOC HTML and the data
 structures, so that you can write the TOC to a framing tile or header, using
 either the pre-fab or building it yourself.
+
+==Styling
+
+===Styles used for font presentation settings
+To generate the best and most modern HTML, with a maximum separation between
+content and presentation, we have not followed the Creole 1.0 specification's
+//recommendation// to translate the corresponding directives to the HTML
+elements <strong>, <em>, <tt>, <del>, and <u>.
+Instead, we translate all of these directives to HTML "span"s with the following CSS
+class names:  ##jcreole_strong jcroele_em jcreole_monospace jcreole_strike
+jcreole_underline##.
+
+Your generated pages will appear to entirely ignore the correspojnding
+directives unless your HTML page defines the CSS classes listed.
+The provided sample boilerplate defines them as
+{{{
+  span.jcx_seqLabel { font-weight:bold; font-family:serif; }
+  span.jcreole_strike { text-decoration: line-through; }
+  span.jcreole_underline { text-decoration: underline; }
+  span.jcreole_em { font-style: italic; }
+  span.jcreole_strong { font-weight: bold; }
+  span.jcreole_monospace { font-family: monospace; }
+}}}
+And that is what gets used by default if you execute the jcreole jar file or
+the ##JCreole## class from the command line.
+You are welcome to copy this stanza into your own style sheet, boilerplate,
+or whatever HTML framing or inclusion you use when wrapping your JCreole-ized
+content.
+
+===Other styles you can leverage with JCreole
+Besides the many un-classed elementst that JCreole writes, you can precisely
+style...
+* **span.jcx_seqLabel**  Enumeration prefixes in table of contents.\\
+Will have no effect unless you set enumeration formatting.
+* **span.jcreole_orphanlink**  You can infer the purpose.
+* **table.jcreole_data**  Generated tables
+* **table.jcreole_even**  Even numbered body rows of generated tables
+* **table.jcreole_odd**  Odd numbered body rows of generated tables
+* **div.jcx** [[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlocks]].
+* **span.jcx** [[#jcsect_JcxspanCreateCustomStylableInlineElement|jcxSpans]].
+* **div.toc** Div container for [[#jcsect_TocTableOfContents]].
+* **span.jcreole_pref**  Inline ~{{{...~}}} Nowiki as described in the
+[[#jcsect_AvoidMarkupInterpretation]] section.
+
+===Styling Strategies
+You definitley do want to set your CSS styles.
+Web pages without CSS style settings, whether JCreole-generated or not, will
+look like crap without at least minimal settings.
+H1 and H2 elements are obnoxiously obtrusive without styling adjustments, and
+tables are feeble and sikly.
+Most integrators will want to centralize their settings, and the JCreole
+boilerplate mechanism and/or the [[#jcsect_StyleSheets]] directive facilitate
+this.

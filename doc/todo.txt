@@ -1,11 +1,5 @@
 SHORT TERM
 
-Change Togglable enum to have open and close tags and use CSS for most
-togglables.
-    Add styles like jcreole_strong to *boilerplate*.html
-    Document in ref that not following spec recommendation, and indicate CSS
-     class names used.
-
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
