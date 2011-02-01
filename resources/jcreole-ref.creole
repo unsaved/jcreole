@@ -18,12 +18,10 @@ if you add a blank line also).
 
 === Strong text
 **##~**Like this~**##**\\
-See the section below about [[#jcsect_Styling]].\\
 **See?**
 
 === Emphasized text
 **##~//Like this~//##**\\
-See the section below about [[#jcsect_Styling]].\\
 //See?//
 
 === Table rows
@@ -145,7 +143,12 @@ Four such spaces looks like ~ ~ ~ ~ this.
 
 === Monospace fonts
 **##~##Like this~## ##**\\
-See the section below about [[#jcsect_Styling]].\\
+Since the HTML element "u" is deprecated, JCreole depends on the application
+(or page author by using the [[#jcsect_StyleSheet]] directive) to make a CSS
+class assignment like this:
+{{{
+  span.jcreole_underline { text-decoration: underline; }
+}}}
 Can you ##see?##
 
 === Superscript
@@ -227,9 +230,11 @@ This works for all 4 element types.
 This is a sample that colors this HTML p element yellow.
 
 
-=== Style sheets
+=== Style sheet
 **##{{{styleSheet urlToFile.css}}}##**\\
 CSS file links will be inserted into the HTML pages's head section.
+You can use multiple styleSheet directives on a single page and the links will
+be inserted in the correct order.
 
 === Author comments
 **##{{{<<# author comments>>}}}##**\\
@@ -246,6 +251,12 @@ The command above says to enumerate top-level (h1) headings like "A", "B',
 "C",... and to level the second-level (h2) headings like "1", "2"...
 This effects both headings in the main body and TOCs if you add any (see the
 [[#jcsect_TocTableOfContents]] directive below).
+
+You may only use one enumFormat directive on a single page, since there is only
+one such setting for a page (and location of the directive doesn't matter).
+The [[#jcsect_ResettingEnumerations|enumFormatReset]] and
+[[#jcsect_TocTableOfContents|toc]] directives can be used to make
+location-specific adjustments to the global page enumFormat.
 
 See the file "extensions.txt" in the JCreole distribution for requirements and
 meaning of the characters in the //enumationFormats// string ("A1a1_x" above).
@@ -286,35 +297,15 @@ either the pre-fab or building it yourself.
 
 ==Styling
 
-===Styles used for font presentation settings
-To generate the best and most modern HTML, with a maximum separation between
-content and presentation, we have not followed the Creole 1.0 specification's
-//recommendation// to translate the corresponding directives to the HTML
-elements <strong>, <em>, <tt>, <del>, and <u>.
-Instead, we translate all of these directives to HTML "span"s with the following CSS
-class names:  ##jcreole_strong jcroele_em jcreole_monospace jcreole_strike
-jcreole_underline##.
+If you have permissions to use the [[#jcsect_StyleSheet]] directive, then you
+can customize the appearance and layout of the many un-classed elements that
+JCreole generates.
+If the JCreole content is integrated into a tile or framing system, then you
+are advised to use CSS selectors to narrow your stylings to only the JCreole
+content area.
+The following CSS selectors are useful for tageting styles as described.
 
-Your generated pages will appear to entirely ignore the correspojnding
-directives unless your HTML page defines the CSS classes listed.
-The provided sample boilerplate defines them as
-{{{
-  span.jcx_seqLabel { font-weight:bold; font-family:serif; }
-  span.jcreole_strike { text-decoration: line-through; }
-  span.jcreole_underline { text-decoration: underline; }
-  span.jcreole_em { font-style: italic; }
-  span.jcreole_strong { font-weight: bold; }
-  span.jcreole_monospace { font-family: monospace; }
-}}}
-And that is what gets used by default if you execute the jcreole jar file or
-the ##JCreole## class from the command line.
-You are welcome to copy this stanza into your own style sheet, boilerplate,
-or whatever HTML framing or inclusion you use when wrapping your JCreole-ized
-content.
-
-===Other styles you can leverage with JCreole
-Besides the many un-classed elementst that JCreole writes, you can precisely
-style...
+* **div.jcreole**  The entire block of JCreole-generated content.
 * **span.jcx_seqLabel**  Enumeration prefixes in table of contents.\\
 Will have no effect unless you set enumeration formatting.
 * **span.jcreole_orphanlink**  You can infer the purpose.
@@ -326,13 +317,3 @@ Will have no effect unless you set enumeration formatting.
 * **div.toc** Div container for [[#jcsect_TocTableOfContents]].
 * **span.jcreole_pref**  Inline ~{{{...~}}} Nowiki as described in the
 [[#jcsect_AvoidMarkupInterpretation]] section.
-
-===Styling Strategies
-You definitley do want to set your CSS styles.
-Web pages without CSS style settings, whether JCreole-generated or not, will
-look like crap without at least minimal settings.
-H1 and H2 elements are obnoxiously obtrusive without styling adjustments, and
-tables are feeble and sikly.
-Most integrators will want to centralize their settings, and the JCreole
-boilerplate mechanism and/or the [[#jcsect_StyleSheets]] directive facilitate
-this.

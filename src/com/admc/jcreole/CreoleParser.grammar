@@ -228,14 +228,14 @@
     }
 
     private enum InlineMode {
-        EMPHASIZED("span", "jcreole_em"),
-        STRONG("span", "jcreole_strong"),
+        EMPHASIZED("em"),
+        STRONG("strong"),
         JCXSPAN("span"),  // cssClass attr not used for this one
-        MONO("span", "jcreole_monospace"),
+        MONO("tt"),
         SUP("sup"),
         SUB("sub"),
-        STRIKE("span", "jcreole_strike"),
-        UNDER("span", "jcreole_underline")
+        STRIKE("del"),
+        UNDER("span", "jcreole_underline")  // HTML "u" is deprecated
         ;
 
         private String tagName, cssClass;
