@@ -124,7 +124,14 @@ public class CreoleParseTest {
                     PluginPrivilege.STYLER
             ));
             */
-            parser.setInterWikiMapper(new ProtoInterWikiMapper());
+            parser.setInterWikiMapper(
+new InterWikiMapper() {
+    public String toPath(String wikiName, String wikiPage) {
+        return "{WIKI-LINK to: " + wikiName + '/' + wikiPage + '}';
+    }
+    public String toLabel(String wikiName, String wikiPage) {
+        return "{LABEL for: " + wikiName + '/' + wikiPage + '}';
+    }});
             retVal = parser.parse(
                     CreoleScanner.newCreoleScanner(creoleFile, false));
         } catch (Exception e) {

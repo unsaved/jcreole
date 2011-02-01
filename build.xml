@@ -91,6 +91,7 @@
   </target>
 
   <target name="clean" description="Clean">
+    <delete dir="test-reports"/>
     <delete dir="tmp/stage"/>
     <delete dir="dist"/>
     <delete dir="test-classes"/>
@@ -213,6 +214,8 @@ copy the resources accordingly.</echo>
     <!-- If add integration tests, then rename this target to "unittest" or
          similar, to make it distinctive. -->
     <ivy:cachepath conf="test" pathid="test.refid"/>
+    <delete dir="test-reports"/>
+    <delete dir="tmp/rawtestoutput"/>
     <mkdir dir="tmp/rawtestoutput"/>
     <junit printsummary="true" failureproperty="junit.failure">
       <!-- N.b. use failureproperty instead of haltonfailure, because if we use
@@ -223,7 +226,7 @@ copy the resources accordingly.</echo>
       <classpath refid="test.refid"/>
       <classpath path="classes:test-classes"/>
       <batchtest todir="tmp/rawtestoutput">
-        <fileset dir="test-classes" includes="*Test"/>
+        <fileset dir="test-classes" includes="**/*Test.class"/>
         <formatter type="xml"/>
       </batchtest>
 
