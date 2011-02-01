@@ -124,6 +124,7 @@ public class CreoleParseTest {
                     PluginPrivilege.STYLER
             ));
             */
+            parser.setInterWikiMapper(new ProtoInterWikiMapper());
             retVal = parser.parse(
                     CreoleScanner.newCreoleScanner(creoleFile, false));
         } catch (Exception e) {

@@ -223,7 +223,7 @@ copy the resources accordingly.</echo>
       <classpath refid="test.refid"/>
       <classpath path="classes:test-classes"/>
       <batchtest todir="tmp/rawtestoutput">
-        <fileset dir="test-classes"/>
+        <fileset dir="test-classes" includes="*Test"/>
         <formatter type="xml"/>
       </batchtest>
 

@@ -72,9 +72,14 @@ Automatically made into hyperlinks with a label matching the URL.\\
 === Explicit hyperlinks
 Like **##{{{[[http://wikicreole.org/wiki/Creole1.0]]}}}##**\\
 To show a label as something other than the URL, add a pipe character and the
-label text right after the URL, 
+label text right after the URL,
 {{{[[http://wikicreole.org/wiki/Creole1.0|like this]]}}}.\\
 Looks [[http://wikicreole.org/wiki/Creole1.0|like this]].
+
+Inter- and intra- wiki links with colons are supported by JCrole, but require
+application integration.
+If your application has provided JCreole with a mapping function from wiki-link
+to URL, these links will work.
 
 === Horizontal rules
 Like **{{{----}}}**, but on a line all by itself.\\
@@ -124,9 +129,11 @@ from external pages, to use in CSS selectors, or for any other purpose.
 
 === Automatic Link Labels
 **##{{{[[#jcsect_PlainText]]}}}##**\\
-Links are created automatically when you write intra-page links.
-Note that we prefix all of these header link names with ##jcsect_##, to prevent
-naming collisions with your own content or third party products.\\
+If you don't supply a label, then labels are created automatically when you
+write links to header/sections in the same page (these will begin with #).
+(And also for inter-wiki links if your application supports that).
+Note that we prefix the header link names that we create with ##jcsect_##,
+to prevent naming collisions with your own content or third party products.\\
 An auto-labelled link to the Plain text section looks like this:
 [[#jcsect_PlainText]].
 

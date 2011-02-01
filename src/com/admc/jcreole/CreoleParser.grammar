@@ -45,7 +45,7 @@
     // TODO:  Think about whether this generous whitespace stripping is ok.
     private static Pattern ImgAsLabelPattern =
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
-    private static Pattern IntraWikiPattern = Pattern.compile("([^:]+):(.+)");
+    private static Pattern InterWikiPattern = Pattern.compile("([^:]+)?:(.+)");
     private static Pattern StylerPattern = Pattern.compile(
             "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     public static final Pattern CssNamesPattern =
@@ -67,18 +67,7 @@
     private String urlBase;
     private String pathBase;
     private boolean authorSetEnumFormats;
-    // Following is just for testing.
-    // Before use this class in a real product, remove the assignment so it
-    // will default to null, thereby disabling intra-wiki linking.
-    // (Integrators will the use the setter to enable intra-wiki linking).
-    private IntraWikiMapper intraWikiMapper = new IntraWikiMapper() {
-        public String toPath(String wikiName, String wikiPage) {
-            return "{" + wikiName + '/' + wikiPage + '}';
-        }
-        public String toLabel(String wikiName, String wikiPage) {
-            return "{" + wikiName + '/' + wikiPage + '}';
-        }
-    };
+    private InterWikiMapper interWikiMapper;
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
@@ -89,6 +78,16 @@
     private Character formatResetChar;
     private EnumSet<PluginPrivilege> pluginPrivs = DEFAULT_PLUGIN_PRIVILEGES;
 
+    /**
+     * Set enumeration formats to display section/heading enumerations in TOCs
+     * (if any) and in headings.
+     * <p>
+     * By default, no section/header enumerations are shown.
+     * Creole authors can alternatively use the &lt;&lt;enumFormats&gt;&gt;
+     * plugin directive to accomplish the same thing (assuming that they have
+     * adequate privileges to do so).
+     * </p>
+     */
     public void setEnumerationFormats(String enumerationFormats) {
         if (enumerationFormats == null)
             throw new NullPointerException(
@@ -99,10 +98,16 @@
         this.enumerationFormats = enumerationFormats;
     }
 
+    /**
+     * Specify what plugin directives may be used by Creole page authors.
+     */
     public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
         this.pluginPrivs = pluginPrivs;
     }
 
+    /**
+     * @see #setPluginPrivileges(EnumSet)
+     */
     public EnumSet<PluginPrivilege> getPluginPrivileges() {
         return pluginPrivs;
     }
@@ -152,10 +157,10 @@
      * Assign a mapper from wiki page names to actual paths or URLs to the
      * pages.
      *
-     * @see IntraWikiMapper
+     * @see InterWikiMapper
      */
-    public void setIntraWikiMapper(IntraWikiMapper intraWikiMapper) {
-        this.intraWikiMapper = intraWikiMapper;
+    public void setInterWikiMapper(InterWikiMapper interWikiMapper) {
+        this.interWikiMapper = interWikiMapper;
     }
 
     /**
@@ -798,15 +803,17 @@ inline = INLINE_PRE.text {:
             Matcher matcher = (text.startsWith("http:")
                     || text.startsWith("https:")
                     || text.startsWith("ftp:")) ? null
-                    : IntraWikiPattern.matcher(urlText);
+                    : InterWikiPattern.matcher(urlText);
             if (matcher != null && matcher.matches()) {
-                if (intraWikiMapper == null) {
+                if (interWikiMapper == null) {
                     throw new IllegalStateException(String.format(
                     "%s  @line:col %d:%d",
-                        "Intra-wiki links not supported.",
+                        "Inter- and Intra-wiki links not supported.",
                         token.getLine() + 1, token.getColumn() + 1));
                 }
-                url = intraWikiMapper.toPath(
+log.fatal("G1=(" + matcher.group(1) + ')');
+log.fatal("G2=(" + matcher.group(2) + ')');
+                url = interWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
             } else {
                 url = clean(absoluteUrl(urlText));

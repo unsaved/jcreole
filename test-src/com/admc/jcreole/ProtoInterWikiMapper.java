@@ -18,14 +18,14 @@
 package com.admc.jcreole;
 
 /**
- * Map from wiki page names to actual paths or URLs to the pages.
- * Implement one of these and use the CreoleParser setter to use it.
- *
- * @see CreoleParser#setIntraWikiMapper(IntraWikiMapper)
- * @author Blaine Simpson (blaine dot simpson at admc dot com)
- * @since 1.0
+ * This separate class only exists because JUnit gets confused if one of these
+ * is instantiated anonymousely inside of the test class constructor.
  */
-public interface IntraWikiMapper {
-    public String toPath(String wikiName, String wikiPage);
-    public String toLabel(String wikiName, String wikiPage);
+public class ProtoInterWikiMapper implements InterWikiMapper {
+    public String toPath(String wikiName, String wikiPage) {
+        return "{WIKI-LINK to: " + wikiName + '/' + wikiPage + '}';
+    }
+    public String toLabel(String wikiName, String wikiPage) {
+        return "{LABEL for: " + wikiName + '/' + wikiPage + '}';
+    }
 }

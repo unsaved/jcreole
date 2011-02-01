@@ -152,6 +152,15 @@ public class JCreole {
                 .getContextClassLoader().getResourceAsStream(creoleResPath);
         File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = new JCreole(rawBoilerPlate);
+        jCreole.setInterWikiMapper(new InterWikiMapper() {
+            // This InterWikiMapper is just for prototyping.
+            public String toPath(String wikiName, String wikiPage) {
+                return "{WIKI-LINK to: " + wikiName + '/' + wikiPage + '}';
+            }
+            public String toLabel(String wikiName, String wikiPage) {
+                return "{LABEL for: " + wikiName + '/' + wikiPage + '}';
+            }
+        });
         jCreole.setPageTitle((inFile == null)
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
@@ -302,28 +311,27 @@ public class JCreole {
     }
 
     /**
-     * Specify what plugin directives may be used by Creole page authors.
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#setPluginPrivileges(EnumSet)
      */
     public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
         parser.setPluginPrivileges(pluginPrivs);
     }
 
     /**
-     * Set enumeration formats to display section/heading enumerations in TOCs
-     * (if any) and in headings.
-     * <p>
-     * By default, no section/header enumerations are shown.
-     * Creole authors can alternatively use the &lt;&lt;enumFormats&gt;&gt;
-     * plugin directive to accomplish the same thing (assuming that they have
-     * adequate privileges to do so).
-     * </p>
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#setEnumerationFormats(String)
      */
     public void setEnumerationFormats(String enumerationFormats) {
         parser.setEnumerationFormats(enumerationFormats);
     }
 
     /**
-     * @see #setPluginPrivileges
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#getPluginPrivileges()
      */
     public EnumSet<PluginPrivilege> getPluginPrivileges() {
         return parser.getPluginPrivileges();
@@ -337,6 +345,20 @@ public class JCreole {
         this.pageTitle = pageTitle;
     }
 
+    /**
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#setInterWikiMapper(InterWikiMapper)
+     */
+    public void setInterWikiMapper(InterWikiMapper interWikiMapper) {
+        parser.setInterWikiMapper(interWikiMapper);
+    }
+
+    /**
+     * Gets the unerlying Parser, with which you can do a lot of useful stuff.
+     *
+     * @see CreoleParser
+     */
     public CreoleParser getParser() {
         return parser;
     }
