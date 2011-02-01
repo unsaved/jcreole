@@ -29,4 +29,25 @@ Obviously, if you want to change JCreole itself, for example to add new
 plugin features, you will need to work with source code.  Your choice whether
 to pull from the source code repository or extract from a JCreole source 
 distribution.  The Ant file has lots of targets that should be very useful for
-integrators.
+integrators.  As every Ant user should know, run "ant -p" from the main
+directory to list concise descriptions of the available targets.
+
+
+LICENSE
+
+JCreole is copyrighted with an Apache 2.0 license by Axis Data Management Corp.
+See the "LICENSE.txt" file in the "doc" directory of all distributions.
+
+
+DOCUMENTATION
+
+There are text documentation files in the doc subdirectory.
+
+There is also a reference guide for page authors, which briefly describes the
+available markup directives.  It is provided in HTML format in the binary zip
+distribution as "jcreole-ref.html" in the doc directory.  But the source Creole
+for it is also provided as "jcreole-ref.creole" in the jcreole-*.jar file and
+in the "resources" source code directory.  Integrators can use
+"jcreole-ref.creole" to serve the author guide framed and styled like your other
+application content.  You can obviously edit "jcreole-ref.creole".  The Ant
+target "ref" will build "tmp/jcreole-ref.html" from the .creole file.
