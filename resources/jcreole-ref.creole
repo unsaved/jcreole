@@ -3,7 +3,7 @@
 = JCreole Reference
 
 <<toc>>
-<<[clear>> <<]>>
+<<[clear>><<]>>
 
 == Base Creole
 
