@@ -61,8 +61,8 @@ public class HeadingMarker extends BlockMarker {
     public void updateBuffer() {
         String sequenceLabel = sectionHeading.getDottedSequenceLabel();
         targetSb.insert(offset + 5, (sequenceLabel == null)
-                ? "><span class=\"jcx_hbody\">"
-                : ("><span class=\"jcx_hbody\"><span class=\"jcsec_enum\">&sect;"
+                ? "><span class=\"jcreole_hbody\">"
+          : ("><span class=\"jcreole_hbody\"><span class=\"jcsec_enum\">&sect;"
                   + sequenceLabel + "<span> "));
         super.updateBuffer();
     }

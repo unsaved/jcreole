@@ -74,7 +74,7 @@
   table.jcreole_data tbody tr.jcreole_even { background-color: #fea }
   /* Don't set tr border or padding values.  It is non-portable. */
 
-  span.jcreole_orphanlink {
+  span.jcreole_orphanLink {
       background-color:red;
       color:black;
       font-weight:bold;
@@ -87,15 +87,17 @@
 
   div.jcreole .yellow { background-color:yellow; display:table-cell; }
 
-  div.jcreole_toc { font-size:12px; }
-  div.jcreole_toc span.jcx_seqLabel { font-variant:normal; }
+  div.jcx_toc { font-size:12px; }
+  div.jcx_toc span.jcx_enum { font-variant:normal; font-weight:bold; }
+  h1 span.jcx_enum, h2 span.jcx_enum, h3 span.jcx_enum,
+  h4 span.jcx_enum, h5 span.jcx_enum, h6 span.jcx_enum { font-family:serif; }
 
   div.reftoc { float:right; margin-left:50px; font-variant:small-caps; }
 
   div.jcreole div.clear { clear:both; }
 
   h6 { margin:0; }
-  h6 span.jcx_hbody {
+  h6 span.jcreole_hbody {
       font-family:monospace;
       font-size:14px;
       background-color:#DDDDDD;
@@ -107,22 +109,22 @@
       border:solid #DDDDDD 1px;
       padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
   }
-  h1 span.jcx_hbody {
+  h1 span.jcreole_hbody {
       margin:0;
       padding-top:0; padding-bottom:0; padding-left:0; padding-right:0;
   }
-  h2 span.jcx_hbody, h3 span.jcx_hbody {
+  h2 span.jcreole_hbody, h3 span.jcreole_hbody {
       background-color:#F4F4F4;
       border:solid #DDDDDD 2px;
   }
-  h4 span.jcx_hbody, h5 span.jcx_hbody { background-color:#F4F4F4; }
-  h2 span.jcx_hbody, h3 span.jcx_hbody,
-  h4 span.jcx_hbody, h5 span.jcx_hbody, h6 span.jcx_hbody {
+  h4 span.jcreole_hbody, h5 span.jcreole_hbody { background-color:#F4F4F4; }
+  h2 span.jcreole_hbody, h3 span.jcreole_hbody,
+  h4 span.jcreole_hbody, h5 span.jcreole_hbody, h6 span.jcreole_hbody {
       margin:0;
       padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
   }
 
-  span.jcx_seqLabel { font-weight:bold; font-family:serif; }
+  span.jcx_enum { font-weight:bold; font-family:serif; }
   span.jcreole_strike { text-decoration: line-through; }
   span.jcreole_underline { text-decoration: underline; }
   span.jcreole_em { font-style: italic; }

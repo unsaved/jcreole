@@ -686,7 +686,7 @@ leafblock = BLOCK_PRE.text {:
             }
             BufferMarker tm = new TocMarker(++lastMarkerId, sectInclusions);
             markers.put(Integer.valueOf(lastMarkerId), tm);
-            return new WashedSymbol("<div class=\"jcreole_toc"
+            return new WashedSymbol("<div class=\"jcx_toc"
                     + ((classNames == null) ? "" : (" " + classNames))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n");
         :}
@@ -781,7 +781,7 @@ hinline = inline
         :};
 
 inline = INLINE_PRE.text {:
-            return new WashedSymbol("<span class=\"jcreole_pref"
+            return new WashedSymbol("<span class=\"jcreole_noWiki"
                     + markInline("span", false, true)
                     + "\">" + clean(text) + "</span>");
         :}

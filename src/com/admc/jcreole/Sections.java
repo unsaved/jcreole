@@ -63,7 +63,7 @@ public class Sections extends ArrayList<SectionHeading> {
             } else if (newMenuLevel > menuLevel) {
                 for (int i = menuLevel + 1; i <= newMenuLevel; i++) {
                     sb.append((i == 0)
-                            ? "<ul class=\"jcreole_toc\">\n"
+                            ? "<ul class=\"jcx_toc\">\n"
                             : (((i == menuLevel + 1)
                                 ? "" : CreoleParser.indent(i))
                               + "<ul>\n"));
@@ -83,7 +83,7 @@ public class Sections extends ArrayList<SectionHeading> {
                     .append(sh.getXmlId()).append("\">");
             seqLabel = sh.getSequenceLabel();
             if (seqLabel != null) {
-                sb.append("<span class=\"jcx_seqLabel\">")
+                sb.append("<span class=\"jcx_enum\">")
                 .append(seqLabel).append("</span> ");
             }
             sb.append(sh.getText()).append("</a>");

@@ -1,13 +1,5 @@
 SHORT TERM
 
-Change class name _pref to _noWiki
-Change class name _orphanlink to _orphanLink
-Change class name jcx_hbody to jcreole_hbody
-Change class name jcreole_toc to jcx_toc
-Change class name jcx_seqLabel to jcx_enum
-Document class name jcreole_underline
-Document all of these changes in the ref guide
-
 Update unit tests and verify recent work caused no new problems.
 
 Consider how to allow author to specify link target, or at least whether to
