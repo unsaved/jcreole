@@ -193,6 +193,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     pushState();
     yybegin(TABLESTATE);
 }
+<YYINITIAL> ^[ \t]* "<<"{s}*[{]{wsdash}*">>" {
+    yypushback(yylength());
+    pushState();
+    yybegin(PSTATE);
+}
 <YYINITIAL> "//" {
     pushState();
     yybegin(PSTATE);

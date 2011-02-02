@@ -1,11 +1,14 @@
 <<enumFormats x1a_xx>>
 
-= JCreole Reference
+= JCreole Author Reference
 
 <<toc>>
-<<[clear>><<]>>
 
 == Base Creole
+=== Three
+==== Four
+===== Five
+====== Six
 
 See the [[http://wikicreole.org/wiki/Creole1.0|Creole 1.0 Spec]] for more
 details about basic Crole directives and behavior.
@@ -83,7 +86,7 @@ If your application has provided JCreole with a mapping function from wiki-link
 to URL, these links will work.
 
 === Horizontal rules
-======**{{{----}}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but on a line all by itself.\\
+======**{{{----}}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but on a line all by itself.
 Looks like...
 ----
 
@@ -103,7 +106,7 @@ By prefixing the special character(s) with ~, or by enclosing the text with
 These tactics are called //escaping//, and the last method is called //Nowiki//.
 (Nowiki where ~{{{ and ~}}} are on separate lines with no blank space also
 cause the enclosed, escaped text to be wrapped in a HTML //pre// element).\\
-Works {{{like this with <<>> __ \\ Special characters}}}.
+======{{{Works like this with <<>> __ \\ Special characters}}}.
 
 Note that these methods escape Wikitext language interpretation, but do not
 prevent changing your input to be //HTML safe// (such as translating ##>## to
@@ -233,7 +236,15 @@ Just change the direction character to ##+## to add the class name to the
 //next// element which was closed.
 This works for all 4 element types.
 
-<<addClass =block yellow>>\\
+A few HTLM elements can not be targets of stylers (i.e., you can not add
+classes to them using Stylers).
+Some elements are purposefully omitted because they make it more difficult to
+target more important elements nearby (e.g. spans added for internal formatting
+purposes and thead and tbody elements).
+Elements added in a very late pass (only TOC-related elements AFAIK) can not be
+targeted because the are not written until after the Stylers are applied.
+
+<<addClass =block yellow>>
 This is a sample that colors this HTML p element yellow.
 
 
@@ -288,14 +299,17 @@ only effect will be to reset the counting sequence.
 ===TOC: Table of Contents
 ======{{{<<toc>>}}}
 or\\
-======{{{<<toc ___xxx>>}}}
-These directives both generate a table of contents listing at the location where
+======{{{<<toc className1>>}}}
+or\\
+======{{{<<toc /___xxx>>}}}
+or\\
+======{{{<<toc className1 className 2 /___xxx>>}}}
+These samples all generate a table of contents listing at the location where
 you code the directive~-- just like the one
-[[#jcsect_JcreoleReference|at the top of this page]].
-The first will include/exclude sections and enumerations formatting per the
-page settings.
-The second specifies section-inclusion/exclusion and enumeration formatting
-explicitly.
+[[#jcsect_JcreoleAuthorReference|at the top of this page]].
+The first two samples will include/exclude sections and enumerations formatting per the page settings.
+The last two samples specify section-inclusion/exclusion and enumeration formatting explicitly.
+CSS classes must be specified in the TOC directive (as opposed to using Stylers) because Stylers can not effect TOCs (because the table of contents are generated after Stylers are applied).
 
 You can include as many TOCs in a the page as you want to.
 The Java API also has getters for obtaining both TOC HTML and the data

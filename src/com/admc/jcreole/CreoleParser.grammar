@@ -52,6 +52,8 @@
             Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     public static final Pattern EnumFormatPattern =
             Pattern.compile("[_xaA01]{6}");
+    public static final Pattern SlashDelimitedPattern =
+            Pattern.compile("([^/]+)?(?:/\\s*(\\S+))?");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
     private static final WashedSymbol DUMMY_WASHEDSYMBOL
             = new WashedSymbol(null);
@@ -580,9 +582,10 @@ topblock = HOR {:
             markers.put(Integer.valueOf(lastMarkerId), hm);
 
             return new WashedSymbol("<h" + hLevel + " id=\"" + xmlId + '"'
-                    + hm.getMarkerString() + b + autoCloseInlines()
+                    + hm.getMarkerString()
+                    + b + autoCloseInlines()
                     + markClose(TagType.BLOCK)
-                    + "</h" + hLevel + ">\n");
+                    + "</span></h" + hLevel + ">\n");
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | STYLESHEET.text {:
@@ -648,14 +651,36 @@ leafblock = BLOCK_PRE.text {:
         :}
         | TOC.text {:
             require(PluginPrivilege.TOC, _symbol_text);
-            if (text != null && !EnumFormatPattern.matcher(text).matches())
+
+            String classNames = null;
+            String sectInclusions = null;
+            if (text != null) try {
+                Matcher m = SlashDelimitedPattern.matcher(text);
+                if (!m.matches() || m.groupCount() != 2)
+                    throw new java.lang.Exception("not [x][/y]");
+                String str1 = m.group(1);
+                String str2 = m.group(2);
+                if (str1 != null) classNames = str1.trim();
+                if (str2 != null) sectInclusions = str2.trim();
+                if (classNames != null
+                        && !CssNamesPattern.matcher(classNames).matches())
+                    throw new java.lang.Exception("bad CSS Name(s)");
+                if (sectInclusions != null
+                        && !EnumFormatPattern.matcher(sectInclusions).matches())
+                    throw new java.lang.Exception(
+                            "bad section-inclusion pattern");
+            } catch (java.lang.Exception e) {
                 throw new CreoleParseException(
-                        "Malformatted enumFormats: " + text,
+                        "TOC spec. not of format "
+                        + "'[class names] [/secinclusions]' ("
+                        + e.getMessage() + "):  " + text,
                         (Token) _symbol_text);
-            BufferMarker tm = new TocMarker(++lastMarkerId, text);
+            }
+            BufferMarker tm = new TocMarker(++lastMarkerId, sectInclusions);
             markers.put(Integer.valueOf(lastMarkerId), tm);
-            return new WashedSymbol("<div class=\"jcreole_toc\">\n"
-                    + tm.getMarkerString() + "\n</div>\n");
+            return new WashedSymbol("<div class=\"jcreole_toc"
+                    + ((classNames == null) ? "" : (" " + classNames))
+                    + "\">\n" + tm.getMarkerString() + "\n</div>\n");
         :}
         ;
 
@@ -673,6 +698,14 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
             return new WashedSymbol("<div class=\"jcx"
                     + ((classNames == null) ? "" : (" " + classNames))
                     + markJcxblock() + "\">" + b
+                    + markClose(TagType.JCXBLOCK) + "</div>\n");
+        :}
+        |  jcxblockStart.classNames END_JCXBLOCK {:
+            inlineModeStacks.remove(0);
+            inlineModeStack = inlineModeStacks.get(0);
+            return new WashedSymbol("<div class=\"jcx"
+                    + ((classNames == null) ? "" : (" " + classNames))
+                    + markJcxblock() + "\">"
                     + markClose(TagType.JCXBLOCK) + "</div>\n");
         :};
 
@@ -811,8 +844,6 @@ inline = INLINE_PRE.text {:
                         "Inter- and Intra-wiki links not supported.",
                         token.getLine() + 1, token.getColumn() + 1));
                 }
-log.fatal("G1=(" + matcher.group(1) + ')');
-log.fatal("G2=(" + matcher.group(2) + ')');
                 url = interWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
             } else {
