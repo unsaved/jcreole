@@ -341,6 +341,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.BLOCK_PRE, matcher(BlockPrePattern).group(1));
 }
 "{{{" ~ ("}"* "}}}") {
+    if (yystate() == YYINITIAL) {
+        pushState();
+        yybegin(PSTATE);
+    }
     return newToken(Terminals.INLINE_PRE, matcher(InlinePrePattern).group(1));
 }
 

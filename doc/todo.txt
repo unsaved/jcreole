@@ -2,7 +2,7 @@ SHORT TERM
 
 Change plugin-specific classes from jcreole_* to jcx_*.  At least jcx_toc*.
 
-Fix bug where ROOTLVL_NEWLINEs are unexpected
+Update unit tests and verify recent work caused no new problems.
 
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
