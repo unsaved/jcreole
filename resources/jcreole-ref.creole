@@ -5,10 +5,6 @@
 <<toc>>
 
 == Base Creole
-=== Three
-==== Four
-===== Five
-====== Six
 
 See the [[http://wikicreole.org/wiki/Creole1.0|Creole 1.0 Spec]] for more
 details about basic Crole directives and behavior.
