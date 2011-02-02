@@ -258,6 +258,11 @@ CSS file links will be inserted into the HTML pages's head section.
 You can use multiple styleSheet directives on a single page and the links will
 be inserted in the correct order.
 
+This plugin requires application integration to insert into the framing HTML
+page.
+If you have permission to use this directive, then that should all be taken
+care of.
+
 === Author comments
 ======{{{<<#author comments>>}}}
 Comments written this way never make it to the HTML page.
