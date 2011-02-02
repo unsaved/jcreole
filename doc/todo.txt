@@ -1,11 +1,12 @@
 SHORT TERM
 
-Change class name _pref to _nowiki
-Change class name _brokenlink to _brokenLink
+Change class name _pref to _noWiki
+Change class name _orphanlink to _orphanLink
 Change class name jcx_hbody to jcreole_hbody
 Change class name jcreole_toc to jcx_toc
-Document class name jcx_seqLabel
-Document all of htese changes in the ref guide
+Change class name jcx_seqLabel to jcx_enum
+Document class name jcreole_underline
+Document all of these changes in the ref guide
 
 Update unit tests and verify recent work caused no new problems.
 
