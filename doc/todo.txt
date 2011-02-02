@@ -1,6 +1,11 @@
 SHORT TERM
 
-Change plugin-specific classes from jcreole_* to jcx_*.  At least jcx_toc*.
+Change class name _pref to _nowiki
+Change class name _brokenlink to _brokenLink
+Change class name jcx_hbody to jcreole_hbody
+Change class name jcreole_toc to jcx_toc
+Document class name jcx_seqLabel
+Document all of htese changes in the ref guide
 
 Update unit tests and verify recent work caused no new problems.
 
