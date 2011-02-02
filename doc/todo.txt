@@ -1,5 +1,9 @@
 SHORT TERM
 
+Fix bug where parser croaks on 0-content jcxBlocks and jcxSpans
+
+Fix bug where ROOTLVL_NEWLINEs are unexpected
+
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 

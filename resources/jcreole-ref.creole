@@ -3,6 +3,7 @@
 = JCreole Reference
 
 <<toc>>
+<<[clear>> <<]>>
 
 == Base Creole
 
@@ -17,15 +18,15 @@ list, paragraph, or heading as described below (though it won't hurt anything
 if you add a blank line also).
 
 === Strong text
-**##~**Like this~**##**\\
+====== ~**Like this~**
 **See?**
 
 === Emphasized text
-**##~//Like this~//##**\\
+======~//Like this~//
 //See?//
 
 === Table rows
-**##|col1 content|col2 content|col3 content##**\\
+======|col1 content|col2 content|col3 content
 Row lines must begin with the ##|## character.
 Use | to separate each cell.
 Add a ##=## immediately after the | to mark the cell as a heading cell
@@ -41,7 +42,7 @@ To split a single table into multiple rows, you can end a row line with the tild
 |and|like|this
 
 === Numbered list items
-**## #Like this##**\\
+======#Like this
 On lines beginning with one or more ##{{{#}}}## characters, where the number of #'s indicates the list level.
 There is a constraint on the list item levels allowed.
 The level (number of #'s) of a row line must be less than, equal to, or one level higher than the level of the row on the previous line.
@@ -51,7 +52,7 @@ Consequently, you must //start// numbered lists with a line starting with just o
 ##Like this
 
 === Unordered list items
-**## *Like this##**\\
+======*Like this
 Same as Numbered lists, but use ##*## characters instead of the # characters to
 identify the rows and indicate levels.
 *Looks like this
@@ -59,18 +60,18 @@ identify the rows and indicate levels.
 **Like this
 
 === Headings
-**##=Like this##**\\
+====== =Like this
 Begin the line with from one to six ##=## characters.
 One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## meand a lowest-level heading.\\
 (The line above that says "Headings" serves as an example).
 
 === Bare URLs
-Like **##~http://wikicreole.org/wiki/Creole1.0 ##**\\
+======~http://wikicreole.org/wiki/Creole1.0
 Automatically made into hyperlinks with a label matching the URL.\\
 ~http://wikicreole.org/wiki/Creole1.0
 
 === Explicit hyperlinks
-Like **##{{{[[http://wikicreole.org/wiki/Creole1.0]]}}}##**\\
+======{{{[[http://wikicreole.org/wiki/Creole1.0]]}}}
 To show a label as something other than the URL, add a pipe character and the
 label text right after the URL,
 {{{[[http://wikicreole.org/wiki/Creole1.0|like this]]}}}.\\
@@ -82,12 +83,12 @@ If your application has provided JCreole with a mapping function from wiki-link
 to URL, these links will work.
 
 === Horizontal rules
-Like **{{{----}}}**, but on a line all by itself.\\
+======**{{{----}}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but on a line all by itself.\\
 Looks like...
 ----
 
 === Inline images
-Like **##~{{this.png~}}##**\\
+======~{{this.png~}}
 You can add alternate text for non-graphical page viewers\\
 like **##~{{this.png|alternate text~}}##**\\
 You embed the ##~{{...~}}## inside of a ##~[[link...~]]## to have the image hot
@@ -111,7 +112,7 @@ To avoid this level of translation you would need to use the [[#jcsect_RawHtml]]
 directive.
 
 === Hard linebreaks
-Like **##~\\##**\\
+======~\\
 Can use multiple to create blank lines.\\\\Looks like that.
 
 
@@ -128,7 +129,7 @@ from external pages, to use in CSS selectors, or for any other purpose.
 (They are also used for the TOC feature described elsewhere).
 
 === Automatic Link Labels
-**##{{{[[#jcsect_PlainText]]}}}##**\\
+======{{{[[#jcsect_PlainText]]}}}
 If you don't supply a label, then labels are created automatically when you
 write links to header/sections in the same page (these will begin with #).
 (And also for inter-wiki links if your application supports that).
@@ -138,18 +139,17 @@ An auto-labelled link to the Plain text section looks like this:
 [[#jcsect_PlainText]].
 
 === Character entities
-**##&amp;quot;##**\\
+======&amp;quot;
 Just add named (not numerical) character entities and they will be preserved.\\
 &quot;see?&quot;.
 
 === Hard spaces
-Like**##~~ ##**this\\
-(That is a tilde followed by a space character).\\
+======{{{~ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(That is a tilde followed by a space character).}}}
 This is equivalent to writing ##&amp;nbsp;##.\\
 Four such spaces looks like ~ ~ ~ ~ this.
 
 === Monospace fonts
-**##~##Like this~## ##**\\
+======~##Like this~##
 Since the HTML element "u" is deprecated, JCreole depends on the application
 (or page author by using the [[#jcsect_StyleSheet]] directive) to make a CSS
 class assignment like this:
@@ -159,20 +159,20 @@ class assignment like this:
 Can you ##see?##
 
 === Superscript
-**##~^^Like this~^^##**\\
+======~^^Like this~^^
 Regular ^^Super^^
 
 === Subscript
-**##~,,Like this~,,##**\\
+======~,,Like this~,,
 Regular ,,Sub,,
 
 === Underline
-**##~__Like this~__##**\\
+======~__Like this~__
 See the section below about [[#jcsect_Styling]].\\
 __See?__
 
 === Overstrike
-**##~--Like this~--##**\\
+======~--Like this~--
 See the section below about [[#jcsect_Styling]].\\
 --See?--
 
@@ -187,14 +187,14 @@ If you do not have the privilege needed to use a specific directive, you will
 get given a precise message to that effect when you submit the wikitext.
 
 === Raw HTML
-**##{{{<<~...>>}}}##**\\
+======{{{<<~Like this>>}}}
 Code HTML right into your wikitext page.
 This directive is usually restricted to users with special authorization.
 
 === jcxBlock: Create custom-stylable Block element
-**##{{{<<[>>> ... <<]>>}}}##**\\
+======{{{<<[>>>Like this<<]>>}}}
 or\\
-**##{{{<<[cssClassName1 cssClassName2>>> ... <<]>>}}}##**\\
+======{{{<<[cssClassName1 cssClassName2>>>Like this<<]>>}}}
 You can assign CSS classes to your custom elements as shown by the second
 sample here, or by using Styler directives as shown below.
 
@@ -204,55 +204,55 @@ element) inside of a HTML paragraph.
 <<[yellow>>Here is a sample that Colors a block yellow.<<]>>
 
 === jcxSpan: Create custom-stylable Inline element
-**##{{{<<{>> ... <<}>>}}}##**\\
+======{{{<<{>>Like this<<}>>}}}
 or\\
-**##{{{<<{cssClassName1 cssClassName2>>> ... <<}>>}}}##**\\
+======{{{<<{cssClassName1 cssClassName2>>>Like this<<}>>}}}
 You can assign CSS classes to your custom elements as shown by the second
 sample here, or by using Styler directives as shown imediately below.
 
 Here is a sample that <<{yellow>>colors some text yellow<<}>>.
 
 === Stylers:  Assign CSS classes to automatic or custom HTML elements.
-**##{{{<<addClass =block className1 classname2>>}}}##**\\
+{{{<<addClass =block className1 classname2>>}}}\\
 or\\
-**##{{{<<addClass =inline className1>>}}}##**\\
+{{{<<addClass =inline className1>>}}}\\
 or\\
-**##{{{<<addClass =jcxBlock className1 className2 className3>>}}}##**\\
+{{{<<addClass =jcxBlock className1 className2 className3>>}}}\\
 or\\
-**##{{{<<addClass =jcxSpan className1>>}}}##**\\
+{{{<<addClass =jcxSpan className1>>}}}\\
 These samples show how to ass classes to immediate parent HTML block element,
 HTML inline element, jcxBlock, or jcxSpan element.
 
-**##{{{<<addClass -block className1 classname2>>}}}##**\\
+{{{<<addClass -block className1 classname2>>}}}\\
 Just change the ##=## to ##-## to add the class name to the //previous//
 element which was closed.
 This works for all 4 element types.
 
-**##{{{<<addClass +block className1 classname2>>}}}##**\\
+{{{<<addClass +block className1 classname2>>}}}\\
 Just change the direction character to ##+## to add the class name to the
 //next// element which was closed.
 This works for all 4 element types.
 
-<<addClass =block yellow>>
+<<addClass =block yellow>>\\
 This is a sample that colors this HTML p element yellow.
 
 
 === Style sheet
-**##{{{styleSheet urlToFile.css}}}##**\\
+======{{{<<styleSheet urlToFile.css>>}}}
 CSS file links will be inserted into the HTML pages's head section.
 You can use multiple styleSheet directives on a single page and the links will
 be inserted in the correct order.
 
 === Author comments
-**##{{{<<# author comments>>}}}##**\\
+======{{{<<#author comments>>}}}
 Comments written this way never make it to the HTML page.
 
 === HTML comments
-**##{{{<<! HTML comments>>}}}##**\\
+======{{{<<!HTML comments>>}}}
 These comments can be seen by end-users who know how to view source HTML.
 
 === Section Enumeration
-**##{{{<<enumFormats A1a1_x>>}}}##**\\
+======{{{<<enumFormats A1a1_x>>}}}
 By default, no headings/sections in the generated page will be enumerated.
 The command above says to enumerate top-level (h1) headings like "A", "B',
 "C",... and to level the second-level (h2) headings like "1", "2"...
@@ -269,7 +269,7 @@ See the file "extensions.txt" in the JCreole distribution for requirements and
 meaning of the characters in the //enumationFormats// string ("A1a1_x" above).
 
 === Resetting Enumerations
-**##{{{<<enumFormatReset A>>}}}##**\\
+======{{{<<enumFormatReset A>>}}}
 Far easier to explain this with an example.
 Assume we start a page out with numerical ("1") enumeration formatting and this:
 {{{
@@ -286,9 +286,9 @@ If you assign the same formatting that was already in use ("1" here), then the
 only effect will be to reset the counting sequence.
 
 ===TOC: Table of Contents
-**##{{{toc}}}##**\\
+======{{{<<toc>>}}}
 or\\
-**##{{{toc ___xxx}}}##**\\
+======{{{<<toc ___xxx>>}}}
 These directives both generate a table of contents listing at the location where
 you code the directive~-- just like the one
 [[#jcsect_JcreoleReference|at the top of this page]].
