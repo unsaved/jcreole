@@ -1,7 +1,7 @@
 <<enumFormats A1a_0a>>
 <<toc>>
 ----
-<<toc __xxxx>>
+<<toc /__xxxx>>
 ----
 = First Title
 = Second Title

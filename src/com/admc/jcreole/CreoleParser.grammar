@@ -659,7 +659,6 @@ leafblock = BLOCK_PRE.text {:
         :}
         | TOC.text {:
             require(PluginPrivilege.TOC, _symbol_text);
-
             String classNames = null;
             String sectInclusions = null;
             if (text != null) try {
