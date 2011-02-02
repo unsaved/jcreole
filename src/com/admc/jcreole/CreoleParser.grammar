@@ -122,15 +122,23 @@
         return markers.getSectionHeadings();
     }
 
-    private static String stripMeta(String anyString) {
-        return anyString
-                .replaceAll("\\u001a\\w{4}", "").replaceAll("<[^>]+>", "")
-                .replaceAll("&\\w+;", "").trim().replaceAll("\\s+", " ");
+    /**
+     * Strip out markers, HTML tags, and comments, but preserve text, entities,
+     * punctuation that you would want to appear in labels.
+     */
+    private static String autoLabelText(String washedString) {
+        return washedString
+                .replaceAll("\\u001a\\w{4}", "").replaceAll("<+[^>]+?>+", "")
+                //           - binary markers          - plugin HTML tags
+                .trim().replaceAll("\\s+", " ");
+        // Only HTML comments would still be present here, and the HTML tag
+        // pattern covers them.
     }
 
-    private String mkXmlId(String strippedString) {
-        String safeString = strippedString
+    private String mkXmlId(String anyString) {
+        String safeString = anyString.replaceAll("&\\w+;", "")
                 .replaceAll("[^\\w\\s]", " ").replaceAll("\\s+", " ");
+        // safeString is id-safe other than it may contain whitespace
         String s = sectIdPrefix + WordUtils.capitalizeFully(safeString)
                 .replaceAll("\\s+", "");
         if (s.length() < 50 && !hIds.contains(s)) {
@@ -570,11 +578,11 @@ topblock = HOR {:
         | HEADING.h hinline.f+ END_H {:
             int hLevel = ((Token) (h)).getIntParam();
             StringBuilder b = joinWashedSymbols(_list_f);
-            String strippedText = stripMeta(b.toString());
-            String xmlId = mkXmlId(strippedText);
+            String labelText = autoLabelText(b.toString());
+            String xmlId = mkXmlId(labelText);
 
             HeadingMarker hm = new HeadingMarker(
-                    ++lastMarkerId, xmlId, hLevel, strippedText);
+                    ++lastMarkerId, xmlId, hLevel, labelText);
             if (formatResetChar != null) {
                 hm.setFormatReset(formatResetChar.charValue());
                 formatResetChar = null;
