@@ -335,7 +335,10 @@ are advised to use CSS selectors to narrow your stylings to only the JCreole
 content area.
 The following CSS selectors are useful for targeting styles as described.
 
-* **##div.jcreole##**  The entire block of JCreole-generated content.
+* **##div.jcreole##**  The entire block of JCreole-generated content.\\
+(JCreole sets this class in the provided framing boilerplate, we set it in all
+of our applications, and recommend that integrators do the same, but we can't
+guarantee that applications will provide it.)
 * **##span.jcreole_underline##**  You (or your application) should normally
 style this class as ##text-decoration:underline##.
 * **##span.jcreole_orphanLink##**  You can infer the purpose.

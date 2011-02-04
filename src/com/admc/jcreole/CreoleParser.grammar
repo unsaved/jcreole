@@ -556,9 +556,7 @@
 %goal blocks;
 
 blocks = topblock.b+ {:
-            StringBuilder sb = joinWashedSymbols(_list_b)
-                    .insert(0, "<div class=\"jcreole\">\n")
-                    .append("</div>\n");
+            StringBuilder sb = joinWashedSymbols(_list_b);
             log.debug("PRE-PostProcess[" + sb + ']');
             // Following sets formats for headers and default section labels in
             // TOCs, but has no effect on TOC inclusion.
