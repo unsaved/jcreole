@@ -152,15 +152,11 @@
         return s;
     }
 
-    public String getHeaderInsertion() {
-        if (cssHrefs.size() < 1) return "";
-        StringBuilder sb = new StringBuilder();
-        for (String ref : cssHrefs) {
-            if (sb.length() > 0) sb.append('\n');
-            sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"")
-                    .append(ref).append("\" />");
-        }
-        return sb.toString();
+    /**
+     * Get list of CSS Hrefs that need to be loaded into the HTML page header.
+     */
+    public List<String> getCssHrefs() {
+        return cssHrefs;
     }
 
     /**

@@ -18,6 +18,7 @@
 package com.admc.jcreole;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -178,6 +179,15 @@ public class JCreole {
         }
     }
 
+    /**
+     * Use this when you want to work with HTML fragments externally.
+     * Use the JCreole(String) constructor instead if you want JCreole to
+     * manage HTML page construction with a Boilerplate.
+     */
+    public JCreole() {
+        // Intentionally empty
+    }
+
     public JCreole(String rawBoilerPlate) {
         if (rawBoilerPlate.indexOf("${content}") < 0)
             throw new IllegalArgumentException(
@@ -295,13 +305,29 @@ public class JCreole {
      */
     protected String postProcess(String gendHtml, String outputEol)
             throws IOException {
+        if (pageBoilerPlate == null)
+            throw new IllegalStateException(
+                    "postProcess method requires the JCreole constructor "
+                    + "that takes a Boilerplate");
+
         StringBuilder html = new StringBuilder(pageBoilerPlate);
         int index = html.indexOf("${content}");
         html.replace(index, index + "${content}".length(), gendHtml);
         index = html.indexOf("${headers}");
-        if (index > -1)
-            html.replace(index, index + "${headers}".length(),
-                    parser.getHeaderInsertion());
+        if (index > -1) {
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+            for (String href : getCssHrefs())
+                sb.append(String.format("<link id=\"auto%02d\" class=\"auto\" "
+                        + "rel=\"stylesheet\" "
+                        + "type=\"text/css\" href=\"%s\" />\n", ++count, href));
+            html.replace(index, index + "${headers}".length(), sb.toString());
+        } else {
+            if (getCssHrefs().size() > 0)
+                throw new CreoleParseException(
+                    "Author-supplied style-sheets, but boilerplate has no "
+                    + "'headers' insertion-point");
+        }
         index = html.indexOf("${pageTitle}");
         if (pageTitle != null && index > -1)
             html.replace(index, index + "${pageTitle}".length(), pageTitle);
@@ -355,11 +381,20 @@ public class JCreole {
     }
 
     /**
-     * Gets the unerlying Parser, with which you can do a lot of useful stuff.
+     * Gets the underlying Parser, with which you can do a lot of useful stuff.
      *
      * @see CreoleParser
      */
     public CreoleParser getParser() {
         return parser;
+    }
+
+    /**
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#getCssHrefs
+     */
+    public List<String> getCssHrefs() {
+        return parser.getCssHrefs();
     }
 }
