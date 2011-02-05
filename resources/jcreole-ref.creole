@@ -85,6 +85,8 @@ Inter- and intra- wiki links with colons are supported by JCrole, but require
 application integration.
 If your application has provided JCreole with a mapping function from wiki-link
 to URL, these links will work.
+You can end your Inter- and Intra- wiki references with query strings or #
+anchors and the suffixes be preserved and honored.
 
 === Horizontal rules
 ======**{{{----}}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but on a line all by itself.
