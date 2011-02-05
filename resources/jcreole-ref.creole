@@ -36,7 +36,7 @@ Note that These tables are not suitable for formatting purposes (as HTML tables
 are), but only for displaying tabular data.
 
 Without coding anything special, all content for a table row must be specified
-on a single wikitext line, ~-- as you may imaging, that can be quite inconvenient.
+on a single wikitext line--- as you may imagine, that can be quite inconvenient.
 To split a single table into multiple rows, you can end a row line with the tilde character ##~##, or use a [[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlock]].
 |=Looks|=Like|=this
 |and|like|this
@@ -337,7 +337,7 @@ or\\
 or\\
 ======{{{<<toc className1 className 2 /___xxx>>}}}
 These samples all generate a table of contents listing at the location where
-you code the directive~-- just like the one
+you code the directive--- just like the one
 [[#jcsect_JcreoleAuthorReference|at the top of this page]].
 The first two samples will include/exclude sections and enumerations formatting per the page settings.
 The last two samples specify section-inclusion explicitly.
@@ -467,7 +467,7 @@ of the level indicated by the character's position, as follows.
 * **_** or **A** or **a** or **0** or **1**
 
 To state this more generally, the character x means to exclude the level, and
-any other //supported// character means to include the level~--
+any other //supported// character means to include the level---
 where the supported characters are characters listed in the list in the
 [[#jcsect_FormattingCharacters]] section.
 
