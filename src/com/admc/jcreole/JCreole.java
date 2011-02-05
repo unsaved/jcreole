@@ -50,7 +50,7 @@ public class JCreole {
             "boilerplate-default.html";
 
     public static final String SYNTAX_MSG =
-            "java -jar .../jcreole-*.jar [-r /classpath/boiler.html] "
+            "java -jar .../jcreole-*.jar [-d] [-r /classpath/boiler.html] "
             + "[-f /fs/boiler.html] [-o fspath/out.html] pathto/input.creole\n"
             + "Where either classpath or filesystem boiler plate page includes "
             + "'${content}' at the point(s)\n"
@@ -63,6 +63,7 @@ public class JCreole {
             + "The input Creole file is sought first in the classpath "
             + "(relative to classpath roots)\n"
             + "then falls back to looking for a filesystem file.\n"
+            + "The -d option loads an IntraWiki-link debug mapper.\n"
             + "Output is always written with UTF-8 encoding.";
 
     protected CreoleParser parser = new CreoleParser();
@@ -94,9 +95,14 @@ public class JCreole {
         String bpFsPath = null;
         String outPath = null;
         String inPath = null;
+        boolean debugMapper = false;
         int param = -1;
         try {
             while (++param < sa.length) {
+                if (sa[param].equals("-d")) {
+                    debugMapper = true;
+                    continue;
+                }
                 if (sa[param].equals("-r") && param + 1 < sa.length) {
                     if (bpResPath != null)
                             throw new IllegalArgumentException();
@@ -153,13 +159,20 @@ public class JCreole {
                 .getContextClassLoader().getResourceAsStream(creoleResPath);
         File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = new JCreole(rawBoilerPlate);
-        jCreole.setInterWikiMapper(new InterWikiMapper() {
+        if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
             // This InterWikiMapper is just for prototyping.
+            // Use wiki name of "nil" to force lookup failure for path.
+            // Use wiki page of "nil" to force lookup failure for label.
             public String toPath(String wikiName, String wikiPage) {
-                return "{WIKI-LINK to: " + wikiName + '/' + wikiPage + '}';
+                if (wikiName != null && wikiName.equals("nil")) return null;
+                return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
             }
             public String toLabel(String wikiName, String wikiPage) {
-                return "{LABEL for: " + wikiName + '/' + wikiPage + '}';
+                if (wikiPage == null)
+                        throw new RuntimeException(
+                                "Null page name sent to InterWikiMapper");
+                if (wikiPage.equals("nil")) return null;
+                return "{LABEL for: " + wikiName + '|' + wikiPage + '}';
             }
         });
         jCreole.setPageTitle((inFile == null)

@@ -379,8 +379,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                             ? linkM.getLinkText()
                             : lookedUpLabel);
                 if (lookedUpLabel == null)
-                    linkM.wrapLabel("<span class=\"jcreole_orphanLink\">",
-                            "</span>");
+                    linkM.wrapLabel(
+                            "<span class=\"jcreole_orphanLink\">", "</span>");
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setSectionHeadings(sections);
             } else {

@@ -12,7 +12,7 @@ w/ Image.
 [[rel.html|{{rela~ tive.jpg}}]]
  [[ftp://abso/~blaine|{{ftp://abso/~blaine|alted \\ ~ abs. image}}]].
 
-And then there are [[wiki~ :li:nk|labelled]], unlabelled [[wiki:li:nk]], and [[:intra]] links.
+And then there are [[wiki~ :li:nk?qry=str|labelled]], unlabelled [[wiki:li:nk]], and [[:intra#anchor]] links.
 
 Stupidly should recognize URLS insidehttp:~//admc.com words.
 http://admc.com should always work as first item on line too.

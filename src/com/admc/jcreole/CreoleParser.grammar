@@ -45,7 +45,8 @@
     // TODO:  Think about whether this generous whitespace stripping is ok.
     private static Pattern ImgAsLabelPattern =
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
-    private static Pattern InterWikiPattern = Pattern.compile("([^:]+)?:(.+)");
+    private static Pattern InterWikiPattern =
+            Pattern.compile("([^:]+)?:([^?#]+)(.+)?");
     private static Pattern StylerPattern = Pattern.compile(
             "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     public static final Pattern CssNamesPattern =
@@ -859,11 +860,18 @@ inline = NESTED_PRE.text {:
             String urlText = (delimPos > -1)
                            ? text.substring(0, delimPos) : text;
             String url = null;
+            String labelFromMap = null;
+            boolean mapLookupFailed = false;
             Matcher matcher = (text.startsWith("http:")
                     || text.startsWith("https:")
                     || text.startsWith("ftp:")) ? null
                     : InterWikiPattern.matcher(urlText);
+            // Group 1 is logical wiki name or null
+            // Group 2 is required page name
+            // Group 3 is optional ?queryString or #anchor
             if (matcher != null && matcher.matches()) {
+log.fatal("GROUPS=" + matcher.groupCount());
+log.fatal("G3=(" + matcher.group(3) + ')');
                 if (interWikiMapper == null) {
                     throw new IllegalStateException(String.format(
                     "%s  @line:col %d:%d",
@@ -872,6 +880,16 @@ inline = NESTED_PRE.text {:
                 }
                 url = interWikiMapper.toPath(
                         matcher.group(1), matcher.group(2));
+                if (url == null) {
+                    mapLookupFailed = true;
+                    url = clean(urlText);
+                } else if (matcher.group(3) != null) {
+                    url += matcher.group(3);
+                }
+                labelFromMap = (inLbl == null)
+                        ? interWikiMapper.toLabel(
+                          matcher.group(1), matcher.group(2))
+                        : null;
             } else {
                 url = clean(absoluteUrl(urlText));
             }
@@ -884,7 +902,9 @@ inline = NESTED_PRE.text {:
                     markers.put(Integer.valueOf(lastMarkerId), m);
                     label = m.getMarkerString();
                 } else {
-                    label = clean(text);
+                    label = (labelFromMap == null)
+                          ? clean(text)
+                          : labelFromMap;
                 }
             } else {
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
@@ -915,6 +935,9 @@ inline = NESTED_PRE.text {:
                     }
                 }
             }
+            if (mapLookupFailed)
+                label = "<span class=\"jcreole_orphanLink\">"
+                        + label + "</span>";
             return new WashedSymbol("<a href=\"" + url + '"'
                     + markInline("a", true, true) + '>' + label + "</a>");
         :}
