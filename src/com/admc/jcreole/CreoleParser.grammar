@@ -539,18 +539,21 @@
     }
 :};
 
-%terminals BLOCK_PRE, INLINE_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
+%terminals ROOTLVL_PRE, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
 %terminals SUB_TOGGLE, SUP_TOGGLE, UNDER_TOGGLE, STRIKE_TOGGLE;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
-%terminals BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ROOTLVL_NEWLINE, STYLESHEET;
-%terminals BLOCK_RAWHTML, INLINE_RAWHTML, TOC, ENUM_FORMATS, ENUMFORMATRESET;
+%terminals ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ROOTLVL_NEWLINE;
+%terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
+%terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
+%terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
 
-%typeof BLOCK_PRE, INLINE_PRE, TEXT, URL, IMAGE, STYLER = "String";
-%typeof BLOCK_HTMLCOMMENT, INLINE_HTMLCOMMENT, ENUMFORMATRESET = "String";
-%typeof BLOCK_RAWHTML, INLINE_RAWHTML, STYLESHEET, TOC = "String";
-%typeof JCXSPAN, JCXBLOCK, ENUM_FORMATS, jcxblockStart = "String";
+%typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
+%typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
+%typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
+%typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS = "String";
+%typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest = "WashedSymbol";
 
 %goal blocks;
@@ -590,12 +593,41 @@ topblock = HOR {:
                     + "</span></h" + hLevel + ">\n");
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
-        | STYLESHEET.text {:
+        | masterblock
+        | leafblock
+        ;
+
+// Blocks which may occur at different levels
+masterblock = jcxblock
+        | listnest.l {: return new WashedSymbol(l.toString()); :}
+        | table.t {: return new WashedSymbol(t.toString()); :}
+        ;
+
+// Blocks which may not contain any other block
+leafblock = ROOTLVL_PRE.text {:
+            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
+                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+                // The replace here is for allowing ^}}} inside of pref block.
+                // Spec says to do this for all " }}}", but that is
+                // unnecessarily liberal since no escaping is needed except
+                // for "^ }}}".
+        :}
+        | ROOTLVL_HTMLCOMMENT.text {:
+            if (text.indexOf("--")> -1)
+                throw new CreoleParseException(
+                        "'--' prohibited inside of XML comments", 
+                        (Token) _symbol_text);
+            return new WashedSymbol("<!--" + text + "-->");
+        :}
+        | ROOTLVL_RAWHTML.text {:
+            return new WashedSymbol(text);
+        :}
+        | ROOTLVL_STYLESHEET.text {:
             require(PluginPrivilege.STYLESHEET, _symbol_text);
             cssHrefs.add(clean(absoluteUrl(text)));
             return DUMMY_WASHEDSYMBOL;
         :}
-        | ENUM_FORMATS.text {:
+        | ROOTLVL_ENUMFORMATS.text {:
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -611,35 +643,6 @@ topblock = HOR {:
             authorSetEnumFormats = true;
             enumerationFormats = text;
             return DUMMY_WASHEDSYMBOL;
-        :}
-        | masterblock
-        | leafblock
-        ;
-
-// Blocks which may occur at different levels
-masterblock = jcxblock
-        | listnest.l {: return new WashedSymbol(l.toString()); :}
-        | table.t {: return new WashedSymbol(t.toString()); :}
-        ;
-
-// Blocks which may not contain any other block
-leafblock = BLOCK_PRE.text {:
-            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
-                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
-                // The replace here is for allowing ^}}} inside of pref block.
-                // Spec says to do this for all " }}}", but that is
-                // unnecessarily liberal since no escaping is needed except
-                // for "^ }}}".
-        :}
-        | BLOCK_HTMLCOMMENT.text {:
-            if (text.indexOf("--")> -1)
-                throw new CreoleParseException(
-                        "'--' prohibited inside of XML comments", 
-                        (Token) _symbol_text);
-            return new WashedSymbol("<!--" + text + "-->");
-        :}
-        | BLOCK_RAWHTML.text {:
-            return new WashedSymbol(text);
         :}
         | inline.f+ END_PARA.text {:
             StringBuilder b = joinWashedSymbols(_list_f);
@@ -681,7 +684,7 @@ leafblock = BLOCK_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_toc"
                     + ((classNames == null) ? "" : (" " + classNames))
-                    + "\">\n" + tm.getMarkerString() + "\n</div>\n");
+                    + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
         ;
 
@@ -773,10 +776,32 @@ hinline = inline
             return DUMMY_WASHEDSYMBOL;
         :};
 
-inline = INLINE_PRE.text {:
+inline = NESTED_PRE.text {:
             return new WashedSymbol("<span class=\"jcreole_noWiki"
                     + markInline("span", false, true)
                     + "\">" + clean(text) + "</span>");
+        :}
+        | NESTED_STYLESHEET.text {:
+            require(PluginPrivilege.STYLESHEET, _symbol_text);
+            cssHrefs.add(clean(absoluteUrl(text)));
+            return DUMMY_WASHEDSYMBOL;
+        :}
+        | NESTED_ENUMFORMATS.text {:
+            if (!EnumFormatPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted enumFormats: " + text,
+                        (Token) _symbol_text);
+            if (authorSetEnumFormats)
+                throw new CreoleParseException(
+                        "Attempted to set enumFormats a second time.  "
+                        + "This is a global and location-independent setting, "
+                        + "so remove the setting that you don't want.  "
+                        + "Use enumFormatReset directive if you want to change "
+                        + "formatting in a location-dependent way.",
+                        (Token) _symbol_text);
+            authorSetEnumFormats = true;
+            enumerationFormats = text;
+            return DUMMY_WASHEDSYMBOL;
         :}
         | JCXSPAN.text {:
             require(PluginPrivilege.JCXSPAN, _symbol_text);
@@ -916,15 +941,16 @@ inline = INLINE_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), styler);
             return new WashedSymbol(styler.getMarkerString());
         :}
-        | INLINE_HTMLCOMMENT.text {:
+        | NESTED_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
                 throw new CreoleParseException(
                         "'--' prohibited inside of XML comments",
                         (Token) _symbol_text);
             return new WashedSymbol("<!--" + text + "-->");
         :}
-        | INLINE_RAWHTML.text {:
+        | NESTED_RAWHTML.text {:
             require(PluginPrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
         :}
+        | EMDASH {: return new WashedSymbol("&#x2014;"); :}
         ;

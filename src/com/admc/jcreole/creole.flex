@@ -128,7 +128,11 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 
     private Matcher matcher(Pattern p) {
-        Matcher m = p.matcher(yytext());
+        return matcher(p, false);
+    }
+
+    private Matcher matcher(Pattern p, boolean doTrim) {
+        Matcher m = p.matcher(doTrim ? yytext().trim() : yytext());
         if (!m.matches())
             throw new CreoleParseException(String.format(
                 "Creole directive markup text doesn't match expected pattern: "
@@ -213,6 +217,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.STRIKE_TOGGLE);
 }
+<YYINITIAL> ---- {
+    pushState();
+    yypushback(2);
+    yybegin(PSTATE);
+    return newToken(Terminals.STRIKE_TOGGLE);
+}
 <YYINITIAL> __ {
     pushState();
     yybegin(PSTATE);
@@ -283,6 +293,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
+<PSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+    yybegin(popState());
+    yypushback(yylength());
+    return newToken(Terminals.END_PARA, "\n");
+}
 <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
 <TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
 <TABLESTATE> \n / [ \t]*[^|] {
@@ -300,6 +315,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
+<LISTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+    yybegin(popState());
+    yypushback(yylength());
+    return newToken(Terminals.FINAL_LI);
+}
 <LISTATE> \n / [ \t]*[#*] {
     return newToken(Terminals.END_LI, null, listLevel);
 }
@@ -308,44 +328,44 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
 
 <YYINITIAL> ^[ \t]*"<<"{s}*"!" ~ ">>" {
-    // HTML comments starting at ^[ \t] inside jcxBlocks handled by INLINE_...
+    // HTML comments starting at ^[ \t] inside jcxBlocks handled by NESTED_...
     int startIndex = yytext().indexOf('!');
-    return newToken(Terminals.BLOCK_HTMLCOMMENT,
+    return newToken(Terminals.ROOTLVL_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
 "<<"{s}*"!" ~ ">>" {
     int startIndex = yytext().indexOf('!');
-    return newToken(Terminals.INLINE_HTMLCOMMENT,
+    return newToken(Terminals.NESTED_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*toc ~ ">>" {
-    Matcher m = matcher(OptParamPluginPattern);
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+    Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
         throw new RuntimeException(
                 "JCX Matcher captured " + m.groupCount() + " groups");
     return newToken(Terminals.TOC, m.group(2));
 }
 <YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
-    // Raw HTML starting at ^[ \t] inside jcxBlocks handled by INLINE_...
+    // Raw HTML starting at ^[ \t] inside jcxBlocks handled by NESTED_...
     int startIndex = yytext().indexOf('~');
-    return newToken(Terminals.BLOCK_RAWHTML,
+    return newToken(Terminals.ROOTLVL_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
 }
 "<<"{s}*"~" ~ ">>" {
     int startIndex = yytext().indexOf('~');
-    return newToken(Terminals.INLINE_RAWHTML,
+    return newToken(Terminals.NESTED_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
 }
 <YYINITIAL> ^("{{{"\n) ~ (\n"}}}"\n) {
-    // Pres starting at ^[ \t] inside jcxBlocks handled by INLINE_...
-    return newToken(Terminals.BLOCK_PRE, matcher(BlockPrePattern).group(1));
+    // Pres starting at ^[ \t] inside jcxBlocks handled by NESTED_...
+    return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
 }
 "{{{" ~ ("}"* "}}}") {
     if (yystate() == YYINITIAL) {
         pushState();
         yybegin(PSTATE);
     }
-    return newToken(Terminals.INLINE_PRE, matcher(InlinePrePattern).group(1));
+    return newToken(Terminals.NESTED_PRE, matcher(InlinePrePattern).group(1));
 }
 
 // ~ escapes according to http://www.wikicreole.org/wiki/EscapeCharacterProposal
@@ -429,6 +449,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 <JCXBLOCKSTATE, PSTATE> [^] { return newToken(Terminals.TEXT, yytext()); }
 "//" { return newToken(Terminals.EM_TOGGLE); }  // YYINITIAL handled already
 ## { return newToken(Terminals.MONO_TOGGLE); }  // YYINITIAL handled already
+---- { yypushback(2); return newToken(Terminals.STRIKE_TOGGLE); }  // YYINITIAL handled already
 -- { return newToken(Terminals.STRIKE_TOGGLE); }  // YYINITIAL handled already
 __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "^^" { return newToken(Terminals.SUP_TOGGLE); }  // YYINITIAL handled already
@@ -501,13 +522,8 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 <JCXBLOCKSTATE, YYINITIAL> ^[ \t]*----[ \t]*\n {
     return newToken(Terminals.HOR);
 }
-<JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*styleSheet ~ ">>" {
-    return newToken(Terminals.STYLESHEET, matcher(ParamPluginPattern).group(2));
-}
-<JCXBLOCKSTATE, YYINITIAL> "<<"[ \t]*enumFormats ~ ">>" {
-    return newToken(
-            Terminals.ENUM_FORMATS, matcher(ParamPluginPattern).group(2));
-}
+
+--- { return newToken(Terminals.EMDASH); }
 
 "<<<" | ">>>" {
     throw new CreoleParseException("'<<<' or '>>>' are reserved tokens",
@@ -515,7 +531,23 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 }
 
 // PLUGINs.  Must leave these below the <<< matcher I think.
-<HEADSTATE, YYINITIAL> "<<"[ \t]*enumFormatReset ~ ">>" {
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*styleSheet ~ ">>"[ \t]*\n {
+    return newToken(Terminals.ROOTLVL_STYLESHEET,
+            matcher(ParamPluginPattern, true).group(2));
+}
+^[ \t]*"<<"[ \t]*styleSheet ~ ">>"[ \t]*\n {
+    return newToken(Terminals.NESTED_STYLESHEET,
+            matcher(ParamPluginPattern, true).group(2));
+}
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*enumFormats ~ ">>"[ \t]*\n {
+    return newToken(Terminals.ROOTLVL_ENUMFORMATS,
+            matcher(ParamPluginPattern, true).group(2));
+}
+^[ \t]*"<<"[ \t]*enumFormats ~ ">>"[ \t]*\n {
+    return newToken(Terminals.NESTED_ENUMFORMATS,
+            matcher(ParamPluginPattern).group(2));
+}
+<HEADSTATE> "<<"[ \t]*enumFormatReset ~ ">>" {
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }

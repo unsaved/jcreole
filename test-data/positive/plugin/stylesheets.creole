@@ -1,4 +1,5 @@
 <<addClass =block red>>Red paragraph
 
-<<styleSheet http://pub.admc.com/tmp/1.css>><<  styleSheet     2.css   >>
+<<styleSheet http://pub.admc.com/tmp/1.css>>
+<<  styleSheet     2.css   >>
 <<addClass =block blue>>Blue paragraph
