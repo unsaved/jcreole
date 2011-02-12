@@ -221,6 +221,8 @@ public class JCreole {
      *         Creole source, if any).
      */
     public String parseCreole(StringBuilder sb) throws IOException {
+        if (sb == null || sb.length() < 1)
+            throw new IllegalArgumentException("No input supplied");
         CreoleScanner scanner = CreoleScanner.newCreoleScanner(sb, false);
         // using a named instance so we can enhance this to set scanner
         // instance properties.
@@ -234,8 +236,6 @@ public class JCreole {
         } catch (RuntimeException rte) {
             throw new CreoleParseException("Unexpected problem", rte);
         }
-        if (retVal == null)
-            throw new IllegalArgumentException("Input generated no output");
         if (!(retVal instanceof WashedSymbol))
             throw new IllegalStateException(
                     "Parser returned unexpected type: "
@@ -255,6 +255,8 @@ public class JCreole {
      *         Creole source, if any).
      */
     public String parseCreole(File creoleFile) throws IOException {
+        if (creoleFile == null || creoleFile.length() < 1)
+            throw new IllegalArgumentException("No input supplied");
         CreoleScanner scanner =
                 CreoleScanner.newCreoleScanner(creoleFile, false);
         // using a named instance so we can enhance this to set scanner
@@ -267,8 +269,6 @@ public class JCreole {
         } catch (beaver.Parser.Exception bpe) {
             throw new CreoleParseException(bpe);
         }
-        if (retVal == null)
-            throw new IllegalArgumentException("Input generated no output");
         if (!(retVal instanceof WashedSymbol))
             throw new IllegalStateException(
                     "Parser returned unexpected type: "

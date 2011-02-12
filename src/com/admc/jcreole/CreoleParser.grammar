@@ -566,7 +566,7 @@ blocks = topblock.b+ {:
             // TOCs, but has no effect on TOC inclusion.
             return new WashedSymbol(markers.apply(sb, enumerationFormats));
         :}
-        |;  // This last allows for empty document
+        | {: return new WashedSymbol("");:};  // This allows for empty document
 
 // Blocks which my only occur at top leve + regular blocks
 topblock = HOR {:
