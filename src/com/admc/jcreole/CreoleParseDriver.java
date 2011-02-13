@@ -17,6 +17,7 @@
 
 package com.admc.jcreole;
 
+import java.util.EnumSet;
 import java.io.IOException;
 import java.io.File;
 
@@ -43,6 +44,8 @@ public class CreoleParseDriver {
                 // Change 'false' to 'true' to silently strip bad input chars.
                 // instead of aborting with notification.
         CreoleParser p = new CreoleParser();
+        p.setPluginPrivileges(
+                EnumSet.complementOf(EnumSet.of(PluginPrivilege.RAWHTML)));
         // p.setValidateOnly(true);
         Object retVal = p.parse(scanner);
         System.out.print((retVal == null) ? "<NULL>\n" : ("[" + retVal + ']'));

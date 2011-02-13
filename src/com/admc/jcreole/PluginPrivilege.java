@@ -24,5 +24,5 @@ package com.admc.jcreole;
  * @since 1.1
  */
 public enum PluginPrivilege {
-    STYLER, JCXSPAN, JCXBLOCK, STYLESHEET, RAWHTML, TOC, ENUMFORMATS
+    STYLER, JCXSPAN, JCXBLOCK, STYLESHEET, RAWHTML, TOC, ENUMFORMATS, ABSLINKS
 }

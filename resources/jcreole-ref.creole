@@ -360,9 +360,14 @@ directive must be placed on a line by itself.
 
 ==Styling <<enumFormatReset A>>
 
+This section of the reference guide explains how to style text beyond the
+abilities of the basic text styling directives ([[#jcsect_StrongText]],
+[[#jcsect_EmphasizedText]], [[#jcsect_MonospaceFonts]], etc.).
+
 If you have permissions to use the [[#jcsect_StyleSheet]] directive, then you
 can customize the appearance and layout of the many un-classed elements that
-JCreole generates.
+JCreole generates, as well as the several CSS classes that JCreole writes for
+this purpose.
 
 ===Stying arbitrary HTML Elements
 To avoid unintended consequences to the framing HTML page, you should always

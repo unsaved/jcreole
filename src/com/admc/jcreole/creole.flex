@@ -430,7 +430,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(urlDeferringState);  // Already been pushed, if necessary
     return newToken(Terminals.TEXT, yytext());
 }
-// Following case prevent falsely identified URLs by no attempting to link if
+// Following case prevent falsely identified URLs by not attempting to link if
 // URL is internal to a word.
 // Whenever a bare URL occurs in a position where it wouldn't be linked, the
 // user must escape the "//" with ~, or the parser will abort.

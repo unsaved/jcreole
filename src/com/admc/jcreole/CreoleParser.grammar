@@ -213,6 +213,10 @@
         return new WashedSymbol(clean(sb.toString()));
     }
 
+    /** 
+     * Applies urlBase and/or pathBase to relative URLs.
+     * Has no effect if neither urlBase nor pathBase are set.
+     */
     private String absoluteUrl(String path) {
         if (urlBase == null && pathBase == null) return path;
         if (path.length() > 0 && path.charAt(0) == '#') {
@@ -226,6 +230,17 @@
                     + ((pathBase == null) ? "" : pathBase) + '/' +  path;
         }
         return path;
+    }
+
+    private static boolean isAbsoluteUrl(String path) {
+        if (path.length() > 0 && path.charAt(0) == '#') return false;
+        if (path.length() > 0 && path.charAt(0) == '/') return false;
+        try {
+            new URL(path);
+        } catch (MalformedURLException mue) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -621,6 +636,7 @@ leafblock = ROOTLVL_PRE.text {:
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | ROOTLVL_RAWHTML.text {:
+            require(PluginPrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
         :}
         | ROOTLVL_STYLESHEET.text {:
@@ -629,6 +645,7 @@ leafblock = ROOTLVL_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | ROOTLVL_ENUMFORMATS.text {:
+            require(PluginPrivilege.ENUMFORMATS, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -788,6 +805,7 @@ inline = NESTED_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | NESTED_ENUMFORMATS.text {:
+            require(PluginPrivilege.ENUMFORMATS, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -870,8 +888,6 @@ inline = NESTED_PRE.text {:
             // Group 2 is required page name
             // Group 3 is optional ?queryString or #anchor
             if (matcher != null && matcher.matches()) {
-log.fatal("GROUPS=" + matcher.groupCount());
-log.fatal("G3=(" + matcher.group(3) + ')');
                 if (interWikiMapper == null) {
                     throw new IllegalStateException(String.format(
                     "%s  @line:col %d:%d",
@@ -895,6 +911,9 @@ log.fatal("G3=(" + matcher.group(3) + ')');
             }
             String label = null;
             if (inLbl == null) {
+                if (!pluginPrivs.contains(PluginPrivilege.ABSLINKS)
+                        && CreoleParser.isAbsoluteUrl(urlText))
+                    return new WashedSymbol(url);
                 if (text.startsWith("#" + sectIdPrefix)) {
                     // This defers generation of label text to MarkerMap.
                     BufferMarker m = new LinkMarker(
@@ -907,6 +926,13 @@ log.fatal("G3=(" + matcher.group(3) + ')');
                           : labelFromMap;
                 }
             } else {
+                // If label is set, then we just can not do anything
+                // satisfactory for the page author if they have no ABSLINKS.
+                if (!pluginPrivs.contains(PluginPrivilege.ABSLINKS)
+                        && CreoleParser.isAbsoluteUrl(urlText))
+                    throw new CreoleParseException(
+                            "You lack the privilege " + PluginPrivilege.ABSLINKS
+                            + " which is require for Absolute linking");
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
                 if (m.matches()) {
                     String imgUrl = null;
