@@ -399,9 +399,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 "~[[" { return newToken(Terminals.TEXT, "[["); }
 "~]]" { return newToken(Terminals.TEXT, "]]"); }
 "~\\\\" { return newToken(Terminals.TEXT, "\\\\"); }
-"~{{" { return newToken(Terminals.TEXT, "{{"); }
-"~}}" { return newToken(Terminals.TEXT, "}}"); }
-"~<<" { return newToken(Terminals.TEXT, "<<"); } // Mine.  Esc both << and <<<
+"~{{"[{]? { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~}}"[}]? { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~<<"[<]? { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~>>"[>]? { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~~" { return newToken(Terminals.TEXT, "~"); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 ^[ \t]*"~"[*#=|] {
