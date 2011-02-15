@@ -126,8 +126,9 @@
           depends="compile, -run-init">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
-    <java classname="com.admc.jcreole.CreoleParseDriver" classpath="classes"
+    <java classname="com.admc.jcreole.JCreole" classpath="classes"
           classpathref="run.ivyrefid" failonerror="true">
+      <arg value="-"/>
       <arg value="${creolepath}"/>
       <sysproperty key="java.util.logging.config.file" value="${jul.cfgfile}"/>
     </java>

@@ -1,5 +1,11 @@
 Using JCreole
 
+
+You can try out JCreole without downloading it, at http://admc.com/jcreole .
+
+
+GENERATING HTML FROM THE COMMAND-LINE
+
 The easiest way to use JCreole is to get a binary distribution (a file of
 the format jcreole-*.zip), extract it, and execute the jcreole-*.jar file
 therein from your command line.
@@ -7,7 +13,7 @@ It will tell you that it wants you give it a parameter telling where the input
 file of Creole Wikitext is.  By default it will display the generated HTML
 (which you can redirect to a file since it is written to standard output).
 The syntax message also shows you can directly tell the program to write an
-HTML file.  The most basic usage is something like
+HTML file.  The most basic usage is like
 
     java path/to/jcreole-*.jar path/to/your/file.creole
 
@@ -17,13 +23,28 @@ on UNIX, or
 
 on Windows.
 
+If you want to generate just the HTML corresponding to the input Creole,
+without wrapping HTML to make it a complete HTML page, then add a "-" switch
+before the file name like
+
+    java path/to/jcreole-*.jar - path/to/your/file.creole
+
+on UNIX, or
+
+    java path\to\jcreole-*.jar - path/to/your/file.creole
+
 
 To integrate with your own product, see the JavaDocs which are distributed
-with both the source and binary distributions.  If you don't plan on
-extending the language itself, then stick with the binary distribution and
-work from the API spec.  If you want to poke around the source code or take
-a look at the Ivy or Ant setup to get ideas, you can view the source code
-online or download the source distribution.
+with both the source and binary distributions (or at
+http://admc.com/jcreole/apidocs/ ).  If you don't plan on extending the language
+itself, then stick with the binary distribution and work from the API spec,
+except to definitely look at the source code for method
+com.admc.jcreole.JCreole.main().
+It's likely that you can copy and adjust working code from JCreole.main() to do
+exactly what you want to do.
+Even if you need to use CreoleScanner and CreoleParser instances directly, you
+can learn what you need to do by studying JCreole.main() and working down.
+You can view the source code online or download the source distribution.
 
 Obviously, if you want to change JCreole itself, for example to add new
 plugin features, you will need to work with source code.  Your choice whether
@@ -43,7 +64,7 @@ DOCUMENTATION
 
 There are text documentation files in the doc subdirectory.
 
-There is also a reference guide for page authors, which briefly describes the
+There is also a reference guide for Creole authors, which briefly describes the
 available markup directives.  It is provided in HTML format in the binary zip
 distribution as "jcreole-ref.html" in the doc directory.  But the source Creole
 for it is also provided as "jcreole-ref.creole" in the jcreole-*.jar file and
@@ -51,3 +72,6 @@ in the "resources" source code directory.  Integrators can use
 "jcreole-ref.creole" to serve the author guide framed and styled like your other
 application content.  You can obviously edit "jcreole-ref.creole".  The Ant
 target "ref" will build "tmp/jcreole-ref.html" from the .creole file.
+
+The web site http://admc.com/jcreole has interactive JCreole demonstrations and
+comprehensive Creole tutorials.
