@@ -394,7 +394,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 "~#"[#]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~-"[-]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~_"[_]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~^"[^]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~^"[\^]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~,"[,]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~["[\[]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~]"[\]]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
