@@ -1,0 +1,10 @@
+*Traditional, un-numbered item
+**=Heading only
+**=Headed|item
+###Traditional, numbered item
+###=Heading only
+###=Headed|item
+###=|Data only
+###=Heading only alt|
+**=|Data only
+**=Heading only alt|

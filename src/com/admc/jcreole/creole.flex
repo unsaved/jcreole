@@ -46,7 +46,7 @@ import org.apache.commons.io.input.CharSequenceReader;
     private static final Pattern InlinePrePattern =
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern ListLevelPattern =
-            Pattern.compile("\\s*([#*]+)");
+            Pattern.compile("\\s*([#*]+)(=?)");
     private static final Pattern ParamPluginPattern =
             Pattern.compile("(?s)<<\\s*(\\w+)\\s+(.*\\S)\\s*>>");
     private static final Pattern OptParamPluginPattern =
@@ -164,6 +164,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
+<YYINITIAL> ^[ \t]*[#]= {
+    pushState();
+    yybegin(LISTATE);
+    return newToken(Terminals.LI, "#", -1);
+}
+<YYINITIAL> ^[ \t]*[*]= {
+    pushState();
+    yybegin(LISTATE);
+    return newToken(Terminals.LI, "*", -1);
+}
 <YYINITIAL> ^[ \t]*[#] / [^#] {
     pushState();
     yybegin(LISTATE);
@@ -273,10 +283,16 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.END_JCXBLOCK);
 }
-<LISTATE> ^[ \t]*((#+)|("*"+)) {
+<LISTATE> ^[ \t]*((#+)|("*"+))=? {
     Matcher m = matcher(ListLevelPattern);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "List-item Matcher captured " + m.groupCount() + " groups");
     return newToken(Terminals.LI,
-            Character.toString(m.group(1).charAt(0)), m.group(1).length());
+            Character.toString(m.group(1).charAt(0)),
+            m.group(1).length()
+            * ((m.group(2) != null && m.group(2).length() > 0) ? -1 : 1)
+            );
 }
 <PSTATE> ^[ \t]*[#*] {
     yypushback(yylength());
