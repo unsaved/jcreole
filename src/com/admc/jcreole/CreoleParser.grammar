@@ -293,6 +293,15 @@
                 + ((cssClass == null) ? "" : "\"") + '>');
     }
 
+    public WashedSymbol newDl(List<DtSymbol> dtSymbolList) {
+        StringBuilder sb = new StringBuilder("<dl")
+                .append(markBlock("dl", true, false)).append('>');
+        for (DtSymbol dtSymbol : dtSymbolList) 
+            sb.append("\n  " + dtSymbol.getContent());
+        sb.append('\n').append(markClose(TagType.BLOCK)).append("</dl>\n");
+        return new WashedSymbol(sb.toString());
+    }
+
     public WashedSymbol newListNest(List<LiSymbol> liSymbolList) {
         StringBuilder sb = new StringBuilder();
         int curLevel = 0;
@@ -557,6 +566,7 @@
 
 %terminals ROOTLVL_PRE, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
+%terminals DT, END_DT, FINAL_DT;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
 %terminals SUB_TOGGLE, SUP_TOGGLE, UNDER_TOGGLE, STRIKE_TOGGLE;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
@@ -570,7 +580,7 @@
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
-%typeof listnest = "WashedSymbol";
+%typeof listnest, dl = "WashedSymbol";
 
 %goal blocks;
 
@@ -616,6 +626,7 @@ topblock = HOR {:
 // Blocks which may occur at different levels
 masterblock = jcxblock
         | listnest.l {: return new WashedSymbol(l.toString()); :}
+        | dl.l {: return new WashedSymbol(l.toString()); :}
         | table.t {: return new WashedSymbol(t.toString()); :}
         ;
 
@@ -759,6 +770,17 @@ cell  = CELL.c jcxblockOrInline.l+ {: return new WashedSymbol(
                     ((((Token) c).getIntParam() == 1) ? "\u0001" : "")
                     + joinWashedSymbols(_list_l) + autoCloseInlines()); :};
 
+dl = lastdt.ldtitem {:
+                // A single <li> list.
+                // Not useful in final docs, but definitely useful for drafts.
+                return newDl(Collections.singletonList((DtSymbol) ldtitem));
+            :}
+         | dt.ldt+ lastdt.ldtitem {:
+                List<DtSymbol> dtSymbols = (List<DtSymbol>) _list_ldt;
+                dtSymbols.add((DtSymbol) ldtitem);
+                return newDl(dtSymbols);
+            :};
+
 listnest = lastli.llitem {:
                 // A single <li> list.
                 // Not useful in final docs, but definitely useful for drafts.
@@ -780,7 +802,18 @@ lastli   = liel.li jcxblockOrInline.l+ FINAL_LI {:
                         + autoCloseInlines());
                 return li;
             :};
+dt       = dtel.dt jcxblockOrInline.l+ END_DT {:
+                ((DtSymbol) dt).setContent(joinWashedSymbols(_list_l).toString()
+                        + autoCloseInlines());
+                return dt;
+            :};
+lastdt   = dtel.dt jcxblockOrInline.l+ FINAL_DT {:
+                ((DtSymbol) dt).setContent(joinWashedSymbols(_list_l).toString()
+                        + autoCloseInlines());
+                return dt;
+            :};
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
+dtel     = DT.dtstart {: return new DtSymbol((Token) dtstart); :};
 
 hinline = inline
         | ENUMFORMATRESET.formatStr {:

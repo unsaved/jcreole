@@ -141,7 +141,7 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 %}
 
-%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE
+%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE, DLSTATE
 
 S = [^ \t\f\n]
 s = [ \t\f\n]
@@ -174,6 +174,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", -1);
 }
+<YYINITIAL> ^[ \t]*; {
+    pushState();
+    yybegin(DLSTATE);
+    return newToken(Terminals.DT);
+}
 <YYINITIAL> ^[ \t]*[#] / [^#] {
     pushState();
     yybegin(LISTATE);
@@ -184,7 +189,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
 }
-<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE> "<<"{s}*"["{wsdash}*">>" {
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+"<<"{s}*"["{wsdash}*">>" {
     Matcher m = matcher(JcxPattern);
     if (m.groupCount() != 2)
         throw new RuntimeException(
@@ -294,9 +300,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             * ((m.group(2) != null && m.group(2).length() > 0) ? -1 : 1)
             );
 }
+<DLSTATE> ^[ \t]*; { return newToken(Terminals.DT); }
 <PSTATE> ^[ \t]*[#*] {
     yypushback(yylength());
     yybegin(LISTATE);
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> ^[ \t]*; {
+    yypushback(yylength());
+    yybegin(DLSTATE);
     return newToken(Terminals.END_PARA);
 }
 <PSTATE> ^[ \t]*[|] {
@@ -338,6 +350,27 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 <LISTATE> \n / [ \t]*[#*] {
     return newToken(Terminals.END_LI, null, listLevel);
+}
+<DLSTATE> ^[ \t]*[#*] {
+    yypushback(yylength());
+    yybegin(LISTATE);
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> \n / [ \t]*\n {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> \n / [ \t]*"|" {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+    yybegin(popState());
+    yypushback(yylength());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> \n / [ \t]*; {
+    return newToken(Terminals.END_DT);
 }
 <TABLESTATE> ^[ \t]*"|=" { return newToken(Terminals.CELL, null, 1); }
   // 1 is the SOH character code for "Start Of Header"
@@ -500,7 +533,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "~" (https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE>
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
 (https|http|ftp):"/"{S}*{NONPUNC} {
     return newToken(Terminals.URL, yytext());
 }
@@ -568,10 +601,11 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE> "<<"{s}*[}]{s}*">>" {
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
+"<<"{s}*[}]{s}*">>" {
     return newToken(Terminals.END_JCXSPAN);
 }
-<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE>
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
 "<<"{s}*[{]{wsdash}*">>" {
     Matcher m = matcher(JcxPattern);
     if (m.groupCount() != 2)
@@ -586,7 +620,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
-<JCXBLOCKSTATE, LISTATE, TABLESTATE>
+<JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
 "<<"{s}*addClass[ \t]+[-=+]
 ("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
@@ -611,6 +645,27 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.FINAL_LI);
 }
 <LISTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.FINAL_LI); }
+// Would this last not defeat sending proper EOF to the parser?
+
+
+// DLSTATE stuff
+<DLSTATE> \n / [ \t]*= {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> . { return newToken(Terminals.TEXT, yytext()); }
+<DLSTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
+<DLSTATE> \n { }  // Ignore if last char in file
+// End DLSTATE to make way for another element:
+<DLSTATE> \n / ("{{{" \n) {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> \n / [ \t]*----[ \t]*\n {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.FINAL_DT); }
 // Would this last not defeat sending proper EOF to the parser?
 
 

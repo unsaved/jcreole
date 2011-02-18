@@ -224,6 +224,31 @@ would display an input line of "##{{{#=Like|this}}} as a list item with content
 "##=Like|this##", but JCreole will make it look...
 #=Like|this
 
+=== Definition List
+======;Definiendum like this:And definiens like this
+
+The first colon separates the definiendum from the definiens.
+Definition Lists are similar to numbered and un-numbered lists in several points
+# "##;##" must be the first thing on a line to indicate the start of a
+ Definition List item
+# You define multiple Definition List items one after the other and they are
+ automatically displayed in a single Definition List.
+# Each Definition List item specification may span multiple lines (with the
+ first line necessarily beginning with "##;##").
+# The current Definition List item, and the aggregate Definition List will
+ terminate upon a blank Creole line or block type directive (such as a
+ numbered or un-numbered list, horizontal line, table row).
+
+Definition Lists are not as powerful as lists though (and are even less powerful
+ than the HTML DL+DT+DD elements that render them, due to the rather limp
+ Creole specification for this directive).
+ Each list item may have no more than one definiendum
+ and one definiens; and the lists and items may not nest at all.
+
+;A Definition list item
+:Looks like this
+;And:like this
+
 == JCreole Extensions via ~<<...>> Plugin Directives
 
 See the file ##extensions.html## in the doc directory of JCreole distributions

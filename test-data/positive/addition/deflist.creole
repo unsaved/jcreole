@@ -1,0 +1,13 @@
+;the key:is defined as this
+;other key
+:is defined as other
+;and
+another
+:key
+is
+defined too
+;this one:has a colon:in definition
+;and
+this
+:one
+:too
