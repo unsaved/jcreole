@@ -1,5 +1,36 @@
 SHORT TERM
 
+Implement pop-up addition:
+    If link destination is "double-quote-enclosed" and user has
+    PluginPrivilege.POPUP, then pop-up the text.
+
+Foot note and glossary entry text is authored like regular paragraphs, but with
+a <<footNoteEntry entry>> or <<glossaryEntry entry>> directive embedded.
+
+Implement Footnotes:
+    Author adds <<footNote entry>> throughout the body.
+    Author optionally adds a <<footNotes>> tag to display footnotes block.
+    If author codes a <<footNote>> but has neither PluginPrivilge.POPUP nor has
+     a <<footNotes>> then complain about orphaned footnotes.
+     ... But what if framing page wants to fetch and display footNotes?
+    If no <<footNotes>> then make all links a single fancy superscript char.
+    It is a runtime error if there is no <<footNoteEntry>> paragraph for it.
+
+Implement Index:
+    <<(indexEntry [entry]>>some content<<)>>  Links target from index.
+    If author codes a <<{...>> but has no <<index>>
+     then complain about orphaned index entries.
+     ... But what if framing page wants to fetch and display index?
+
+Implement Glossary:
+    Directives in the main body are authored exactly line indexEntries, except
+    <<(glossaryEntry [entry]>>some content<<)>>  Links target from glossary
+                             (and either links TO glossary or Pops-up)
+    It is a runtime error if there is no <<glossaryEntry>> paragraph for it.
+    If author codes a <<{...>> but has no <<glossary>>
+     then complain about orphaned index entries.
+     ... But what if framing page wants to fetch and display glossary?
+
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
