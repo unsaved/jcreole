@@ -63,8 +63,8 @@
      * or in TOCs) and skips heading levels 5 and 6 in TOCs.
      */
     public static final String DEFAULT_ENUMERATION_FORMATS = "____xx";
-    public static final EnumSet<PluginPrivilege> DEFAULT_PLUGIN_PRIVILEGES =
-        EnumSet.noneOf(PluginPrivilege.class);
+    public static final EnumSet<JCreolePrivilege> DEFAULT_PLUGIN_PRIVILEGES =
+        EnumSet.noneOf(JCreolePrivilege.class);
 
     private boolean wrote;  // Just used to write block-separating blank lines
     private String urlBase;
@@ -79,7 +79,7 @@
     private String sectIdPrefix = "jcsect_";
     private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
     private Character formatResetChar;
-    private EnumSet<PluginPrivilege> pluginPrivs = DEFAULT_PLUGIN_PRIVILEGES;
+    private EnumSet<JCreolePrivilege> jcreolePrivs = DEFAULT_PLUGIN_PRIVILEGES;
 
     /**
      * Set enumeration formats to display section/heading enumerations in TOCs
@@ -104,15 +104,15 @@
     /**
      * Specify what plugin directives may be used by Creole page authors.
      */
-    public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
-        this.pluginPrivs = pluginPrivs;
+    public void setPrivileges(EnumSet<JCreolePrivilege> jcreolePrivs) {
+        this.jcreolePrivs = jcreolePrivs;
     }
 
     /**
-     * @see #setPluginPrivileges(EnumSet)
+     * @see #setPrivileges(EnumSet)
      */
-    public EnumSet<PluginPrivilege> getPluginPrivileges() {
-        return pluginPrivs;
+    public EnumSet<JCreolePrivilege> getPrivileges() {
+        return jcreolePrivs;
     }
 
     public void setSectIdPrevix(String sectIdPrefix) {
@@ -555,12 +555,12 @@
                 .append("</table>\n").toString());
     }
 
-    private void require(PluginPrivilege pluginPriv, Symbol s) {
+    private void require(JCreolePrivilege jcreolePriv, Symbol s) {
         if (!(s instanceof Token))
             throw new RuntimeException("Symbol not a Token");
-        if (!pluginPrivs.contains(pluginPriv))
+        if (!jcreolePrivs.contains(jcreolePriv))
             throw new CreoleParseException(
-                    "You lack the required privilege " + pluginPriv, (Token) s);
+                    "You lack the required privilege " + jcreolePriv, (Token) s);
     }
 :};
 
@@ -647,16 +647,16 @@ leafblock = ROOTLVL_PRE.text {:
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | ROOTLVL_RAWHTML.text {:
-            require(PluginPrivilege.RAWHTML, _symbol_text);
+            require(JCreolePrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
         :}
         | ROOTLVL_STYLESHEET.text {:
-            require(PluginPrivilege.STYLESHEET, _symbol_text);
+            require(JCreolePrivilege.STYLESHEET, _symbol_text);
             cssHrefs.add(clean(absoluteUrl(text)));
             return DUMMY_WASHEDSYMBOL;
         :}
         | ROOTLVL_ENUMFORMATS.text {:
-            require(PluginPrivilege.ENUMFORMATS, _symbol_text);
+            require(JCreolePrivilege.ENUMFORMATS, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -684,7 +684,7 @@ leafblock = ROOTLVL_PRE.text {:
                     + markClose(TagType.BLOCK) + "</p>\n");
         :}
         | TOC.text {:
-            require(PluginPrivilege.TOC, _symbol_text);
+            require(JCreolePrivilege.TOC, _symbol_text);
             String classNames = null;
             String sectInclusions = null;
             if (text != null) try {
@@ -745,7 +745,7 @@ jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
 // Only purpose for this one is to push inlineModeStack before the block
 // contents are evaluated.
 jcxblockStart = JCXBLOCK.text {:
-        require(PluginPrivilege.JCXBLOCK, _symbol_text);
+        require(JCreolePrivilege.JCXBLOCK, _symbol_text);
         if (text != null && !CssNamesPattern.matcher(text).matches())
             throw new CreoleParseException(
                     "Malformatted class name(s) in JCX directive: " + text,
@@ -817,7 +817,7 @@ dtel     = DT.dtstart {: return new DtSymbol((Token) dtstart); :};
 
 hinline = inline
         | ENUMFORMATRESET.formatStr {:
-            require(PluginPrivilege.ENUMFORMATS, _symbol_formatStr);
+            require(JCreolePrivilege.ENUMFORMATS, _symbol_formatStr);
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
                         "Malformatted format char in enumFormatReset "
@@ -833,12 +833,12 @@ inline = NESTED_PRE.text {:
                     + "\">" + clean(text) + "</span>");
         :}
         | NESTED_STYLESHEET.text {:
-            require(PluginPrivilege.STYLESHEET, _symbol_text);
+            require(JCreolePrivilege.STYLESHEET, _symbol_text);
             cssHrefs.add(clean(absoluteUrl(text)));
             return DUMMY_WASHEDSYMBOL;
         :}
         | NESTED_ENUMFORMATS.text {:
-            require(PluginPrivilege.ENUMFORMATS, _symbol_text);
+            require(JCreolePrivilege.ENUMFORMATS, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -856,7 +856,7 @@ inline = NESTED_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | JCXSPAN.text {:
-            require(PluginPrivilege.JCXSPAN, _symbol_text);
+            require(JCreolePrivilege.JCXSPAN, _symbol_text);
             if (text != null && !CssNamesPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted class name(s) in JCX directive: " + text,
@@ -944,7 +944,7 @@ inline = NESTED_PRE.text {:
             }
             String label = null;
             if (inLbl == null) {
-                if (!pluginPrivs.contains(PluginPrivilege.ABSLINKS)
+                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINKS)
                         && CreoleParser.isAbsoluteUrl(urlText))
                     return new WashedSymbol(url);
                 if (text.startsWith("#" + sectIdPrefix)) {
@@ -961,10 +961,10 @@ inline = NESTED_PRE.text {:
             } else {
                 // If label is set, then we just can not do anything
                 // satisfactory for the page author if they have no ABSLINKS.
-                if (!pluginPrivs.contains(PluginPrivilege.ABSLINKS)
+                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINKS)
                         && CreoleParser.isAbsoluteUrl(urlText))
                     throw new CreoleParseException(
-                            "You lack the privilege " + PluginPrivilege.ABSLINKS
+                            "You lack the privilege " + JCreolePrivilege.ABSLINKS
                             + " which is require for Absolute linking");
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
                 if (m.matches()) {
@@ -1012,7 +1012,7 @@ inline = NESTED_PRE.text {:
                 + markInline("img", true, true) + '>');
         :}
         | STYLER.text {:
-            require(PluginPrivilege.STYLER, _symbol_text);
+            require(JCreolePrivilege.STYLER, _symbol_text);
             Matcher m = StylerPattern.matcher(text);
             if (!m.matches())
                 throw new CreoleParseException(
@@ -1031,7 +1031,7 @@ inline = NESTED_PRE.text {:
             return new WashedSymbol("<!--" + text + "-->");
         :}
         | NESTED_RAWHTML.text {:
-            require(PluginPrivilege.RAWHTML, _symbol_text);
+            require(JCreolePrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
         :}
         | EMDASH {: return new WashedSymbol("&#x2014;"); :}

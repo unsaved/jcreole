@@ -191,8 +191,8 @@ public class JCreole {
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
                 : inFile.getName().replaceFirst("[.][^.]*$", ""));
-        jCreole.setPluginPrivileges(
-                EnumSet.complementOf(EnumSet.of(PluginPrivilege.RAWHTML)));
+        jCreole.setPrivileges(
+                EnumSet.complementOf(EnumSet.of(JCreolePrivilege.RAWHTML)));
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
                 : jCreole.parseCreole(new StringBuilder(
@@ -356,10 +356,10 @@ public class JCreole {
     /**
      * Calls the corresponding method on the underlying Parser.
      *
-     * @see CreoleParser#setPluginPrivileges(EnumSet)
+     * @see CreoleParser#setPrivileges(EnumSet)
      */
-    public void setPluginPrivileges(EnumSet<PluginPrivilege> pluginPrivs) {
-        parser.setPluginPrivileges(pluginPrivs);
+    public void setPrivileges(EnumSet<JCreolePrivilege> jcreolePrivs) {
+        parser.setPrivileges(jcreolePrivs);
     }
 
     /**
@@ -374,10 +374,10 @@ public class JCreole {
     /**
      * Calls the corresponding method on the underlying Parser.
      *
-     * @see CreoleParser#getPluginPrivileges()
+     * @see CreoleParser#getPrivileges()
      */
-    public EnumSet<PluginPrivilege> getPluginPrivileges() {
-        return parser.getPluginPrivileges();
+    public EnumSet<JCreolePrivilege> getPrivileges() {
+        return parser.getPrivileges();
     }
 
     /**

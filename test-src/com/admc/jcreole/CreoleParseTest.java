@@ -111,17 +111,17 @@ public class CreoleParseTest {
         Object retVal = null;
         try {
             CreoleParser parser = new CreoleParser();
-            parser.setPluginPrivileges(EnumSet.allOf(PluginPrivilege.class));
+            parser.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
             /* Replace the statement above with something like this to test
              * privileges:
-            parser.setPluginPrivileges(EnumSet.of(
-                    PluginPrivilege.ENUMFORMATS,
-                    PluginPrivilege.TOC,
-                    PluginPrivilege.RAWHTML,
-                    PluginPrivilege.STYLESHEET,
-                    PluginPrivilege.JCXBLOCK,
-                    PluginPrivilege.JCXSPAN,
-                    PluginPrivilege.STYLER
+            parser.setPrivileges(EnumSet.of(
+                    JCreolePrivilege.ENUMFORMATS,
+                    JCreolePrivilege.TOC,
+                    JCreolePrivilege.RAWHTML,
+                    JCreolePrivilege.STYLESHEET,
+                    JCreolePrivilege.JCXBLOCK,
+                    JCreolePrivilege.JCXSPAN,
+                    JCreolePrivilege.STYLER
             ));
             */
             parser.setInterWikiMapper(new InterWikiMapper() {

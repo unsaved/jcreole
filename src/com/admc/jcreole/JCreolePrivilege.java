@@ -23,6 +23,6 @@ package com.admc.jcreole;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public enum PluginPrivilege {
+public enum JCreolePrivilege {
     STYLER, JCXSPAN, JCXBLOCK, STYLESHEET, RAWHTML, TOC, ENUMFORMATS, ABSLINKS
 }
