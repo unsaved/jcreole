@@ -81,6 +81,8 @@ label text right after the URL,
 {{{[[http://wikicreole.org/wiki/Creole1.0|like this]]}}}.\\
 Looks [[http://wikicreole.org/wiki/Creole1.0|like this]].
 
+Also see the Jcreole-specific [[#jcsect_PopupLinks]] directive.
+
 Inter- and intra- wiki links with colons are supported by JCreole, but require
 application integration.
 If your application has provided JCreole with a mapping function from wiki-link
@@ -248,6 +250,19 @@ Definition Lists are not as powerful as lists though (and are even less powerful
 ;A Definition list item
 :Looks like this
 ;And:like this
+
+=== Popup Links
+
+======~[["Like"|this~]]\\
+Popups up a message.
+This requires simple application integration (a simple JavaScript alert function
+or something fancier), and the page author needs popup authorization.
+This is exactly the same as [[#jcsect_ExplicitHyperlinks]] with double-quoted
+URL and specified label.
+
+[["The
+message"|Click to see]]
+
 
 == JCreole Extensions via ~<<...>> Plugin Directives
 

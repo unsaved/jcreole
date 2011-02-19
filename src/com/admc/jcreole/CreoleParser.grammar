@@ -47,8 +47,10 @@
             Pattern.compile("\\s*\\Q{{\\E\\s*(.+?)\\s*\\Q}}\\E\\s*");
     private static Pattern InterWikiPattern =
             Pattern.compile("([^:]+)?:([^?#]+)(.+)?");
+    private static Pattern DoubleQuotedPattern =
+            Pattern.compile("(?s)\"(.+)\"");
     private static Pattern StylerPattern = Pattern.compile(
-            "([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
+            "(?s)([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     public static final Pattern CssNamesPattern =
             Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
     public static final Pattern EnumFormatPattern =
@@ -911,6 +913,7 @@ inline = NESTED_PRE.text {:
             String urlText = (delimPos > -1)
                            ? text.substring(0, delimPos) : text;
             String url = null;
+            String popupText = null;
             String labelFromMap = null;
             boolean mapLookupFailed = false;
             Matcher matcher = (text.startsWith("http:")
@@ -939,6 +942,17 @@ inline = NESTED_PRE.text {:
                         ? interWikiMapper.toLabel(
                           matcher.group(1), matcher.group(2))
                         : null;
+            } else if (matcher != null) {
+                matcher = DoubleQuotedPattern.matcher(urlText);
+                if (matcher.matches()) {
+                    require(JCreolePrivilege.POPUP, _symbol_text);
+                    if (inLbl == null)
+                        throw new CreoleParseException(
+                                "Explicit label is required for popup links");
+                    popupText = clean(matcher.group(1));
+                } else {
+                    url = clean(absoluteUrl(urlText));
+                }
             } else {
                 url = clean(absoluteUrl(urlText));
             }
@@ -984,7 +998,7 @@ inline = NESTED_PRE.text {:
                             + '>';
                 } else {
                     if (text.startsWith("#" + sectIdPrefix)) {
-                        // This causese MarkerMap to validate the link
+                        // This causes MarkerMap to validate the link
                         LinkMarker lm = new LinkMarker(++lastMarkerId, url);
                         markers.put(Integer.valueOf(lastMarkerId), lm);
                         lm.setLabel(clean(inLbl));
@@ -997,8 +1011,13 @@ inline = NESTED_PRE.text {:
             if (mapLookupFailed)
                 label = "<span class=\"jcreole_orphanLink\">"
                         + label + "</span>";
-            return new WashedSymbol("<a href=\"" + url + '"'
-                    + markInline("a", true, true) + '>' + label + "</a>");
+            return new WashedSymbol("<a href=\"" + ((popupText == null)
+                    ? url
+                    : ("javascript:jcreoleInfoPopup(unescape('"
+                            + StringEscapeUtils.escapeJavaScript(popupText)
+                            + "'))")
+                    ) + "\"" + markInline("a", true, true)
+                    + '>' + label + "</a>");
         :}
         | IMAGE.text {:
             Token token = (Token) _symbol_text;
