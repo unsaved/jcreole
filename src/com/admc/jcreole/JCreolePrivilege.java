@@ -24,5 +24,13 @@ package com.admc.jcreole;
  * @since 1.1
  */
 public enum JCreolePrivilege {
-    STYLER, JCXSPAN, JCXBLOCK, STYLESHEET, RAWHTML, TOC, ENUMFORMATS, ABSLINKS
+    STYLER,
+    JCXSPAN,
+    JCXBLOCK,
+    STYLESHEET,
+    RAWHTML,
+    TOC,
+    ENUMFORMAT, 
+    ABSLINK,
+    POPUP
 }

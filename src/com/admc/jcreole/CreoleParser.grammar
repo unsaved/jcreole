@@ -656,7 +656,7 @@ leafblock = ROOTLVL_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | ROOTLVL_ENUMFORMATS.text {:
-            require(JCreolePrivilege.ENUMFORMATS, _symbol_text);
+            require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -817,7 +817,7 @@ dtel     = DT.dtstart {: return new DtSymbol((Token) dtstart); :};
 
 hinline = inline
         | ENUMFORMATRESET.formatStr {:
-            require(JCreolePrivilege.ENUMFORMATS, _symbol_formatStr);
+            require(JCreolePrivilege.ENUMFORMAT, _symbol_formatStr);
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
                         "Malformatted format char in enumFormatReset "
@@ -838,7 +838,7 @@ inline = NESTED_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | NESTED_ENUMFORMATS.text {:
-            require(JCreolePrivilege.ENUMFORMATS, _symbol_text);
+            require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
             if (!EnumFormatPattern.matcher(text).matches())
                 throw new CreoleParseException(
                         "Malformatted enumFormats: " + text,
@@ -944,7 +944,7 @@ inline = NESTED_PRE.text {:
             }
             String label = null;
             if (inLbl == null) {
-                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINKS)
+                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINK)
                         && CreoleParser.isAbsoluteUrl(urlText))
                     return new WashedSymbol(url);
                 if (text.startsWith("#" + sectIdPrefix)) {
@@ -961,10 +961,10 @@ inline = NESTED_PRE.text {:
             } else {
                 // If label is set, then we just can not do anything
                 // satisfactory for the page author if they have no ABSLINKS.
-                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINKS)
+                if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINK)
                         && CreoleParser.isAbsoluteUrl(urlText))
                     throw new CreoleParseException(
-                            "You lack the privilege " + JCreolePrivilege.ABSLINKS
+                            "You lack the privilege " + JCreolePrivilege.ABSLINK
                             + " which is require for Absolute linking");
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
                 if (m.matches()) {
