@@ -1,9 +1,5 @@
 SHORT TERM
 
-Implement pop-up addition:
-    If link destination is "double-quote-enclosed" and user has
-    PluginPrivilege.POPUP, then pop-up the text.
-
 Foot note and glossary entry text is authored like regular paragraphs, but with
 a <<footNoteEntry entry>> or <<glossaryEntry entry>> directive embedded.
 
