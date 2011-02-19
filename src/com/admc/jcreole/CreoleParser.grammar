@@ -568,7 +568,7 @@
 
 %terminals ROOTLVL_PRE, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
-%terminals DT, END_DT, FINAL_DT;
+%terminals DT, END_DT, FINAL_DT, ENTRYDEF;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
 %terminals SUB_TOGGLE, SUP_TOGGLE, UNDER_TOGGLE, STRIKE_TOGGLE;
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
@@ -580,7 +580,7 @@
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
-%typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS = "String";
+%typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -622,7 +622,7 @@ topblock = HOR {:
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | masterblock
-        | leafblock
+        | leafblock.s {: return s; :}
         ;
 
 // Blocks which may occur at different levels
@@ -676,14 +676,28 @@ leafblock = ROOTLVL_PRE.text {:
             return DUMMY_WASHEDSYMBOL;
         :}
         | inline.f+ END_PARA.text {:
+            int i = -1, firstEntry = -1;
+            while (++i < _list_f.size())
+                if (_list_f.get(i) instanceof EntrySymbol) {
+                    if (firstEntry > -1)
+                        throw new CreoleParseException("Multiple Entry "
+                                + "Directives in a single paragraph");
+                    firstEntry = i;
+                }
+            EntrySymbol es = (firstEntry > -1)
+                    ? ((EntrySymbol) _list_f.remove(i)) : null;
+
             StringBuilder b = joinWashedSymbols(_list_f);
             // Purpose of the following is to keep the </p> on same line as
             // the last content of the p.
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
-            return new WashedSymbol("<p" + markBlock("p", true, false)
+
+            String c = "<p" + markBlock("p", true, false)
                     + '>' + b + autoCloseInlines()
-                    + markClose(TagType.BLOCK) + "</p>\n");
+                    + markClose(TagType.BLOCK) + "</p>\n";
+            if (es != null) es.setCleanString(c);
+            return (es == null) ? new WashedSymbol(c) : es;
         :}
         | TOC.text {:
             require(JCreolePrivilege.TOC, _symbol_text);
@@ -719,7 +733,14 @@ leafblock = ROOTLVL_PRE.text {:
         :}
         ;
 
-jcxblockOrInline = jcxblock | inline;
+jcxblockOrInline = jcxblock
+        | inline.s {:
+            if (s instanceof EntrySymbol)
+                throw new CreoleParseException(
+                        "Entry Directive not allowed inside a JcxBlock",
+                        (Token) s);
+            return s;
+        :};
 
 jcxblock = jcxblockStart.classNames jcxblockOrInline.f+ END_JCXBLOCK {:
             StringBuilder b = joinWashedSymbols(_list_f);
@@ -817,7 +838,13 @@ lastdt   = dtel.dt jcxblockOrInline.l+ FINAL_DT {:
 liel     = LI.listart {: return new LiSymbol((Token) listart); :};
 dtel     = DT.dtstart {: return new DtSymbol((Token) dtstart); :};
 
-hinline = inline
+hinline = inline.s {:
+            if (s instanceof EntrySymbol)
+                throw new CreoleParseException(
+                        "Entry Directive not allowed inside a JcxBlock",
+                        (Token) s);
+            return s;
+        :}
         | ENUMFORMATRESET.formatStr {:
             require(JCreolePrivilege.ENUMFORMAT, _symbol_formatStr);
             if (formatStr.length() != 1)
@@ -1054,4 +1081,7 @@ inline = NESTED_PRE.text {:
             return new WashedSymbol(text);
         :}
         | EMDASH {: return new WashedSymbol("&#x2014;"); :}
-        ;
+        | ENTRYDEF.text {:
+            return new EntrySymbol((((Token) _symbol_text).getIntParam() == 0)
+                    ? EntryType.FOOTNOTE : EntryType.GLOSSARY, text);
+        :};

@@ -601,6 +601,14 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }
+<HEADSTATE> "<<"[ \t]*footNoteEntry ~ ">>" {
+    return newToken(Terminals.ENTRYDEF,
+            matcher(ParamPluginPattern).group(2), 0);
+}
+<HEADSTATE> "<<"[ \t]*glossaryEntry ~ ">>" {
+    return newToken(Terminals.ENTRYDEF,
+            matcher(ParamPluginPattern).group(2), 1);
+}
 <JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
 "<<"{s}*[}]{s}*">>" {
     return newToken(Terminals.END_JCXSPAN);

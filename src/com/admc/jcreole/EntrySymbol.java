@@ -25,29 +25,12 @@ import beaver.Symbol;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.0
  */
-class WashedSymbol extends Token {
-    private String cleanString;
+class EntrySymbol extends WashedSymbol {
+    EntryType eType;
+    String eName;
 
-    public WashedSymbol(String s) {
-        cleanString = s;
-    }
-
-    protected WashedSymbol() {
-        // Intentionally empty
-    }
-
-    /**
-     * @throws if the symbol already has a cleanString.
-     */
-    public void setCleanString(String s) {
-        if (cleanString != null)
-            throw new IllegalStateException(
-                    "WashedSymbol already has content '" + cleanString
-                    + "', but there was an attempt to change it to: " + s);
-        cleanString = s;
-    }
-
-    public String toString() {
-        return (cleanString == null) ? "" : cleanString;
+    public EntrySymbol(EntryType eType, String name) {
+        this.eName = name;
+        this.eType = eType;
     }
 }
