@@ -1,8 +1,5 @@
 SHORT TERM
 
-Implement Footnotes:
-    If popup priv then make all footnote refs pop up msg.
-
 Implement Index:
     <<(indexEntry [entry]>>some content<<)>>  Links target from index.
     If author codes a <<{...>> but has no <<index>>

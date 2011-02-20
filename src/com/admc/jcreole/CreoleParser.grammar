@@ -1149,7 +1149,7 @@ inline = NESTED_PRE.text {:
             FootNoteRefMarker fnrm =
                     new FootNoteRefMarker(++lastMarkerId, text);
             markers.put(Integer.valueOf(lastMarkerId), fnrm);
-            return new WashedSymbol("<a href=\"jcfn"
+            return new WashedSymbol("<a class=\"jcreole_fnref\" href=\"#jcfn"
                     + fnrm.getMarkerString() + "</sup></a>");
         :}
         ;

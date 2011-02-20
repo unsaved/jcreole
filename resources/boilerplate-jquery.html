@@ -13,14 +13,62 @@
  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  - See the License for the specific language governing permissions and
  - limitations under the License.
+
+ N.b.!  Unlike the default boilerplate, this one is not standalone.
+ You don't need to place any files with it (i.e. there are no relative file
+ dependencies), but there are dependencies to files in public Internet
+ repositories (at least ajax.agoogleapis.com).
 -->
 <html>
 <head>
 <title>${pageTitle}</title>
 <meta name="Generator" content="JCreole">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<script type="text/javascript"
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js">
+</script>
 <script type="text/javascript">
-  jcreoleInfoPopup = function(s) { alert(s); };
+  if ("undefined" == (typeof jQuery)) {
+      alert("Failed to load jQuery library from '"
+        + "'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js'");
+      throw Error("Failed to load jQuery library from '"
+        + "'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js'");
+  }
+</script>
+<script type="text/javascript"
+  src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.js">
+</script>
+<link rel="stylesheet" type="text/css"
+  href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/ui-lightness/jquery-ui.css">
+<script type="text/javascript">
+  localLinkRe = /#(.+)$/;
+  footNoteClones = [];
+  jcreoleInfoPopup = function(s) {
+      $('<p class="ui-state-default">' + s + "</p>").prependTo("body").dialog({
+          close: function() {$(this).dialog("destroy").remove();},
+          title: "Information"
+      });
+  };
+  displayFootnote = function(origLink) {
+      var extracted = localLinkRe.exec(origLink);
+      if (extracted === null) {
+          alert("Internal failure.  "
+                  + "Failed to extract local link from footnote ref");
+          throw new Error("Internal failure.  "
+                  + "Failed to extract local link from footnote ref");
+      }
+      $(footNoteClones[extracted[1]]).dialog("open");
+  };
+  $(function() {
+      $("a.jcreole_fnref").each(function() {
+          this.href = 'javascript:displayFootnote("' + this.href + '");'
+                + 'void(0); // Display footnote';
+      });
+      $("div.jcx_footnotes dd p").each(function() {
+          footNoteClones[this.id] = $(this).clone(false)
+                .dialog({autoOpen: false, title: "Footnote"});
+      });
+  });
 </script>
 <style>
   body,table { font-size:16px; font-family:serif; }

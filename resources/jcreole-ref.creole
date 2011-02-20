@@ -1,3 +1,13 @@
+<<!
+  This is the official JCreole Author Reference.
+  Apache 2 Copyright 2011 by Axis Data Management Corp.
+  Details at http://admc.com/jcreole
+
+  Application integrators are welcome to serve the pre-built HTML version of
+  this document, or to pre-build or dynamically serve their own version to
+  constrain privileges and decorate so as to match the embedding application.
+>>
+
 <<enumFormats x1a_xx>>
 
 = JCreole Author Reference
@@ -255,8 +265,8 @@ Definition Lists are not as powerful as lists though (and are even less powerful
 
 ======~[["Like"|this~]]\\
 Popups up a message.
-This requires simple application integration (a simple JavaScript alert function
-or something fancier), and the page author needs popup authorization.
+This requires simple application integration (at least a one-line JavaScript
+ function definition), and the page author needs popup authorization.
 This is exactly the same as [[#jcsect_ExplicitHyperlinks]] with double-quoted
 URL and specified label.
 
@@ -422,6 +432,69 @@ either using a pre-fab or building it manually.
 To make it clear that ##toc## directives are in no way a //part// of
 any other element (like a paragraph, list, or table), each ##toc##
 directive must be placed on a line by itself.
+
+===Footnotes
+
+Add references ~<<footNote yourRefName>> like this, and write the foot note
+entries in paragraphs...
+
+~<<footNoteEntry yourRefName>>Like this.
+The paragraph may contain any regular paragraph markup, excepting
+foot note, glossary, and index Directives.
+For reference of bibliography entries, you will often want to use 
+[[#jcsect_ExplicitHyperlinks]].
+
+Then finally, where you want the footnote entries to appear in the document,
+add..
+
+~<<footNotes>>
+
+The sequence of the 3 directives (##footNote##, ##footNoteEntry##,
+and ##footNotes##) makes no difference.
+Write them in whatever order is easiest or best for you to organize your
+document.
+In the generated footNotes listing, the entries will always be ordered in the
+sequence that references occur in the document, not in the order that the
+footNoteEntries occur.
+Your audience is assured that the first foot note in the footnotes listing will
+be the foot note for the first footnote reference in the document.
+
+The reference names, ##yourRefName## in the examples above, are arbitrary.
+Though they do not appear in the generated document at all, they serve an
+important purpose.
+They allow multiple references (##footNote## directives) to point to a single
+foot note entry.
+Since you can use any names that you want to, you can use names that remind you
+of what the entry is for, are easy to remember, and are easy to type.
+For example, if you have a footnote entry listing your source documents for
+genetic inheritance details, you could name that entry something like
+//genetic-inheritance-sourcedocs// or //inheritance-src//, depending on how you
+compromise between conciseness and descriptiveness.
+
+Because of the minimalistic setup used for this reference document, and the
+goal to keep this all inside one sub-section, the following sample can't show
+how clicking on entries usually pops up the entry text, nor even scroll the
+browser to the targeted entry, but you can at least see what things look like
+without interaction.
+
+==== Full Footnotes Sample
+
+<<footNoteEntry secondEntry>>Second sample entry.
+Notice that even though I have written this entry first, it will be second in
+the list of entries because it is //referenced// second.
+
+Main body text pagraph here, with the first reference<<footNote firstEntry>>
+and a second reference<<footNote secondEntry>>.
+And to show that multiple references to a shared entry work, here's a second
+ref to the first entry<<footNote firstEntry>>.
+
+<<footNoteEntry firstEntry>>First sample entry.
+
+=====Sample Footnotes Document Section
+Note that though you will usually want to insert the footnote entry listing at
+the end of your document, it's awful useful for special cases like this one, to
+be able to place it wherever you want to.
+<<footNotes>>
 
 ==Styling <<enumFormatReset A>>
 

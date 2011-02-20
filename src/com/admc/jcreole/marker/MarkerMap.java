@@ -243,7 +243,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         Map<String, Integer> nameToRefNum = new HashMap<String, Integer>();
         int refNum = 0;
         FootNoteRefMarker fnrm;
-        for (BufferMarker m : values())
+        for (BufferMarker m : sortedMarkers)
             if (m instanceof HeadingMarker) {
                 hm = (HeadingMarker) m;
                 sectionHeading = hm.getSectionHeading();
