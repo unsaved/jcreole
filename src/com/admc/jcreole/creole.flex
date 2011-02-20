@@ -213,7 +213,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     pushState();
     yybegin(TABLESTATE);
 }
-<YYINITIAL> ^[ \t]* "<<"{s}*[{]{wsdash}*">>" {
+<YYINITIAL> ^[ \t]* "<<"{s}*[{] {
+    yypushback(yylength());
+    pushState();
+    yybegin(PSTATE);
+}
+<YYINITIAL> ^[ \t]* "<<"{s}*footNote[ \t] {
     yypushback(yylength());
     pushState();
     yybegin(PSTATE);
@@ -647,6 +652,9 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "<<"{s}*addClass[ \t]+[-=+]
 ("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
+}
+"<<"{s}*footNote[ \t]+[^>]+">>" {
+    return newToken(Terminals.FOOTREF, matcher(ParamPluginPattern).group(2));
 }
 
 

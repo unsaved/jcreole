@@ -76,8 +76,6 @@
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
-    private List<EntrySymbol> footNoteEntries = new ArrayList<EntrySymbol>();
-    private List<EntrySymbol> glossaryEntries = new ArrayList<EntrySymbol>();
     // hIds is only for checking ID uniqueness
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
@@ -583,13 +581,13 @@
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
-%terminals FOOTNOTES, GLOSSARY;
+%terminals FOOTNOTES, GLOSSARY, FOOTREF;
 
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
-%typeof GLOSSARY, FOOTNOTES = "String";
+%typeof GLOSSARY, FOOTNOTES, FOOTREF = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -598,6 +596,16 @@
 blocks = topblock.b+ {:
             StringBuilder sb = joinWashedSymbols(_list_b);
             log.debug("PRE-PostProcess[" + sb + ']');
+            FootNoteRefMarker fnrm;
+
+            for (BufferMarker m : markers.values())
+                if (m instanceof FootNoteRefMarker) {
+                    fnrm = (FootNoteRefMarker) m;
+                    if (!nameToFootNoteEntry.containsKey(fnrm.getName()))
+                        throw new CreoleParseException(
+                                "Orphaned foot note ref: " + fnrm.getName());
+                    fnrm.setTargNum(nameToFootNoteEntry.get(fnrm.getName()));
+                }
 
             // Following sets formats for headers and default section labels in
             // TOCs, but has no effect on TOC inclusion.
@@ -711,8 +719,10 @@ leafblock = ROOTLVL_PRE.text {:
             b.insert(0, markBlock("p", true, false));
             if (es != null) {
                 es.setEntryId(((es.getEntryType() == EntryType.FOOTNOTE)
-                        ? footNoteEntries : glossaryEntries).size());
+                        ? nameToFootNoteEntry : nameToGlossaryEntry).size());
                 b.insert(0, '"');
+                // IMPORTANT!  Goal here is just to write a unique ID!
+                // The id does not necessarily correspond to any sequence!
                 b.insert(0, es.getIdAttr());
                 b.insert(0, " id=\"");
             }
@@ -720,11 +730,6 @@ leafblock = ROOTLVL_PRE.text {:
 
             if (es == null) return new WashedSymbol(b.toString());
             es.setCleanString(b.toString());
-            // I believe that we are here adding the entries to the lists in
-            // proper output document order.  If so, no need to delay this and
-            // write markers.
-            ((es.getEntryType() == EntryType.FOOTNOTE)
-                    ? footNoteEntries : glossaryEntries).add(es);
             ((es.getEntryType() == EntryType.FOOTNOTE)
                 ? nameToFootNoteEntry : nameToGlossaryEntry)
                 .put(es.getName(), es.getEntryId());
@@ -1139,4 +1144,12 @@ inline = NESTED_PRE.text {:
         | ENTRYDEF.text {:
             return new EntrySymbol(((((Token) _symbol_text).getIntParam() == 0)
                     ? EntryType.FOOTNOTE : EntryType.GLOSSARY), text);
-        :};
+        :}
+        | FOOTREF.text {:
+            FootNoteRefMarker fnrm =
+                    new FootNoteRefMarker(++lastMarkerId, text);
+            markers.put(Integer.valueOf(lastMarkerId), fnrm);
+            return new WashedSymbol("<a href=\"jcfn"
+                    + fnrm.getMarkerString() + "</sup></a>");
+        :}
+        ;

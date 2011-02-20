@@ -17,6 +17,8 @@
 
 package com.admc.jcreole.marker;
 
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
@@ -88,6 +90,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         EntryType eType;
         String idString;
         Map<Integer, String> idToGloss = new HashMap<Integer, String>();
+        Map<Integer, String> idToFoot = new HashMap<Integer, String>();
         while ((offset2 = buffer.indexOf("\u0002", offset2 + 1)) > -1) {
             if (buffer.length() < offset2 + 6)
                 throw new CreoleParseException(
@@ -118,21 +121,19 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 throw new CreoleParseException("Missing "
                     + ((eType == EntryType.FOOTNOTE) ? "footNote" : "glossary")
                     + " entry w/ id " + id);
-            if (eType == EntryType.FOOTNOTE) 
-                footNotes.add(buffer.substring(offset2 + 6, offset3));
-            else
-                idToGloss.put(Integer.valueOf(id),
-                        buffer.substring(offset2 + 6, offset3));
+            ((eType == EntryType.FOOTNOTE) ? idToFoot : idToGloss)
+                    .put(Integer.valueOf(id),
+                    buffer.substring(offset2 + 6, offset3));
             buffer.delete(offset2, offset3 +1);
         }
         if (glossaryNameMap.size() != idToGloss.size())
             throw new IllegalStateException("Glossary entry mismatch.  "
                     + glossaryNameMap.size() + ' ' + " names parsed, but "
                     + idToGloss.size() + " entries marked");
-        if (footNoteNameMap.size() != footNotes.size())
+        if (footNoteNameMap.size() != idToFoot.size())
             throw new IllegalStateException("Footnote entry mismatch.  "
                     + footNoteNameMap.size() + ' ' + " names parsed, but "
-                    + footNotes.size() + " entries marked");
+                    + idToFoot.size() + " entries marked");
         for (Map.Entry<String, Integer> e : glossaryNameMap.entrySet()) {
             if (!idToGloss.containsKey(e.getValue()))
                 throw new IllegalStateException("Glossary Entry for name "
@@ -150,14 +151,30 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     + " markings found, but there are " + size()
                     + " markers");
         Collections.sort(sortedMarkers);
+        Set<String> mappedNames = new HashSet<String>();
+        FootNoteRefMarker fnrm;
+        StringBuilder footNotesBuffer = new StringBuilder();
+        for (BufferMarker m : sortedMarkers)
+            if (m instanceof FootNoteRefMarker) {
+                fnrm = (FootNoteRefMarker) m;
+                if (mappedNames.contains(fnrm.getName())) continue;
+                mappedNames.add(fnrm.getName());
+                if (!idToFoot.containsKey(fnrm.getTargNum()))
+                    throw new CreoleParseException(
+                            "Orphan footnote ref: " + fnrm.getName());
+                footNotesBuffer.append("<dl>\n  <dt>")
+                        .append(fnrm.getRefNum()).append("</td>\n  <dd>")
+                        .append(idToFoot.remove(fnrm.getTargNum()))
+                        .append("</dd>\n</dl>\n");
+            }
+        for (Map.Entry<Integer, String> e : idToFoot.entrySet()) {
+            log.warn("Unreferenced footnote with HTML id " + e.getKey());
+            footNotesBuffer.append("<dl>\n  <dt>")
+                    .append("unreferenced").append("</td>\n  <dd>")
+                    .append(e.getValue()).append("</dd>\n</dl>\n");
+        }
         Collections.reverse(sortedMarkers);
         StringBuilder glossaryBuffer = new StringBuilder();
-        StringBuilder footNotesBuffer = new StringBuilder();
-        int fnCtr = 0;
-        for (String fnHtml : footNotes)
-            footNotesBuffer.append("<dl>\n  <dt>")
-                    .append(++fnCtr).append("</td>\n  <dd>")
-                    .append(fnHtml).append("</dd>\n</dl>\n");
         for (Map.Entry<String, String> e :
                 new TreeMap<String, String>(nameToHtml).entrySet())
             glossaryBuffer.append("<dl>\n  <dt>")
@@ -175,7 +192,6 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         return buffer;
     }
 
-    private List<String> footNotes = new ArrayList<String>();
     private Map<String, String> nameToHtml = new HashMap<String, String>();
 
     /**
@@ -224,6 +240,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private void forwardPass1(List<BufferMarker> sortedMarkers) {
         HeadingMarker hm;
         SectionHeading sectionHeading;
+        Map<String, Integer> nameToRefNum = new HashMap<String, Integer>();
+        int refNum = 0;
+        FootNoteRefMarker fnrm;
         for (BufferMarker m : values())
             if (m instanceof HeadingMarker) {
                 hm = (HeadingMarker) m;
@@ -232,6 +251,14 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         sectionHeading.getText());
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setDefaultLevelInclusions(enumerationFormats);
+            } else if (m instanceof FootNoteRefMarker) {
+                fnrm = (FootNoteRefMarker) m;
+                if (nameToRefNum.containsKey(fnrm.getName())) {
+                    fnrm.setRefNum(nameToRefNum.get(fnrm.getName()));
+                } else {
+                    fnrm.setRefNum(++refNum);
+                    nameToRefNum.put(fnrm.getName(), refNum);
+                }
             }
     }
 
@@ -491,6 +518,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setSectionHeadings(sections);
             } else if (m instanceof BodyUpdaterMarker) {
+                ;
+            } else if (m instanceof FootNoteRefMarker) {
                 ;
             } else {
                 throw new CreoleParseException(

@@ -1,16 +1,7 @@
 SHORT TERM
 
-Foot note and glossary entry text is authored like regular paragraphs, but with
-a <<footNoteEntry entry>> or <<glossaryEntry entry>> directive embedded.
-
 Implement Footnotes:
-    Author adds <<footNote entry>> throughout the body.
-    Author optionally adds a <<footNotes>> tag to display footnotes block.
-    If author codes a <<footNote>> but has neither PluginPrivilge.POPUP nor has
-     a <<footNotes>> then complain about orphaned footnotes.
-     ... But what if framing page wants to fetch and display footNotes?
-    If no <<footNotes>> then make all links a single fancy superscript char.
-    It is a runtime error if there is no <<footNoteEntry>> paragraph for it.
+    If popup priv then make all footnote refs pop up msg.
 
 Implement Index:
     <<(indexEntry [entry]>>some content<<)>>  Links target from index.
