@@ -445,7 +445,7 @@ For reference of bibliography entries, you will often want to use
 [[#jcsect_ExplicitHyperlinks]].
 
 Then finally, where you want the footnote entries to appear in the document,
-add..
+add...
 
 ~<<footNotes>>
 
@@ -483,12 +483,47 @@ without interaction.
 Notice that even though I have written this entry first, it will be second in
 the list of entries because it is //referenced// second.
 
-Main body text pagraph here, with the first reference<<footNote firstEntry>>
+Main body text paragraph here, with the first reference<<footNote firstEntry>>
 and a second reference<<footNote secondEntry>>.
 And to show that multiple references to a shared entry work, here's a second
 ref to the first entry<<footNote firstEntry>>.
 
 <<footNoteEntry firstEntry>>First sample entry.
+
+=== Index
+Mark entries in the document body ~<<(>>like this~<<)>> and
+like this~<<indexEntry Entry name>>.
+
+Then where you want the index to appear in the document, add...
+
+~<<index>>
+
+Mark targets of index entries in the main document body using these two methods.
+#When you want the index entry heading to be exactly the same as the target text
+in the document body, mark the entry by surrounding the target text with
+"##~<<(>>##"... "##~<<)>>##" directives.
+#When you do not want the index entry heading to be exactly the same as
+text in the document body, add a single "##~<<indexEntry...>>##" Directive with
+parameter of exactly what the text of the index entry heading will be.
+
+For the first method, enclose just the target text, not markup, or the markup
+characters may appear in the generated heading.
+If you don't want to deal with that, then just use the second method.
+
+==== Full Index Sample
+
+Main body text paragraph here, with the first index target<<indexEntry first  Entry>>
+and a second index target<<indexEntry secondEntry>>.
+And to show that multiple index targets for a shared entry work, here's a second
+target for the first entry<<indexEntry first  Entry>>.
+
+Another paragraph with <<(>>two instances<<)>> of index targets.  Here's a third target for the multi-entry <<(>> first  Entry  <<)>>.
+
+=====Sample Index Document Section
+Note that though you will usually want to insert the index at
+the end of your document, it's awful useful for special cases like this one, to
+be able to place it wherever you want to.
+<<index>>
 
 =====Sample Footnotes Document Section
 Note that though you will usually want to insert the footnote entry listing at

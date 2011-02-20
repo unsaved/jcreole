@@ -6,7 +6,7 @@ This paragraph tests a before (-) Styler.
 Done closed.
 
 In 2nd paragraph, inside another //Italic and a <<{>>JCX span, will
-<<addClass -inline pre2>>style the last CLOSED (bold) span<<}>> from previous paragaph.
+<<addClass -inline pre2>>style the last CLOSED (bold) span<<}>> from previous paragraph.
 
 Inside the third paragraph I once again nest //Italic and then
 **bold, closing neither but styling the bold <<addClass =inline cont>> current container.

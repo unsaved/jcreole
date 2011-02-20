@@ -1,0 +1,18 @@
+Main body text paragraph here, with the first index target<<indexEntry first  Entry>>
+and a second index target<<indexEntry secondEntry>>.
+And to show that multiple index targets for a shared entry work, here's a second
+target for the first entry<<indexEntry first  Entry>>.
+
+Another paragraph with <<(>>two instances<<)>> of index targets.  Here's a third target for the multi-entry <<(>> first  Entry  <<)>>.
+
+=====Sample Index Document Section
+Note that though you will usually want to insert the index at
+the end of your document, it's awful useful for special cases like this one, to
+be able to place it wherever you want to.
+<<index>>
+
+=====Sample Footnotes Document Section
+Note that though you will usually want to insert the footnote entry listing at
+the end of your document, it's awful useful for special cases like this one, to
+be able to place it wherever you want to.
+<<footNotes>>

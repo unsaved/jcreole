@@ -11,4 +11,4 @@ some regular text and some ,,subscript text,, too.
 ** and then reverts
 **Same thing //italic and **bold and ,,subscript and exiting list.
 
-Closing plain paragaph.
+Closing plain paragraph.

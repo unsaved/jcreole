@@ -11,4 +11,4 @@ some regular text and some __under text__ too.
 ** and then reverts
 **Same thing //italic and **bold and __underlined and exiting list.
 
-Closing plain paragaph.
+Closing plain paragraph.

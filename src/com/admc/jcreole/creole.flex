@@ -53,7 +53,10 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)<<\\s*(\\w+)(?:\\s+(.*\\S))?\\s*>>");
     private static final Pattern JcxPattern =
             Pattern.compile("(?s)<<\\s*([\\[{])\\s*(.*\\S)?\\s*>>");
+    private static final Pattern IndexSandwichPattern = Pattern.compile(
+            "(?s)(<<\\s*\\(\\s*>>\\s*)(.*?\\S)\\s*<<\\s*\\)\\s*>>");
 
+    private boolean needIndexCloser;
     private Token newToken(short id) {
         return new Token(id, null, yychar, yyline, yycolumn);
     }
@@ -213,7 +216,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     pushState();
     yybegin(TABLESTATE);
 }
-<YYINITIAL> ^[ \t]* "<<"{s}*[{] {
+<YYINITIAL> ^[ \t]* "<<"{s}*[{(] {
     yypushback(yylength());
     pushState();
     yybegin(PSTATE);
@@ -269,7 +272,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
-<YYINITIAL> "<<"{s}*[{}] {
+<YYINITIAL> "<<"{s}*[{}()] {
     pushState();
     yypushback(yylength());
     yybegin(PSTATE);
@@ -331,7 +334,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
-<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
+<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
@@ -353,7 +356,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
+<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_LI);
@@ -374,7 +377,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
+<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_DT);
@@ -397,7 +400,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.NESTED_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary)
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index)
 ~ ">>"[ \t]*\n {
     Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
@@ -410,6 +413,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
         t = Terminals.FOOTNOTES;
     else if (m.group(1).equals("glossary"))
         t = Terminals.GLOSSARY;
+    else if (m.group(1).equals("index"))
+        t = Terminals.INDEX;
     else throw new IllegalStateException(
             "Unexpected Plugin directive: " + m.group(1));
     return newToken(t, m.group(2));
@@ -643,6 +648,27 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.JCXSPAN,
             (classNames == null) ? null : classNames.replaceAll("\\s+", " "));
 }
+<JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
+"<<"{s}*"("{s}*">>" ~ "<<"{s}*")"{s}*">>" {
+    Matcher m = matcher(IndexSandwichPattern);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+            "Index Sandwich Pattern captured " + m.groupCount() + " groups");
+    if (needIndexCloser)
+        throw new CreoleParseException(
+                "Tangled index entry marker (...) pairing",
+                yychar, yyline, yycolumn);
+    needIndexCloser = true;
+    yypushback(yylength() - m.group(1).length());
+    return newToken(Terminals.INDEXENTRY, m.group(2));
+}
+"<<"{s}*")"{s}*">>" {
+    if (!needIndexCloser)
+        throw new CreoleParseException(
+                "Tangled index entry marker (...) pairing",
+                yychar, yyline, yycolumn);
+    needIndexCloser = false;
+}
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE>
 "<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
@@ -655,6 +681,9 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 }
 "<<"{s}*footNote[ \t]+[^>]+">>" {
     return newToken(Terminals.FOOTREF, matcher(ParamPluginPattern).group(2));
+}
+"<<"{s}*indexEntry[ \t]+[^>]+">>" {
+    return newToken(Terminals.INDEXENTRY, matcher(ParamPluginPattern).group(2));
 }
 
 

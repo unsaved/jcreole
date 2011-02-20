@@ -581,13 +581,13 @@
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
-%terminals FOOTNOTES, GLOSSARY, FOOTREF;
+%terminals FOOTNOTES, GLOSSARY, FOOTREF, INDEX, INDEXENTRY;
 
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
-%typeof GLOSSARY, FOOTNOTES, FOOTREF = "String";
+%typeof GLOSSARY, FOOTNOTES, FOOTREF, INDEXENTRY, INDEX = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -718,7 +718,7 @@ leafblock = ROOTLVL_PRE.text {:
             b.insert(0, '>');
             b.insert(0, markBlock("p", true, false));
             if (es != null) {
-                es.setEntryId(((es.getEntryType() == EntryType.FOOTNOTE)
+                es.setEntryId(1 + ((es.getEntryType() == EntryType.FOOTNOTE)
                         ? nameToFootNoteEntry : nameToGlossaryEntry).size());
                 b.insert(0, '"');
                 // IMPORTANT!  Goal here is just to write a unique ID!
@@ -731,8 +731,8 @@ leafblock = ROOTLVL_PRE.text {:
             if (es == null) return new WashedSymbol(b.toString());
             es.setCleanString(b.toString());
             ((es.getEntryType() == EntryType.FOOTNOTE)
-                ? nameToFootNoteEntry : nameToGlossaryEntry)
-                .put(es.getName(), es.getEntryId());
+                    ? nameToFootNoteEntry : nameToGlossaryEntry)
+                    .put(es.getName(), es.getEntryId());
             return es;
         :}
         | TOC.text {:
@@ -788,6 +788,18 @@ leafblock = ROOTLVL_PRE.text {:
             BufferMarker tm = new FootNotesMarker(++lastMarkerId);
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_footnotes"
+                    + ((text == null) ? "" : (" " + text))
+                    + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
+        :}
+        | INDEX.text {:
+            require(JCreolePrivilege.INDEX, _symbol_text);
+            if (text != null &&
+                !CssNamesPattern.matcher(text).matches())
+                    throw new CreoleParseException("Bad CSS name(s): " + text,
+                            (Token) _symbol_text);
+            BufferMarker tm = new IndexMarker(++lastMarkerId);
+            markers.put(Integer.valueOf(lastMarkerId), tm);
+            return new WashedSymbol("<div class=\"jcx_index"
                     + ((text == null) ? "" : (" " + text))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
@@ -1151,5 +1163,12 @@ inline = NESTED_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), fnrm);
             return new WashedSymbol("<a class=\"jcreole_fnref\" href=\"#jcfn"
                     + fnrm.getMarkerString() + "</sup></a>");
+        :}
+        | INDEXENTRY.text {:
+            IndexEntryMarker iem =
+                    new IndexEntryMarker(++lastMarkerId, clean(text));
+            markers.put(Integer.valueOf(lastMarkerId), iem);
+            return new WashedSymbol("<a class=\"jcreole_indexed\" "
+                    + "id=\"jcindexed" + iem.getMarkerString() + "\"></a>");
         :}
         ;

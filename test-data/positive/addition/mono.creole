@@ -11,4 +11,4 @@ some regular text and some ##mono text## too.
 ** and then reverts
 **Same thing //italic and **bold and ##monospace and exiting list.
 
-Closing plain paragaph.
+Closing plain paragraph.

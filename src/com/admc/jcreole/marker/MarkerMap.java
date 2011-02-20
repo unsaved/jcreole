@@ -40,6 +40,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private Map<String, String> idToTextMap = new HashMap<String, String>();
     private String enumerationFormats;
     private StringBuilder buffer;
+    private Map<String, List<Integer>> indexMap;
 
     /**
      * @param enumerationFormats is the starting numerationFormats used for
@@ -154,6 +155,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         Set<String> mappedNames = new HashSet<String>();
         FootNoteRefMarker fnrm;
         StringBuilder footNotesBuffer = new StringBuilder();
+        StringBuilder indexBuffer = new StringBuilder();
         for (BufferMarker m : sortedMarkers)
             if (m instanceof FootNoteRefMarker) {
                 fnrm = (FootNoteRefMarker) m;
@@ -180,12 +182,25 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             glossaryBuffer.append("<dl>\n  <dt>")
                     .append(e.getKey()).append("</td>\n  <dd>")
                     .append(e.getValue()).append("</dd>\n</dl>\n");
+        for (Map.Entry<String, List<Integer>> e :
+                new TreeMap<String, List<Integer>>(indexMap).entrySet()) {
+            indexBuffer.append("<dl>\n  <dt>")
+                    .append(e.getKey()).append("</td><dd>");
+            int refCount = 0;
+            for (Integer iger : e.getValue())
+                indexBuffer.append("<a href=\"#jcindexed").append(iger)
+                        .append("\">").append(++refCount).append("</a> ");
+            indexBuffer.append("</dd>\n</dl>\n");
+        }
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof GlossaryMarker) {
                 ((GlossaryMarker) m).setBody(glossaryBuffer.toString());
                 m.updateBuffer();
             } else if (m instanceof FootNotesMarker) {
                 ((FootNotesMarker) m).setBody(footNotesBuffer.toString());
+                m.updateBuffer();
+            } else if (m instanceof IndexMarker) {
+                ((IndexMarker) m).setBody(indexBuffer.toString());
                 m.updateBuffer();
             }
         }
@@ -241,8 +256,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         HeadingMarker hm;
         SectionHeading sectionHeading;
         Map<String, Integer> nameToRefNum = new HashMap<String, Integer>();
-        int refNum = 0;
+        int fnRefNum = 0, ieTargNum = 0;
         FootNoteRefMarker fnrm;
+        IndexEntryMarker iem;
+        indexMap = new HashMap<String, List<Integer>>();
         for (BufferMarker m : sortedMarkers)
             if (m instanceof HeadingMarker) {
                 hm = (HeadingMarker) m;
@@ -256,15 +273,23 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 if (nameToRefNum.containsKey(fnrm.getName())) {
                     fnrm.setRefNum(nameToRefNum.get(fnrm.getName()));
                 } else {
-                    fnrm.setRefNum(++refNum);
-                    nameToRefNum.put(fnrm.getName(), refNum);
+                    fnrm.setRefNum(++fnRefNum);
+                    nameToRefNum.put(fnrm.getName(), fnRefNum);
                 }
+            } else if (m instanceof IndexEntryMarker) {
+                iem = (IndexEntryMarker) m;
+                iem.setTargNum(++ieTargNum);
+
+                if (!indexMap.containsKey(iem.getName()))
+                    indexMap.put(iem.getName(), new ArrayList<Integer>());
+                indexMap.get(iem.getName()).add(Integer.valueOf(ieTargNum));
             }
     }
 
     /**
      * Does lots of stuff during a strictly forward-direction iteration of
      * all Markers .
+     * Most of it has to do with resolving styler references.
      * <p>
      * In particular, any automatic behavior dependent upon position within the
      * document must be implemented here.
@@ -520,6 +545,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof BodyUpdaterMarker) {
                 ;
             } else if (m instanceof FootNoteRefMarker) {
+                ;
+            } else if (m instanceof IndexEntryMarker) {
                 ;
             } else {
                 throw new CreoleParseException(
