@@ -1,10 +1,9 @@
 SHORT TERM
 
 Implement Index:
-    <<(indexEntry [entry]>>some content<<)>>  Links target from index.
-    If author codes a <<{...>> but has no <<index>>
-     then complain about orphaned index entries.
-     ... But what if framing page wants to fetch and display index?
+    <<(>>some content<<)>>
+    OR
+    <<indexEntry entryName>>
 
 Implement Glossary:
     Directives in the main body are authored exactly line indexEntries, except
