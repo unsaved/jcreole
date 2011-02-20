@@ -20,17 +20,53 @@ package com.admc.jcreole;
 import beaver.Symbol;
 
 /**
- * A Parser token specifically marked as being HTML-safe.
+ * A Parser Symbol for entry definition for a glossary or foot note.
  *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.0
  */
 class EntrySymbol extends WashedSymbol {
     EntryType eType;
-    String eName;
+    int entryId;
+    String name;
+
+    public EntryType getEntryType() {
+        return eType;
+    }
 
     public EntrySymbol(EntryType eType, String name) {
-        this.eName = name;
         this.eType = eType;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setEntryId(int entryId) {
+        this.entryId = entryId;
+        if (entryId < 0 || entryId > 0xFFFF)
+            throw new IllegalArgumentException(
+                    "Id is not between 0 and 0xFFFF inclusive: " + entryId);
+    }
+
+    public int getEntryId() {
+        return entryId;
+    }
+
+    public String getIdString() {
+        return String.format("%04X", entryId);
+    }
+
+    public String getIdAttr() {
+        return "jc" + ((eType == EntryType.FOOTNOTE) ? "fn" : "gl") + entryId;
+    }
+
+    /**
+     * Sandwiches content between binary control characters STX and ETX.
+     */
+    public String toString() {
+        return "\u0002" + ((eType == EntryType.GLOSSARY) ? 'G' : 'F')
+                + getIdString() + super.toString() + '\u0003';
     }
 }

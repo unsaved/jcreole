@@ -44,7 +44,7 @@ public class LinkMarker extends BufferMarker {
     public void wrapLabel(String prefix, String suffix) {
         if (label == null)
             throw new IllegalStateException(
-                    "Can't call wrapLabel before base lael has been set");
+                    "Can't call wrapLabel before base label has been set");
         label = prefix + label + suffix;
     }
 

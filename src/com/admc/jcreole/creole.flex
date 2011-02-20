@@ -264,7 +264,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
-<YYINITIAL> "<<"{s}*[{}]{s}*">>" {
+<YYINITIAL> "<<"{s}*[{}] {
+    pushState();
+    yypushback(yylength());
+    yybegin(PSTATE);
+}
+<YYINITIAL> "<<"{s}*(glossaryEntry|footNoteEntry){s} {
     pushState();
     yypushback(yylength());
     yybegin(PSTATE);
@@ -321,7 +326,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
-<PSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
@@ -343,7 +348,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_LI);
@@ -364,7 +369,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_DT);
@@ -387,12 +392,22 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.NESTED_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*toc ~ ">>"[ \t]*\n {
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary)
+~ ">>"[ \t]*\n {
     Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
         throw new RuntimeException(
                 "JCX Matcher captured " + m.groupCount() + " groups");
-    return newToken(Terminals.TOC, m.group(2));
+    short t;
+    if (m.group(1).equals("toc"))
+        t = Terminals.TOC;
+    else if (m.group(1).equals("footNotes"))
+        t = Terminals.FOOTNOTES;
+    else if (m.group(1).equals("glossary"))
+        t = Terminals.GLOSSARY;
+    else throw new IllegalStateException(
+            "Unexpected Plugin directive: " + m.group(1));
+    return newToken(t, m.group(2));
 }
 <YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
     // Raw HTML starting at ^[ \t] inside jcxBlocks handled by NESTED_...
@@ -601,11 +616,11 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }
-<HEADSTATE> "<<"[ \t]*footNoteEntry ~ ">>" {
+<PSTATE> "<<"[ \t]*footNoteEntry ~ ">>" {
     return newToken(Terminals.ENTRYDEF,
             matcher(ParamPluginPattern).group(2), 0);
 }
-<HEADSTATE> "<<"[ \t]*glossaryEntry ~ ">>" {
+<PSTATE> "<<"[ \t]*glossaryEntry ~ ">>" {
     return newToken(Terminals.ENTRYDEF,
             matcher(ParamPluginPattern).group(2), 1);
 }

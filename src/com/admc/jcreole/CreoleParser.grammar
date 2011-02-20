@@ -76,12 +76,18 @@
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
+    private List<EntrySymbol> footNoteEntries = new ArrayList<EntrySymbol>();
+    private List<EntrySymbol> glossaryEntries = new ArrayList<EntrySymbol>();
     // hIds is only for checking ID uniqueness
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
     private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
     private Character formatResetChar;
     private EnumSet<JCreolePrivilege> jcreolePrivs = DEFAULT_PLUGIN_PRIVILEGES;
+    private Map<String, Integer> nameToGlossaryEntry =
+            new HashMap<String, Integer>();
+    private Map<String, Integer> nameToFootNoteEntry =
+            new HashMap<String, Integer>();
 
     /**
      * Set enumeration formats to display section/heading enumerations in TOCs
@@ -196,7 +202,8 @@
      * Uses character \b internally so INPUT STRING MAY NOT CONTAIN \b!
      * The specified List must be all WashedSymbols.
      */
-    public static StringBuilder joinWashedSymbols(List<WashedSymbol> wtList) {
+    public static StringBuilder joinWashedSymbols(
+            List<? extends WashedSymbol> wtList) {
         StringBuilder sb = new StringBuilder();
         for (WashedSymbol t : wtList) sb.append(t.toString());
         return sb;
@@ -576,11 +583,13 @@
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
+%terminals FOOTNOTES, GLOSSARY;
 
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
+%typeof GLOSSARY, FOOTNOTES = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -589,9 +598,11 @@
 blocks = topblock.b+ {:
             StringBuilder sb = joinWashedSymbols(_list_b);
             log.debug("PRE-PostProcess[" + sb + ']');
+
             // Following sets formats for headers and default section labels in
             // TOCs, but has no effect on TOC inclusion.
-            return new WashedSymbol(markers.apply(sb, enumerationFormats));
+            return new WashedSymbol(markers.apply(sb, enumerationFormats,
+                    nameToFootNoteEntry, nameToGlossaryEntry).toString());
         :}
         | {: return new WashedSymbol("");:};  // This allows for empty document
 
@@ -622,7 +633,7 @@ topblock = HOR {:
         :}
         | ROOTLVL_NEWLINE.text {: return new WashedSymbol("\n"); :}
         | masterblock
-        | leafblock.s {: return s; :}
+        | leafblock.s
         ;
 
 // Blocks which may occur at different levels
@@ -685,7 +696,7 @@ leafblock = ROOTLVL_PRE.text {:
                     firstEntry = i;
                 }
             EntrySymbol es = (firstEntry > -1)
-                    ? ((EntrySymbol) _list_f.remove(i)) : null;
+                    ? ((EntrySymbol) _list_f.remove(firstEntry)) : null;
 
             StringBuilder b = joinWashedSymbols(_list_f);
             // Purpose of the following is to keep the </p> on same line as
@@ -693,11 +704,31 @@ leafblock = ROOTLVL_PRE.text {:
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
 
-            String c = "<p" + markBlock("p", true, false)
-                    + '>' + b + autoCloseInlines()
-                    + markClose(TagType.BLOCK) + "</p>\n";
-            if (es != null) es.setCleanString(c);
-            return (es == null) ? new WashedSymbol(c) : es;
+            b.append(autoCloseInlines());
+            b.append(markClose(TagType.BLOCK));
+            b.append("</p>\n");
+            b.insert(0, '>');
+            b.insert(0, markBlock("p", true, false));
+            if (es != null) {
+                es.setEntryId(((es.getEntryType() == EntryType.FOOTNOTE)
+                        ? footNoteEntries : glossaryEntries).size());
+                b.insert(0, '"');
+                b.insert(0, es.getIdAttr());
+                b.insert(0, " id=\"");
+            }
+            b.insert(0, "<p");
+
+            if (es == null) return new WashedSymbol(b.toString());
+            es.setCleanString(b.toString());
+            // I believe that we are here adding the entries to the lists in
+            // proper output document order.  If so, no need to delay this and
+            // write markers.
+            ((es.getEntryType() == EntryType.FOOTNOTE)
+                    ? footNoteEntries : glossaryEntries).add(es);
+            ((es.getEntryType() == EntryType.FOOTNOTE)
+                ? nameToFootNoteEntry : nameToGlossaryEntry)
+                .put(es.getName(), es.getEntryId());
+            return es;
         :}
         | TOC.text {:
             require(JCreolePrivilege.TOC, _symbol_text);
@@ -729,6 +760,30 @@ leafblock = ROOTLVL_PRE.text {:
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_toc"
                     + ((classNames == null) ? "" : (" " + classNames))
+                    + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
+        :}
+        | GLOSSARY.text {:
+            require(JCreolePrivilege.GLOSSARY, _symbol_text);
+            if (text != null &&
+                !CssNamesPattern.matcher(text).matches())
+                    throw new CreoleParseException("Bad CSS name(s): " + text,
+                            (Token) _symbol_text);
+            BufferMarker tm = new GlossaryMarker(++lastMarkerId);
+            markers.put(Integer.valueOf(lastMarkerId), tm);
+            return new WashedSymbol("<div class=\"jcx_glossary"
+                    + ((text == null) ? "" : (" " + text))
+                    + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
+        :}
+        | FOOTNOTES.text {:
+            require(JCreolePrivilege.FOOTNOTES, _symbol_text);
+            if (text != null &&
+                !CssNamesPattern.matcher(text).matches())
+                    throw new CreoleParseException("Bad CSS name(s): " + text,
+                            (Token) _symbol_text);
+            BufferMarker tm = new FootNotesMarker(++lastMarkerId);
+            markers.put(Integer.valueOf(lastMarkerId), tm);
+            return new WashedSymbol("<div class=\"jcx_footnotes"
+                    + ((text == null) ? "" : (" " + text))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
         ;
@@ -1082,6 +1137,6 @@ inline = NESTED_PRE.text {:
         :}
         | EMDASH {: return new WashedSymbol("&#x2014;"); :}
         | ENTRYDEF.text {:
-            return new EntrySymbol((((Token) _symbol_text).getIntParam() == 0)
-                    ? EntryType.FOOTNOTE : EntryType.GLOSSARY, text);
+            return new EntrySymbol(((((Token) _symbol_text).getIntParam() == 0)
+                    ? EntryType.FOOTNOTE : EntryType.GLOSSARY), text);
         :};

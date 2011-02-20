@@ -23,12 +23,14 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.admc.jcreole.CreoleParseException;
 import com.admc.jcreole.TagType;
 import com.admc.jcreole.SectionHeading;
 import com.admc.jcreole.Sections;
+import com.admc.jcreole.EntryType;
 
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
@@ -45,56 +47,154 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
      *        encapsulated nicely in TocMarker instances and not changed here
      *        (or elsewhere).
      */
-    public String apply(StringBuilder sb, String enumerationFormats) {
+    public StringBuilder apply(StringBuilder sb, String enumerationFormats,
+            Map<String, Integer> footNoteNameMap,
+            Map<String, Integer> glossaryNameMap) {
         if (enumerationFormats == null)
             throw new NullPointerException(
                     "enumerationFormats may not be null");
         buffer = sb;
         this.enumerationFormats = enumerationFormats;
-        int markerCount = unorderedPass();
+        int nonBUMmarkerCount = unorderedPass(false);
         List<BufferMarker> sortedMarkers = new ArrayList(values());
         Collections.sort(sortedMarkers);
-        if (markerCount != sortedMarkers.size())
+        // Can not run insert() until after the markers have been sorted.
+        if (size() < 1) return buffer;
+        forwardPass1(sortedMarkers);
+        forwardPass2(sortedMarkers);
+        log.debug(Integer.toString(sections.size())
+                + " Section headings: " + sections);
+        // The list of markers MUST BE REVERSE SORTED before applying.
+        // Applying in forward order would change buffer offsets.
+        Collections.reverse(sortedMarkers);
+        StringBuilder markerReport = new StringBuilder();
+        for (BufferMarker m : sortedMarkers) {
+            if (markerReport.length() > 0) markerReport.append(", ");
+            markerReport.append(m.getIdString()
+                    + '@' + m.getOffset());
+            // N.b. this is where the real APPLY occurs to the buffer:
+            if (!(m instanceof BodyUpdaterMarker)) m.updateBuffer();
+        }
+        log.debug("MARKERS:  " + markerReport.toString());
+
+        // Can not move Entries until all of the normal \u001a markers have
+        // been taken care of, because Styler directives depend on original
+        // Creole sequence.
+
+        // Extract all Entries
+        int id;
+        int offset3;
+        int offset2 = -1;
+        EntryType eType;
+        String idString;
+        Map<Integer, String> idToGloss = new HashMap<Integer, String>();
+        while ((offset2 = buffer.indexOf("\u0002", offset2 + 1)) > -1) {
+            if (buffer.length() < offset2 + 6)
+                throw new CreoleParseException(
+                        "\\u0002 Marking too close to end of output");
+            // Unfortunately StringBuilder has no indexOf(char).
+            // We could do StringBuilder.toString().indexOf(char), but
+            // that's a pretty expensive copy operation.
+            offset3 = buffer.indexOf("\u0003", offset2 + 6);
+            if (offset3 < 0)
+                throw new CreoleParseException("No termination for Entry");
+            switch (buffer.charAt(offset2 + 1)) {
+              case 'F':
+                  eType = EntryType.FOOTNOTE;
+                  break;
+              case 'G':
+                  eType = EntryType.GLOSSARY;
+                  break;
+              default:
+                  throw new CreoleParseException(
+                        "Unexpected EntryType indicator: "
+                        + buffer.charAt(offset2 + 1));
+            }
+            idString = buffer.substring(offset2 + 2, offset2 + 6);
+            id = Integer.parseInt(idString, 16);
+            if (!((eType == EntryType.FOOTNOTE)
+                    ? footNoteNameMap : glossaryNameMap)
+                    .containsValue(Integer.valueOf(id)))
+                throw new CreoleParseException("Missing "
+                    + ((eType == EntryType.FOOTNOTE) ? "footNote" : "glossary")
+                    + " entry w/ id " + id);
+            if (eType == EntryType.FOOTNOTE) 
+                footNotes.add(buffer.substring(offset2 + 6, offset3));
+            else
+                idToGloss.put(Integer.valueOf(id),
+                        buffer.substring(offset2 + 6, offset3));
+            buffer.delete(offset2, offset3 +1);
+        }
+        if (glossaryNameMap.size() != idToGloss.size())
+            throw new IllegalStateException("Glossary entry mismatch.  "
+                    + glossaryNameMap.size() + ' ' + " names parsed, but "
+                    + idToGloss.size() + " entries marked");
+        if (footNoteNameMap.size() != footNotes.size())
+            throw new IllegalStateException("Footnote entry mismatch.  "
+                    + footNoteNameMap.size() + ' ' + " names parsed, but "
+                    + footNotes.size() + " entries marked");
+        for (Map.Entry<String, Integer> e : glossaryNameMap.entrySet()) {
+            if (!idToGloss.containsKey(e.getValue()))
+                throw new IllegalStateException("Glossary Entry for name "
+                        + e.getKey() + " is missing");
+            nameToHtml.put(e.getKey(), idToGloss.get(e.getValue()));
+        }
+
+        // TODO: Consider whether to check for \u001a's inside of Entry p's,
+        // which must be circular Glossary or FootNotes markers.
+        int bUMmarkerCount = unorderedPass(true);
+        if (nonBUMmarkerCount + bUMmarkerCount != sortedMarkers.size())
             throw new IllegalStateException(
-                    "Markings/markers mismatch.  " + markerCount
+                    "Markings/markers mismatch.  " + nonBUMmarkerCount
+                    + " + " + bUMmarkerCount
                     + " markings found, but there are " + size()
                     + " markers");
-        // Can not run insert() until after the markers have been sorted.
-        if (size() > 0) {
-            forwardPass1(sortedMarkers);
-            forwardPass2(sortedMarkers);
-            log.debug(Integer.toString(sections.size())
-                    + " Section headings: " + sections);
-            // The list of markers MUST BE REVERSE SORTED before applying.
-            // Applying in forward order would change buffer offsets.
-            Collections.reverse(sortedMarkers);
-            StringBuilder markerReport = new StringBuilder();
-            for (BufferMarker m : sortedMarkers) {
-                if (markerReport.length() > 0) markerReport.append(", ");
-                markerReport.append(m.getIdString()
-                        + '@' + m.getOffset());
-                // N.b. this is where the real APPLY occurs to the buffer:
+        Collections.sort(sortedMarkers);
+        Collections.reverse(sortedMarkers);
+        StringBuilder glossaryBuffer = new StringBuilder();
+        StringBuilder footNotesBuffer = new StringBuilder();
+        int fnCtr = 0;
+        for (String fnHtml : footNotes)
+            footNotesBuffer.append("<dl>\n  <dt>")
+                    .append(++fnCtr).append("</td>\n  <dd>")
+                    .append(fnHtml).append("</dd>\n</dl>\n");
+        for (Map.Entry<String, String> e :
+                new TreeMap<String, String>(nameToHtml).entrySet())
+            glossaryBuffer.append("<dl>\n  <dt>")
+                    .append(e.getKey()).append("</td>\n  <dd>")
+                    .append(e.getValue()).append("</dd>\n</dl>\n");
+        for (BufferMarker m : sortedMarkers) {
+            if (m instanceof GlossaryMarker) {
+                ((GlossaryMarker) m).setBody(glossaryBuffer.toString());
+                m.updateBuffer();
+            } else if (m instanceof FootNotesMarker) {
+                ((FootNotesMarker) m).setBody(footNotesBuffer.toString());
                 m.updateBuffer();
             }
-            log.debug("MARKERS:  " + markerReport.toString());
         }
-        return buffer.toString();
+        return buffer;
     }
 
+    private List<String> footNotes = new ArrayList<String>();
+    private Map<String, String> nameToHtml = new HashMap<String, String>();
+
     /**
+     * Sets context (buffer and offset) for markers.
+     *
+     * @param bodyUpdaterMarkers If true then only update BodyUpdaterMakers,
+     *        otherwise then only update non-BodyUpdaterMarkers.
      * @return Number of markers found
      */
-    private int unorderedPass() {
+    private int unorderedPass(boolean bodyUpdaterMarkers) {
         BufferMarker marker;
         List<Integer> markerOffsets = new ArrayList<Integer>();
         String idString;
         int id;
         int offset = 0;
-        while ((offset = buffer.indexOf("\u001a", offset)) > -1) {
+        while ((offset = buffer.indexOf("\u001a", offset)) > -1) try {
             // Unfortunately StringBuilder has no indexOf(char).
-            // We could make do StringBuilder.toString().indexOf(char), but
+            // We could do StringBuilder.toString().indexOf(char), but
             // that's a pretty expensive copy operation.
-            markerOffsets.add(Integer.valueOf(offset));
             if (buffer.length() < offset + 4)
                 throw new CreoleParseException(
                         "Marking too close to end of output");
@@ -103,7 +203,14 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             marker = get(Integer.valueOf(id));
             if (marker == null)
                 throw new IllegalStateException("Lost marker with id " + id);
+            if (bodyUpdaterMarkers) {
+                if (!(marker instanceof BodyUpdaterMarker)) continue;
+            } else {
+                if (marker instanceof BodyUpdaterMarker) continue;
+            }
+            markerOffsets.add(Integer.valueOf(offset));
             marker.setContext(buffer, offset);
+        } finally {
             offset += 5;  // Move past the marker that we just found
         }
         log.debug(Integer.toString(markerOffsets.size())
@@ -383,6 +490,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                             "<span class=\"jcreole_orphanLink\">", "</span>");
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setSectionHeadings(sections);
+            } else if (m instanceof BodyUpdaterMarker) {
+                ;
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "

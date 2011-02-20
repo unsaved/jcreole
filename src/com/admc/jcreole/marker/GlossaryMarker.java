@@ -15,24 +15,14 @@
  */
 
 
-package com.admc.jcreole;
+package com.admc.jcreole.marker;
 
 /**
- * Privilege to restrict access to Plugin features.
- *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public enum JCreolePrivilege {
-    STYLER,
-    JCXSPAN,
-    JCXBLOCK,
-    STYLESHEET,
-    RAWHTML,
-    TOC,
-    ENUMFORMAT, 
-    ABSLINK,
-    POPUP,
-    GLOSSARY,
-    FOOTNOTES
+public class GlossaryMarker extends BodyUpdaterMarker {
+    public GlossaryMarker(int id) {
+        super(id);
+    }
 }

@@ -15,24 +15,25 @@
  */
 
 
-package com.admc.jcreole;
+package com.admc.jcreole.marker;
 
 /**
- * Privilege to restrict access to Plugin features.
- *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public enum JCreolePrivilege {
-    STYLER,
-    JCXSPAN,
-    JCXBLOCK,
-    STYLESHEET,
-    RAWHTML,
-    TOC,
-    ENUMFORMAT, 
-    ABSLINK,
-    POPUP,
-    GLOSSARY,
-    FOOTNOTES
+abstract public class BodyUpdaterMarker extends BufferMarker {
+    private String body;
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public BodyUpdaterMarker(int id) {
+        super(id);
+    }
+
+    public void updateBuffer() {
+        super.updateBuffer();
+        targetSb.insert(offset, body);
+    }
 }
