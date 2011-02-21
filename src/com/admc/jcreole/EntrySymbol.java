@@ -20,7 +20,7 @@ package com.admc.jcreole;
 import beaver.Symbol;
 
 /**
- * A Parser Symbol for entry definition for a glossary or foot note.
+ * A Parser Symbol for entry definition for a master-def or foot note.
  *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.0
@@ -59,14 +59,14 @@ class EntrySymbol extends WashedSymbol {
     }
 
     public String getIdAttr() {
-        return "jc" + ((eType == EntryType.FOOTNOTE) ? "fn" : "gl") + entryId;
+        return "jc" + ((eType == EntryType.FOOTNOTE) ? "fn" : "mdef") + entryId;
     }
 
     /**
      * Sandwiches content between binary control characters STX and ETX.
      */
     public String toString() {
-        return "\u0002" + ((eType == EntryType.GLOSSARY) ? 'G' : 'F')
+        return "\u0002" + ((eType == EntryType.MASTERDEF) ? 'D' : 'F')
                 + getIdString() + super.toString() + '\u0003';
     }
 }

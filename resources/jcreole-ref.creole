@@ -435,13 +435,13 @@ directive must be placed on a line by itself.
 
 ===Footnotes
 
-Add references ~<<footNote yourRefName>> like this, and write the foot note
+Add references ~<<footNote yourEntryName>> like this, and write the foot note
 entries in paragraphs...
 
-~<<footNoteEntry yourRefName>>Like this.
+~<<footNoteEntry yourEntryName>>Like this.
 The paragraph may contain any regular paragraph markup, excepting
-foot note, glossary, and index Directives.
-For reference of bibliography entries, you will often want to use 
+foot note, master list, and index Directives.
+For reference or bibliography entries, you will often want to use 
 [[#jcsect_ExplicitHyperlinks]].
 
 Then finally, where you want the footnote entries to appear in the document,
@@ -449,7 +449,7 @@ add...
 
 ~<<footNotes>>
 
-The sequence of the 3 directives (##footNote##, ##footNoteEntry##,
+The sequence of all of the 3 directives (##footNote##, ##footNoteEntry##,
 and ##footNotes##) makes no difference.
 Write them in whatever order is easiest or best for you to organize your
 document.
@@ -459,7 +459,7 @@ footNoteEntries occur.
 Your audience is assured that the first foot note in the footnotes listing will
 be the foot note for the first footnote reference in the document.
 
-The reference names, ##yourRefName## in the examples above, are arbitrary.
+The reference names, ##yourEntryName## in the examples above, are arbitrary.
 Though they do not appear in the generated document at all, they serve an
 important purpose.
 They allow multiple references (##footNote## directives) to point to a single
@@ -472,10 +472,9 @@ genetic inheritance details, you could name that entry something like
 compromise between conciseness and descriptiveness.
 
 Because of the minimalistic setup used for this reference document, and the
-goal to keep this all inside one sub-section, the following sample can't show
-how clicking on entries usually pops up the entry text, nor even scroll the
-browser to the targeted entry, but you can at least see what things look like
-without interaction.
+goal to keep this sample inside one sub-section, the following sample can't show
+how clicking on references usually pops up the entry text, nor even scroll the
+browser to the targeted entry.
 
 ==== Full Footnotes Sample
 
@@ -489,6 +488,12 @@ And to show that multiple references to a shared entry work, here's a second
 ref to the first entry<<footNote firstEntry>>.
 
 <<footNoteEntry firstEntry>>First sample entry.
+
+=====Sample Footnotes Document Section
+Note that though you will usually want to insert the footnote entry listing at
+the end of your document, it's awful useful for special cases like this one, to
+be able to place it wherever you want to.
+<<footNotes>>
 
 === Index
 Mark entries in the document body ~<<(>>like this~<<)>> and
@@ -525,11 +530,64 @@ the end of your document, it's awful useful for special cases like this one, to
 be able to place it wherever you want to.
 <<index>>
 
-=====Sample Footnotes Document Section
-Note that though you will usually want to insert the footnote entry listing at
-the end of your document, it's awful useful for special cases like this one, to
-be able to place it wherever you want to.
-<<footNotes>>
+===Master Definition List
+
+Add ~[[entryName|explicitly labelled reference]]s or automatically labelled
+references like this: ~[[entryName]].
+And write the definition list entries in paragraphs...
+
+~<<masterDefEntry yourEntryName>>Like this.
+The paragraph may contain any regular paragraph markup, excepting
+foot note, glossary, and index Directives.
+Then finally, where you want the definition entries to appear in the document,
+add...
+
+~<<masterDefList>>
+
+A Master Definition List is a generalization of a glossary.
+One Creole file can have one master definition file (hence //master//).
+Add definitions for any words, terms, phrases, or whatever that are appropriate
+and useful to your document.
+
+Notice that you write links to definition entries as
+[[#jcsect_ExplicitHyperlinks]].
+Each explicit hyperlink in your document with a relative URL (i.e. not
+#localAnchor URL and not absolute URL and not wiki:link) is checked against all
+def list entries.
+If the URL matches a master definition list entry name, then it is linked to it.
+
+The sequence of all of the 3 directives (##~[[...]]]##, ##masterDefEntry##,
+and ##masterDefList##) makes no difference.
+Write them in whatever order is easiest or best for you to organize your
+document.
+In the generated definition listing, the entries will alphabetized.
+
+Multiple links can point to a single definition entry.
+Definition entries do not need to be linked to at all.
+
+Because of the minimalistic setup used for this reference document, and the
+goal to keep this sample inside one sub-section, the following sample can't show
+how clicking on references usually pops up the entry text, nor even scroll the
+browser to the targeted entry.
+
+==== Full Master Definition List Sample
+
+=====Sample Master Definition List Section
+You can insert the Definition List wherever you want to in your document.
+<<masterDefList>>
+
+<<masterDefEntry Scott, Michael>>Office manager.
+Notice that even though I have written this entry first and I have referenced
+it first, it will not be first
+in the list of entries because the list gets sorted by the definienda.
+
+Main body text paragraph here, with the [[Scott, Michael]] auto-labelled link,
+and a second [[Beasley, Pam|explicitly labelled link]].
+And to show that multiple references to a shared entry work, here's a
+[[Scott, Michael|second link to the Scott entry]].
+
+<<masterDefEntry Beasley, Pam>>Saleswoman.  Previously the office receptionist.
+
 
 ==Styling <<enumFormatReset A>>
 

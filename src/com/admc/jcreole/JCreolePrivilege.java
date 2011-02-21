@@ -33,7 +33,7 @@ public enum JCreolePrivilege {
     ENUMFORMAT, 
     ABSLINK,
     POPUP,
-    GLOSSARY,
+    MASTERDEF,
     FOOTNOTES,
     INDEX
 }

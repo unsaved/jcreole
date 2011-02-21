@@ -17,12 +17,31 @@
 
 package com.admc.jcreole.marker;
 
+import java.util.List;
+import com.admc.jcreole.Sections;
+
 /**
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public class GlossaryMarker extends BodyUpdaterMarker {
-    public GlossaryMarker(int id) {
+public class DeferredUrlMarker extends BufferMarker {
+    private String inUrl, overrideUrl;
+
+    public DeferredUrlMarker(int id, String inUrl) {
         super(id);
+        this.inUrl = inUrl;
+    }
+
+    public String getInUrl() {
+        return inUrl;
+    }
+
+    public void setOverrideUrl(String overrideUrl) {
+        this.overrideUrl = overrideUrl;
+    }
+
+    public void updateBuffer() {
+        super.updateBuffer();
+        targetSb.insert(offset, (overrideUrl == null) ? inUrl : overrideUrl);
     }
 }

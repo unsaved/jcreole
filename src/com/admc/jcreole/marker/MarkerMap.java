@@ -41,6 +41,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private String enumerationFormats;
     private StringBuilder buffer;
     private Map<String, List<Integer>> indexMap;
+    private Map<String, Integer> masterDefNameMap;
 
     /**
      * @param enumerationFormats is the starting numerationFormats used for
@@ -52,10 +53,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
      */
     public StringBuilder apply(StringBuilder sb, String enumerationFormats,
             Map<String, Integer> footNoteNameMap,
-            Map<String, Integer> glossaryNameMap) {
+            Map<String, Integer> masterDefNameMap) {
         if (enumerationFormats == null)
             throw new NullPointerException(
                     "enumerationFormats may not be null");
+        this.masterDefNameMap = masterDefNameMap;
         buffer = sb;
         this.enumerationFormats = enumerationFormats;
         int nonBUMmarkerCount = unorderedPass(false);
@@ -90,7 +92,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         int offset2 = -1;
         EntryType eType;
         String idString;
-        Map<Integer, String> idToGloss = new HashMap<Integer, String>();
+        Map<Integer, String> idToDef = new HashMap<Integer, String>();
         Map<Integer, String> idToFoot = new HashMap<Integer, String>();
         while ((offset2 = buffer.indexOf("\u0002", offset2 + 1)) > -1) {
             if (buffer.length() < offset2 + 6)
@@ -103,11 +105,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             if (offset3 < 0)
                 throw new CreoleParseException("No termination for Entry");
             switch (buffer.charAt(offset2 + 1)) {
+              case 'D':
+                  eType = EntryType.MASTERDEF;
+                  break;
               case 'F':
                   eType = EntryType.FOOTNOTE;
-                  break;
-              case 'G':
-                  eType = EntryType.GLOSSARY;
                   break;
               default:
                   throw new CreoleParseException(
@@ -117,33 +119,33 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             idString = buffer.substring(offset2 + 2, offset2 + 6);
             id = Integer.parseInt(idString, 16);
             if (!((eType == EntryType.FOOTNOTE)
-                    ? footNoteNameMap : glossaryNameMap)
+                    ? footNoteNameMap : masterDefNameMap)
                     .containsValue(Integer.valueOf(id)))
                 throw new CreoleParseException("Missing "
-                    + ((eType == EntryType.FOOTNOTE) ? "footNote" : "glossary")
+                    + ((eType == EntryType.FOOTNOTE) ? "footNote" : "masterDef")
                     + " entry w/ id " + id);
-            ((eType == EntryType.FOOTNOTE) ? idToFoot : idToGloss)
+            ((eType == EntryType.FOOTNOTE) ? idToFoot : idToDef)
                     .put(Integer.valueOf(id),
                     buffer.substring(offset2 + 6, offset3));
             buffer.delete(offset2, offset3 +1);
         }
-        if (glossaryNameMap.size() != idToGloss.size())
-            throw new IllegalStateException("Glossary entry mismatch.  "
-                    + glossaryNameMap.size() + ' ' + " names parsed, but "
-                    + idToGloss.size() + " entries marked");
+        if (masterDefNameMap.size() != idToDef.size())
+            throw new IllegalStateException("MasterDef entry mismatch.  "
+                    + masterDefNameMap.size() + ' ' + " names parsed, but "
+                    + idToDef.size() + " entries marked");
         if (footNoteNameMap.size() != idToFoot.size())
             throw new IllegalStateException("Footnote entry mismatch.  "
                     + footNoteNameMap.size() + ' ' + " names parsed, but "
                     + idToFoot.size() + " entries marked");
-        for (Map.Entry<String, Integer> e : glossaryNameMap.entrySet()) {
-            if (!idToGloss.containsKey(e.getValue()))
-                throw new IllegalStateException("Glossary Entry for name "
+        for (Map.Entry<String, Integer> e : masterDefNameMap.entrySet()) {
+            if (!idToDef.containsKey(e.getValue()))
+                throw new IllegalStateException("MasterDef Entry for name "
                         + e.getKey() + " is missing");
-            nameToHtml.put(e.getKey(), idToGloss.get(e.getValue()));
+            nameToDefHtml.put(e.getKey(), idToDef.get(e.getValue()));
         }
 
         // TODO: Consider whether to check for \u001a's inside of Entry p's,
-        // which must be circular Glossary or FootNotes markers.
+        // which must be circular MasterDef or FootNotes markers.
         int bUMmarkerCount = unorderedPass(true);
         if (nonBUMmarkerCount + bUMmarkerCount != sortedMarkers.size())
             throw new IllegalStateException(
@@ -176,10 +178,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                     .append(e.getValue()).append("</dd>\n</dl>\n");
         }
         Collections.reverse(sortedMarkers);
-        StringBuilder glossaryBuffer = new StringBuilder();
+        StringBuilder masterDefBuffer = new StringBuilder();
         for (Map.Entry<String, String> e :
-                new TreeMap<String, String>(nameToHtml).entrySet())
-            glossaryBuffer.append("<dl>\n  <dt>")
+                new TreeMap<String, String>(nameToDefHtml).entrySet())
+            masterDefBuffer.append("<dl>\n  <dt>")
                     .append(e.getKey()).append("</td>\n  <dd>")
                     .append(e.getValue()).append("</dd>\n</dl>\n");
         for (Map.Entry<String, List<Integer>> e :
@@ -193,8 +195,8 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             indexBuffer.append("</dd>\n</dl>\n");
         }
         for (BufferMarker m : sortedMarkers) {
-            if (m instanceof GlossaryMarker) {
-                ((GlossaryMarker) m).setBody(glossaryBuffer.toString());
+            if (m instanceof MasterDefListMarker) {
+                ((MasterDefListMarker) m).setBody(masterDefBuffer.toString());
                 m.updateBuffer();
             } else if (m instanceof FootNotesMarker) {
                 ((FootNotesMarker) m).setBody(footNotesBuffer.toString());
@@ -207,7 +209,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         return buffer;
     }
 
-    private Map<String, String> nameToHtml = new HashMap<String, String>();
+    private Map<String, String> nameToDefHtml = new HashMap<String, String>();
 
     /**
      * Sets context (buffer and offset) for markers.
@@ -307,6 +309,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         String linkText;
         CloseMarker closeM;
         LinkMarker linkM;
+        DeferredUrlMarker duM;
         HeadingMarker headingM;
         TagMarker lastTag, tagM;
         final List<JcxSpanMarker> jcxSpanStack = new ArrayList<JcxSpanMarker>();
@@ -548,6 +551,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 ;
             } else if (m instanceof IndexEntryMarker) {
                 ;
+            } else if (m instanceof DeferredUrlMarker) {
+                duM = (DeferredUrlMarker) m;
+                Integer overrideId = masterDefNameMap.get(duM.getInUrl());
+                if (overrideId != null)
+                    duM.setOverrideUrl("#jcmdef" + overrideId);
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "

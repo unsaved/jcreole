@@ -15,8 +15,14 @@
  */
 
 
-package com.admc.jcreole;
+package com.admc.jcreole.marker;
 
-public enum EntryType {
-    FOOTNOTE, MASTERDEF
+/**
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1
+ */
+public class MasterDefListMarker extends BodyUpdaterMarker {
+    public MasterDefListMarker(int id) {
+        super(id);
+    }
 }

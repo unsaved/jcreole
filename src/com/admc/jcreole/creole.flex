@@ -277,7 +277,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     yybegin(PSTATE);
 }
-<YYINITIAL> "<<"{s}*(glossaryEntry|footNoteEntry){s} {
+<YYINITIAL> "<<"{s}*(footNoteEntry|masterDefEntry){s} {
     pushState();
     yypushback(yylength());
     yybegin(PSTATE);
@@ -334,7 +334,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
-<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
+<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
@@ -356,7 +356,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
+<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_LI);
@@ -377,7 +377,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index) ~ ">>"[ \t]*\n {
+<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_DT);
@@ -400,7 +400,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.NESTED_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|glossary|index)
+<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)
 ~ ">>"[ \t]*\n {
     Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
@@ -411,8 +411,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
         t = Terminals.TOC;
     else if (m.group(1).equals("footNotes"))
         t = Terminals.FOOTNOTES;
-    else if (m.group(1).equals("glossary"))
-        t = Terminals.GLOSSARY;
+    else if (m.group(1).equals("masterDefList"))
+        t = Terminals.MASTERDEFLIST;
     else if (m.group(1).equals("index"))
         t = Terminals.INDEX;
     else throw new IllegalStateException(
@@ -630,7 +630,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.ENTRYDEF,
             matcher(ParamPluginPattern).group(2), 0);
 }
-<PSTATE> "<<"[ \t]*glossaryEntry ~ ">>" {
+<PSTATE> "<<"[ \t]*masterDefEntry ~ ">>" {
     return newToken(Terminals.ENTRYDEF,
             matcher(ParamPluginPattern).group(2), 1);
 }

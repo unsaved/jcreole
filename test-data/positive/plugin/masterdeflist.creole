@@ -1,0 +1,15 @@
+=====Sample Master Definition List Section
+You can insert the Definition List wherever you want to in your document.
+<<masterDefList>>
+
+<<masterDefEntry Scott, Michael>>Office manager.
+Notice that even though I have written this entry first and I have referenced
+it first, it will not be first
+in the list of entries because the list gets sorted by the definienda.
+
+Main body text paragraph here, with the [[Scott, Michael]] auto-labelled link,
+and a second [[Beasley, Pam|explicitly labelled link]].
+And to show that multiple references to a shared entry work, here's a
+[[Scott, Michael|second link to the Scott entry]].
+
+<<masterDefEntry Beasley, Pam>>Saleswoman.  Previously the office receptionist.

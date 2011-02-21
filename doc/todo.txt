@@ -1,19 +1,5 @@
 SHORT TERM
 
-Implement Index:
-    <<(>>some content<<)>>
-    OR
-    <<indexEntry entryName>>
-
-Implement Glossary:
-    Directives in the main body are authored exactly line indexEntries, except
-    <<(glossaryEntry [entry]>>some content<<)>>  Links target from glossary
-                             (and either links TO glossary or Pops-up)
-    It is a runtime error if there is no <<glossaryEntry>> paragraph for it.
-    If author codes a <<{...>> but has no <<glossary>>
-     then complain about orphaned index entries.
-     ... But what if framing page wants to fetch and display glossary?
-
 Consider how to allow author to specify link target, or at least whether to
 open in-page or out-of-page.
 
