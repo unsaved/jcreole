@@ -21,11 +21,15 @@ import java.util.List;
 import com.admc.jcreole.Sections;
 
 /**
+ * This class is named to be used as a general deferred URL resolver, but for
+ * now it is Master-Definition-List specific, since that's all we need.
+ *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
 public class DeferredUrlMarker extends BufferMarker {
-    private String inUrl, overrideUrl;
+    private String inUrl, name;
+    int targetId = -1;
 
     public DeferredUrlMarker(int id, String inUrl) {
         super(id);
@@ -36,12 +40,18 @@ public class DeferredUrlMarker extends BufferMarker {
         return inUrl;
     }
 
-    public void setOverrideUrl(String overrideUrl) {
-        this.overrideUrl = overrideUrl;
+    public void setTargetId(int targetId) {
+        this.targetId = targetId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void updateBuffer() {
         super.updateBuffer();
-        targetSb.insert(offset, (overrideUrl == null) ? inUrl : overrideUrl);
+        targetSb.insert(offset, (targetId < 0)
+                ? inUrl : ("#jcmdef" + targetId + "\" title=\"" + name
+                          + "\" class=\"jcreole_mdef"));
     }
 }

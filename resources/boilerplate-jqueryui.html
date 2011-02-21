@@ -43,6 +43,7 @@
 <script type="text/javascript">
   localLinkRe = /#(.+)$/;
   footNoteClones = [];
+  defListClones = [];
   jcreoleInfoPopup = function(s) {
       $('<p class="ui-state-default">' + s + "</p>").prependTo("body").dialog({
           close: function() {$(this).dialog("destroy").remove();},
@@ -59,14 +60,34 @@
       }
       $(footNoteClones[extracted[1]]).dialog("open");
   };
+  displayMasterDef = function(origLink, defName) {
+      var extracted = localLinkRe.exec(origLink);
+      if (extracted === null) {
+          alert("Internal failure.  "
+                  + "Failed to extract local link from masterdeflist ref");
+          throw new Error("Internal failure.  "
+                  + "Failed to extract local link from masterdeflist ref");
+      }
+      $(defListClones[extracted[1]])
+            .dialog("option", "title", ("Definition for '" + defName + "'"))
+            .dialog("open");
+  };
   $(function() {
       $("a.jcreole_fnref").each(function() {
-          this.href = 'javascript:displayFootnote("' + this.href + '");'
-                + 'void(0); // Display footnote';
+          this.href = 'javascript:displayFootnote("' + this.href
+                + '"); void(0); // Display footnote';
       });
       $("div.jcx_footnotes dd p").each(function() {
           footNoteClones[this.id] = $(this).clone(false)
                 .dialog({autoOpen: false, title: "Footnote"});
+      });
+      $("a.jcreole_mdef").each(function() {
+          this.href = 'javascript:displayMasterDef("' + this.href + '", "'
+                + this.title + '"); void(0); // Display master def';
+      });
+      $("div.jcx_masterDef dd p").each(function() {
+          defListClones[this.id] = $(this).clone(false)
+                .dialog({autoOpen: false});
       });
   });
 </script>

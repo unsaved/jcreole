@@ -323,6 +323,11 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         InlineMarker prevInline = null;
         int headingLevel = 0;
         int[] curSequences = new int[] {-1, -1, -1, -1, -1, -1};
+
+        Map<Integer, String> revDefNameMap = new HashMap<Integer, String>();
+        for (Map.Entry<String, Integer> e : masterDefNameMap.entrySet())
+            revDefNameMap.put(e.getValue(), e.getKey());
+
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof TagMarker) {
                 tagM = (TagMarker) m;
@@ -554,8 +559,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof DeferredUrlMarker) {
                 duM = (DeferredUrlMarker) m;
                 Integer overrideId = masterDefNameMap.get(duM.getInUrl());
-                if (overrideId != null)
-                    duM.setOverrideUrl("#jcmdef" + overrideId);
+                if (overrideId != null) {
+                    duM.setTargetId(overrideId.intValue());
+                    duM.setName(revDefNameMap.get(overrideId));
+                }
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "
