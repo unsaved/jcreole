@@ -63,7 +63,6 @@ public class MasterDefListMarker extends BodyUpdaterMarker {
     }
 
     public void add(String name) {
-System.err.println("+ " + name);
         Entry newEntry = new Entry(1 + entries.size());
         entries.add(newEntry);
         origKeyToEntry.put(name, newEntry);
