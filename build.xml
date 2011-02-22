@@ -344,9 +344,14 @@ copy the resources accordingly.</echo>
 
   <target name="ref" description="Generate JCreole Reference doc"
           depends="stage, -run-init">
+    <!-- Set ant param 'refstyle' to 'jqueryui' to generate jquery-ui dependent
+         document, instead of the default standalone document. -->
+    <property name="refstyle" value="default"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
     <java jar="tmp/stage/jcreole-${version}.jar"
           classpathref="run.ivyrefid" failonerror="true" fork="true">
+      <arg value="-r"/>
+      <arg value="boilerplate-${refstyle}.html"/>
       <arg value="-o"/>
       <arg value="tmp/jcreole-ref.html"/>
       <arg value="jcreole-ref.creole"/>
