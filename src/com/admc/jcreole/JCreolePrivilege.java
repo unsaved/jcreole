@@ -35,5 +35,6 @@ public enum JCreolePrivilege {
     POPUP,
     MASTERDEF,
     FOOTNOTES,
-    INDEX
+    INDEX,
+    WINDOWTARGETING
 }

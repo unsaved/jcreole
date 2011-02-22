@@ -18,7 +18,7 @@
 
 All features listed in this section are available to all page authors.
 
-See the [[http://wikicreole.org/wiki/Creole1.0|Creole 1.0 Spec]] for more
+See the [[&http://wiki.wikicreole.org/Creole%201.0|Creole 1.0 Spec]] for more
 details about basic Creole directives and behavior.
 
 === Plain text
@@ -77,21 +77,22 @@ One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## means a 
 (The line above that says "Headings" serves as an example).
 
 === Bare URLs
-======~http://wikicreole.org/wiki/Creole1.0
+======~http://wiki.wikicreole.org/Creole%201.0
 Automatically made into hyperlinks with a label matching the URL.\\
-~http://wikicreole.org/wiki/Creole1.0
+~http://wiki.wikicreole.org/Creole%201.0
 
 To prevent link-generation, add a tilde (##~##) right before an URL, like
-{{{~http://wikicreole.org/wiki/Creole1.0}}} .
+{{{~http://wiki.wikicreole.org/Creole%201.0}}} .
 
 === Explicit hyperlinks
-======{{{[[http://wikicreole.org/wiki/Creole1.0]]}}}
+======{{{[[http://wiki.wikicreole.org/Creole%201.0]]}}}
 To show a label as something other than the URL, add a pipe character and the
 label text right after the URL,
-{{{[[http://wikicreole.org/wiki/Creole1.0|like this]]}}}.\\
-Looks [[http://wikicreole.org/wiki/Creole1.0|like this]].
+{{{[[http://wiki.wikicreole.org/Creole%201.0|like this]]}}}.\\
+Looks [[http://wiki.wikicreole.org/Creole%201.0|like this]].
 
-Also see the Jcreole-specific [[#jcsect_PopupLinks]] directive.
+Also see the Jcreole-specific [[#jcsect_PopupLinks]] and
+[[#jcsect_TargetedLinks]] enhancements to explicit hyperlinks.
 
 Inter- and intra- wiki links with colons are supported by JCreole, but require
 application integration.
@@ -109,11 +110,11 @@ Looks like...
 ======~{{this.png~}}
 You can add alternate text for non-graphical page viewers\\
 like **##~{{this.png|alternate text~}}##**\\
-You embed the ##~{{...~}}## inside of a ##~[[link...~]]## to have the image hot
+You embed the ##~{{...~}}## inside of a ##~[[link...]]## to have the image hot
 linked with a target URL,\\
-Like **##{{{[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]}}}##**\\
+Like **##{{{[[http://wiki.wikicreole.org/Creole%201.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png}}]]}}}##**\\
 Looks like\\
-[[http://wikicreole.org/wiki/Creole1.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png|Alternate text}}]]
+[[http://wiki.wikicreole.org/Creole%201.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png|Alternate text}}]]
 
 === Preventing markup interpretation
 ...by prefixing the special character(s) with ~, or by enclosing the text with
@@ -150,7 +151,7 @@ for more complete descriptions.
 === Automatic id's to use as Hyperlink Targets
 Take a look at the generated code and you will see id attributes written to all
 of your heading elements.
-You can use these as targets from ~[[...~]] links on the same page, as targets
+You can use these as targets from ~[[...]] links on the same page, as targets
 from external pages, to use in CSS selectors, or for any other purpose.
 (They are also used for the TOC feature described elsewhere).
 
@@ -209,7 +210,7 @@ If you write ~--, that would not generate two hyphens, but would trigger
 overstrike, due to the [[#jcsect_Overstrike]] directive.
 You can avoid the Overstrike directive by writing {{{~-}}}, but I recommend the
 fancier EM Dash, {{{---}}}, which looks like...\\
----
+This---
 
 === Headed List Items
 ======#=Like|this
@@ -263,15 +264,31 @@ Definition Lists are not as powerful as lists though (and are even less powerful
 
 === Popup Links
 
-======~[["Like"|this~]]\\
+======~[["Like"|this]]
 Popups up a message.
+
 This requires simple application integration (at least a one-line JavaScript
- function definition), and the page author needs popup authorization.
+ function definition), and the page author needs a specific privilege.
 This is exactly the same as [[#jcsect_ExplicitHyperlinks]] with double-quoted
 URL and specified label.
 
 [["The
 message"|Click to see]]
+
+
+=== Targeted Links
+
+======~[[&~http://wiki.wikicreole.org/Creole%201.0]]
+or\\
+======~[[&~http://wiki.wikicreole.org/Creole%201.0|Label here]]
+Same as a regular link, with or without explicit label, but targets the page
+display to a new browser window (or tab, depending on your web browser and
+settings).
+I.e. the new web page will open elsewhere and not replace the current page.
+
+Usage of this feature requires a specific page author privilege.
+
+[[&http://wiki.wikicreole.org/Creole%201.0|Click to see]]
 
 
 == JCreole Extensions via ~<<...>> Plugin Directives
@@ -290,7 +307,7 @@ display of table-of-contents).
 === Raw HTML
 ======{{{<<~Like this>>}}}
 Code HTML right into your wikitext page.
-This directive is usually restricted to users with special authorization.
+This directive is usually restricted to users with a special authorization.
 
 === jcxBlock: Create custom-stylable Block element
 ======{{{<<[>>>Like this<<]>>}}}

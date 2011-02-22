@@ -71,6 +71,7 @@
     private boolean indexAdded, masterDefListAdded, footNotesAdded;
     private InterWikiMapper interWikiMapper;
     private int lastMarkerId = 0;
+    private int ewinCount = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
     // hIds is only for checking ID uniqueness
@@ -1014,17 +1015,29 @@ inline = NESTED_PRE.text {:
         | URL.text {:
             Token token = (Token) _symbol_text;
             int delimPos = token.getIntParam();
+            boolean extWin = false;
+            String lText = text;
+            if (lText.length() > 0 && lText.charAt(0) == '&') {
+                if (!jcreolePrivs.contains(JCreolePrivilege.WINDOWTARGETING))
+                    throw new CreoleParseException(
+                            "You lack the privilege "
+                            + JCreolePrivilege.WINDOWTARGETING
+                            + " which is required for &-linking");
+                lText = lText.substring(1);
+                delimPos -= 1;
+                extWin = true;
+            }
             String inLbl = (delimPos > -1)
-                         ? text.substring(delimPos + 1) : null;
+                         ? lText.substring(delimPos + 1) : null;
             String urlText = (delimPos > -1)
-                           ? text.substring(0, delimPos) : text;
+                           ? lText.substring(0, delimPos) : lText;
             String url = null;
             String popupText = null;
             String labelFromMap = null;
             boolean mapLookupFailed = false;
-            Matcher matcher = (text.startsWith("http:")
-                    || text.startsWith("https:")
-                    || text.startsWith("ftp:")) ? null
+            Matcher matcher = (lText.startsWith("http:")
+                    || lText.startsWith("https:")
+                    || lText.startsWith("ftp:")) ? null
                     : InterWikiPattern.matcher(urlText);
             // Group 1 is logical wiki name or null
             // Group 2 is required page name
@@ -1076,15 +1089,15 @@ inline = NESTED_PRE.text {:
                 if (!jcreolePrivs.contains(JCreolePrivilege.ABSLINK)
                         && CreoleParser.isAbsoluteUrl(urlText))
                     return new WashedSymbol(url);
-                if (text.startsWith("#" + sectIdPrefix)) {
+                if (lText.startsWith("#" + sectIdPrefix)) {
                     // This defers generation of label text to MarkerMap.
                     BufferMarker m =
-                            new LinkMarker(++lastMarkerId, clean(text));
+                            new LinkMarker(++lastMarkerId, clean(lText));
                     markers.put(Integer.valueOf(lastMarkerId), m);
                     label = m.getMarkerString();
                 } else {
                     label = (labelFromMap == null)
-                          ? clean(text)
+                          ? clean(lText)
                           : labelFromMap;
                 }
             } else {
@@ -1094,7 +1107,7 @@ inline = NESTED_PRE.text {:
                         && CreoleParser.isAbsoluteUrl(urlText))
                     throw new CreoleParseException(
                             "You lack the privilege " + JCreolePrivilege.ABSLINK
-                            + " which is require for Absolute linking");
+                            + " which is required for Absolute linking");
                 Matcher m = ImgAsLabelPattern.matcher(inLbl);
                 if (m.matches()) {
                     String imgUrl = null;
@@ -1113,7 +1126,7 @@ inline = NESTED_PRE.text {:
                             + '>';
                 } else {
                     // Explicit label which is not an image
-                    if (text.startsWith("#" + sectIdPrefix)) {
+                    if (lText.startsWith("#" + sectIdPrefix)) {
                         // This causes MarkerMap to validate the link
                         LinkMarker lm = new LinkMarker(++lastMarkerId, url);
                         markers.put(Integer.valueOf(lastMarkerId), lm);
@@ -1133,6 +1146,8 @@ inline = NESTED_PRE.text {:
                             + StringEscapeUtils.escapeJavaScript(popupText)
                             + "'))")
                     ) + "\"" + markInline("a", true, true)
+                    + (extWin
+                      ? (" target=\"jc_extwin" + ++ewinCount + '"') : "")
                     + '>' + label + "</a>");
         :}
         | IMAGE.text {:
