@@ -210,8 +210,7 @@ copy the resources accordingly.</echo>
     </javac>
   </target>
 
-  <target name="test" description="Execute unit tests"
-          depends="test-compile">
+  <target name="test" description="Execute unit tests" depends="test-compile">
     <!-- If add integration tests, then rename this target to "unittest" or
          similar, to make it distinctive. -->
     <ivy:cachepath conf="test" pathid="test.refid"/>

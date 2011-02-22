@@ -1,13 +1,15 @@
-<<footNoteEntry secondEntry>>Second sample entry.
+<<footNoteEntry second Entry>>Second sample entry.
 Notice that even though I have written this entry first, it will be second in
 the list of entries because it is //referenced// second.
 
-Main body text pagraph here, with the first reference<<footNote firstEntry>>
-and a second reference<<footNote secondEntry>>.
+Main body text pagraph here, with the first reference<<footNote first Entry>>
+and a second reference<<footNote second Entry>>.
 And to show that multiple references to a shared entry work, here's a second
-ref to the first entry<<footNote firstEntry>>.
+ref to the first entry<<footNote first Entry>>.
 
-<<footNoteEntry firstEntry>>First sample entry.
+Orphan <<footNoteEntry orphan Entry>> entry.
+
+<<footNoteEntry first Entry>>First sample entry.
 
 =====Sample Footnotes Document Section
 Note that though you will usually want to insert the footnote entry listing at

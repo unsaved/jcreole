@@ -28,7 +28,7 @@ import com.admc.jcreole.Sections;
  * @since 1.1
  */
 public class DeferredUrlMarker extends BufferMarker {
-    private String inUrl, name;
+    private String inUrl;
     int targetId = -1;
 
     public DeferredUrlMarker(int id, String inUrl) {
@@ -44,14 +44,10 @@ public class DeferredUrlMarker extends BufferMarker {
         this.targetId = targetId;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public void updateBuffer() {
         super.updateBuffer();
         targetSb.insert(offset, (targetId < 0)
-                ? inUrl : ("#jcmdef" + targetId + "\" title=\"" + name
+                ? inUrl : ("#jcmdef" + targetId + "\" title=\"" + inUrl
                           + "\" class=\"jcreole_mdef"));
     }
 }

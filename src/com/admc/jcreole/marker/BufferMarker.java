@@ -44,8 +44,10 @@ abstract public class BufferMarker implements Comparable<BufferMarker> {
     }
 
     public int compareTo(BufferMarker other) {
-        return Integer.valueOf(offset).compareTo(
-                Integer.valueOf(other.offset));
+        if (this == other) return 0;
+        if (offset < 0 && other.offset < 0)
+            return Integer.valueOf(id).compareTo(Integer.valueOf(other.id));
+        return Integer.valueOf(offset).compareTo(Integer.valueOf(other.offset));
     }
 
     /**

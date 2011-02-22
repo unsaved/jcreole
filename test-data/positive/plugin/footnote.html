@@ -1,25 +1,28 @@
 
-<p>Main body text pagraph here, with the first reference<a class="jcreole_fnref" href="#jcfn2"><sup>1</sup></a>
+<p>Main body text pagraph here, with the first reference<a class="jcreole_fnref" href="#jcfn3"><sup>1</sup></a>
 and a second reference<a class="jcreole_fnref" href="#jcfn1"><sup>2</sup></a>.
 And to show that multiple references to a shared entry work, here's a second
-ref to the first entry<a class="jcreole_fnref" href="#jcfn2"><sup>1</sup></a>.</p>
+ref to the first entry<a class="jcreole_fnref" href="#jcfn3"><sup>1</sup></a>.</p>
+
 
 <h5 id="jcsect_SampleFootnotesDocumentSection"><span class="jcreole_hbody">Sample Footnotes Document Section</span></h5>
 <p>Note that though you will usually want to insert the footnote entry listing at
 the end of your document, it's awful useful for special cases like this one, to
 be able to place it wherever you want to.</p>
 <div class="jcx_footnotes">
-<dl>
+<dl id="jcfn3>
   <dt>1</td>
-  <dd><p id="jcfn2">First sample entry.</p>
-</dd>
+  <dd><p>First sample entry.</p></dd>
 </dl>
-<dl>
+<dl id="jcfn1>
   <dt>2</td>
-  <dd><p id="jcfn1">Second sample entry.
+  <dd><p>Second sample entry.
 Notice that even though I have written this entry first, it will be second in
-the list of entries because it is <em>referenced</em> second.</p>
-</dd>
+the list of entries because it is <em>referenced</em> second.</p></dd>
+</dl>
+<dl id="jcfn2>
+  <dt>unreferenced</td>
+  <dd><p>Orphan  entry.</p></dd>
 </dl>
 
 </div>

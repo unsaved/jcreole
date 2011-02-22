@@ -1,6 +1,6 @@
 =====Sample Master Definition List Section
 You can insert the Definition List wherever you want to in your document.
-<<masterDefList>>
+<<masterDefList cnm dnm/REF_ORDER>>
 
 <<masterDefEntry Scott, Michael>>Office manager.
 Notice that even though I have written this entry first and I have referenced

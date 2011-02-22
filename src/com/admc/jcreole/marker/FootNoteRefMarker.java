@@ -25,7 +25,7 @@ import com.admc.jcreole.Sections;
  * @since 1.1
  */
 public class FootNoteRefMarker extends BufferMarker {
-    private int refNum = -1;
+    private String entryLabel;
     private int targNum = -1;
     private String name;
 
@@ -42,12 +42,8 @@ public class FootNoteRefMarker extends BufferMarker {
         return targNum;
     }
 
-    public int getRefNum() {
-        return refNum;
-    }
-
-    public void setRefNum(int refNum) {
-        this.refNum = refNum;
+    public void setEntryLabel(String entryLabel) {
+        this.entryLabel = entryLabel;
     }
 
     public void setTargNum(int targNum) {
@@ -58,10 +54,10 @@ public class FootNoteRefMarker extends BufferMarker {
         if (targNum < 0)
             throw new IllegalStateException(
                     "Can't generate FootNote tag until targNum is assigned");
-        if (refNum < 0)
-            throw new IllegalStateException(
-                    "Can't generate FootNote tag until refNum is set");
+        if (entryLabel == null)
+            throw new IllegalStateException("Can't generate FootNote tag "
+                    + "until target entryLabel is set");
         super.updateBuffer();
-        targetSb.insert(offset, targNum + "\"><sup>" + refNum);
+        targetSb.insert(offset, targNum + "\"><sup>" + entryLabel);
     }
 }

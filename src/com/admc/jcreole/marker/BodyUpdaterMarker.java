@@ -17,23 +17,31 @@
 
 package com.admc.jcreole.marker;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import com.admc.jcreole.EntryOrdering;
+
 /**
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
 abstract public class BodyUpdaterMarker extends BufferMarker {
-    private String body;
+    protected Map<String, Entry> origKeyToEntry = new HashMap<String, Entry>();
+    protected List<Entry> entries = new ArrayList<Entry>();
+    protected StringBuilder outBuffer = new StringBuilder();
+    protected EntryOrdering ordering;
 
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public BodyUpdaterMarker(int id) {
+    public BodyUpdaterMarker(int id, EntryOrdering ordering) {
         super(id);
+        this.ordering = ordering;
     }
 
     public void updateBuffer() {
         super.updateBuffer();
-        targetSb.insert(offset, body);
+        targetSb.insert(offset, outBuffer.toString());
     }
+
+    abstract public void sort();
 }

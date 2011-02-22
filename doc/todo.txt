@@ -1,7 +1,11 @@
 SHORT TERM
 
-Consider how to allow author to specify link target, or at least whether to
-open in-page or out-of-page.
+Add Ant target for jqueryref and update reference text accordingly.
+
+Enforce in .grammar that only one index, footNotes, and masterDefList for one
+parser.
+
+Allow URLs in explicit links to start with &, meaning open in new window/tab.
 
 Consider how to allow author to hyperlink a broader set of content than just a
 non-markup label.

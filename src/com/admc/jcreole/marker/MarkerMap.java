@@ -37,11 +37,12 @@ import com.admc.jcreole.EntryType;
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
     private Sections sections;
-    private Map<String, String> idToTextMap = new HashMap<String, String>();
+    private Map<String, String> idToTextHMap = new HashMap<String, String>();
     private String enumerationFormats;
     private StringBuilder buffer;
-    private Map<String, List<Integer>> indexMap;
-    private Map<String, Integer> masterDefNameMap;
+    private MasterDefListMarker masterDefListMarker;
+    private FootNotesMarker footNotesMarker;
+    private IndexMarker indexMarker;
 
     /**
      * @param enumerationFormats is the starting numerationFormats used for
@@ -51,161 +52,140 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
      *        encapsulated nicely in TocMarker instances and not changed here
      *        (or elsewhere).
      */
-    public StringBuilder apply(StringBuilder sb, String enumerationFormats,
-            Map<String, Integer> footNoteNameMap,
-            Map<String, Integer> masterDefNameMap) {
+    public StringBuilder apply(StringBuilder sb, String enumerationFormats) {
         if (enumerationFormats == null)
             throw new NullPointerException(
                     "enumerationFormats may not be null");
-        this.masterDefNameMap = masterDefNameMap;
         buffer = sb;
+        for (BufferMarker m : values())
+            if (m instanceof MasterDefListMarker) {
+                masterDefListMarker = (MasterDefListMarker) m;
+            } else if (m instanceof FootNotesMarker) {
+                footNotesMarker = (FootNotesMarker) m;
+            } else if (m instanceof IndexMarker) {
+                indexMarker = (IndexMarker) m;
+            }
+
         this.enumerationFormats = enumerationFormats;
-        int nonBUMmarkerCount = unorderedPass(false);
+        setContexts();
         List<BufferMarker> sortedMarkers = new ArrayList(values());
         Collections.sort(sortedMarkers);
         // Can not run insert() until after the markers have been sorted.
         if (size() < 1) return buffer;
         forwardPass1(sortedMarkers);
+        int id;
+        int offset3 = -1;
+        int offset2 = -1;
+        int offsetNl;
+        EntryType eType;
+        String idString;
+        String name;
+        while ((offset2 = buffer.indexOf("\u0002", offset3 + 1)) > -1) {
+            offsetNl = buffer.indexOf("\n", offset2 + 2);
+            if (offsetNl < 0)
+                throw new CreoleParseException("No name termination for Entry");
+            // Unfortunately StringBuilder has no indexOf(char).
+            // We could do StringBuilder.toString().indexOf(char), but
+            // that's a pretty expensive copy operation.
+            offset3 = buffer.indexOf("\u0003", offsetNl + 1);
+            if (offset3 < 0)
+                throw new CreoleParseException("No termination for Entry");
+            name = buffer.substring(offset2 + 2, offsetNl);
+            if (name.length() < 1)
+                throw new CreoleParseException("Empty embedded name for Entry");
+            switch (buffer.charAt(offset2 + 1)) {
+              case 'D':
+                eType = EntryType.MASTERDEF;
+                break;
+              case 'F':
+                eType = EntryType.FOOTNOTE;
+                break;
+              default:
+                throw new CreoleParseException(
+                        "Unexpected EntryType indicator: "
+                        + buffer.charAt(offset2 + 1));
+            }
+            if (eType == EntryType.FOOTNOTE)
+                footNotesMarker.add(name);
+            else if (eType == EntryType.MASTERDEF)
+                masterDefListMarker.add(name);
+        }
+
+        if (footNotesMarker != null) {
+            footNotesMarker.sort();
+            footNotesMarker.updateReferences();
+        }
+        if (masterDefListMarker != null) {
+            masterDefListMarker.sort();
+            masterDefListMarker.updateReferences();
+        }
+        if (indexMarker != null) {
+            indexMarker.generateEntries();
+            indexMarker.sort();
+        }
+
         forwardPass2(sortedMarkers);
         log.debug(Integer.toString(sections.size())
                 + " Section headings: " + sections);
         // The list of markers MUST BE REVERSE SORTED before applying.
         // Applying in forward order would change buffer offsets.
         Collections.reverse(sortedMarkers);
-        StringBuilder markerReport = new StringBuilder();
-        for (BufferMarker m : sortedMarkers) {
-            if (markerReport.length() > 0) markerReport.append(", ");
-            markerReport.append(m.getIdString()
-                    + '@' + m.getOffset());
+        for (BufferMarker m : sortedMarkers)
             // N.b. this is where the real APPLY occurs to the buffer:
             if (!(m instanceof BodyUpdaterMarker)) m.updateBuffer();
-        }
-        log.debug("MARKERS:  " + markerReport.toString());
 
         // Can not move Entries until all of the normal \u001a markers have
         // been taken care of, because Styler directives depend on original
         // Creole sequence.
 
         // Extract all Entries
-        int id;
-        int offset3;
-        int offset2 = -1;
-        EntryType eType;
-        String idString;
-        Map<Integer, String> idToDef = new HashMap<Integer, String>();
-        Map<Integer, String> idToFoot = new HashMap<Integer, String>();
-        while ((offset2 = buffer.indexOf("\u0002", offset2 + 1)) > -1) {
-            if (buffer.length() < offset2 + 6)
-                throw new CreoleParseException(
-                        "\\u0002 Marking too close to end of output");
+        offset2 = 0;
+        while ((offset2 = buffer.indexOf("\u0002", offset2)) > -1) {
+            offsetNl = buffer.indexOf("\n", offset2 + 2);
+            if (offsetNl < 0)
+                throw new CreoleParseException("No name termination for Entry");
             // Unfortunately StringBuilder has no indexOf(char).
             // We could do StringBuilder.toString().indexOf(char), but
             // that's a pretty expensive copy operation.
-            offset3 = buffer.indexOf("\u0003", offset2 + 6);
+            offset3 = buffer.indexOf("\u0003", offsetNl + 1);
             if (offset3 < 0)
                 throw new CreoleParseException("No termination for Entry");
+            name = buffer.substring(offset2 + 2, offsetNl);
+            if (name.length() < 1)
+                throw new CreoleParseException("Empty embedded name for Entry");
             switch (buffer.charAt(offset2 + 1)) {
               case 'D':
-                  eType = EntryType.MASTERDEF;
-                  break;
+                eType = EntryType.MASTERDEF;
+                break;
               case 'F':
-                  eType = EntryType.FOOTNOTE;
-                  break;
+                eType = EntryType.FOOTNOTE;
+                break;
               default:
-                  throw new CreoleParseException(
+                throw new CreoleParseException(
                         "Unexpected EntryType indicator: "
                         + buffer.charAt(offset2 + 1));
             }
-            idString = buffer.substring(offset2 + 2, offset2 + 6);
-            id = Integer.parseInt(idString, 16);
-            if (!((eType == EntryType.FOOTNOTE)
-                    ? footNoteNameMap : masterDefNameMap)
-                    .containsValue(Integer.valueOf(id)))
-                throw new CreoleParseException("Missing "
-                    + ((eType == EntryType.FOOTNOTE) ? "footNote" : "masterDef")
-                    + " entry w/ id " + id);
-            ((eType == EntryType.FOOTNOTE) ? idToFoot : idToDef)
-                    .put(Integer.valueOf(id),
-                    buffer.substring(offset2 + 6, offset3));
+            if (eType == EntryType.FOOTNOTE)
+                footNotesMarker.set(
+                        name, buffer.substring(offsetNl + 1, offset3));
+            else if (eType == EntryType.MASTERDEF)
+                masterDefListMarker.set(
+                        name, buffer.substring(offsetNl + 1, offset3));
             buffer.delete(offset2, offset3 +1);
-        }
-        if (masterDefNameMap.size() != idToDef.size())
-            throw new IllegalStateException("MasterDef entry mismatch.  "
-                    + masterDefNameMap.size() + ' ' + " names parsed, but "
-                    + idToDef.size() + " entries marked");
-        if (footNoteNameMap.size() != idToFoot.size())
-            throw new IllegalStateException("Footnote entry mismatch.  "
-                    + footNoteNameMap.size() + ' ' + " names parsed, but "
-                    + idToFoot.size() + " entries marked");
-        for (Map.Entry<String, Integer> e : masterDefNameMap.entrySet()) {
-            if (!idToDef.containsKey(e.getValue()))
-                throw new IllegalStateException("MasterDef Entry for name "
-                        + e.getKey() + " is missing");
-            nameToDefHtml.put(e.getKey(), idToDef.get(e.getValue()));
         }
 
         // TODO: Consider whether to check for \u001a's inside of Entry p's,
         // which must be circular MasterDef or FootNotes markers.
-        int bUMmarkerCount = unorderedPass(true);
-        if (nonBUMmarkerCount + bUMmarkerCount != sortedMarkers.size())
-            throw new IllegalStateException(
-                    "Markings/markers mismatch.  " + nonBUMmarkerCount
-                    + " + " + bUMmarkerCount
-                    + " markings found, but there are " + size()
-                    + " markers");
+        setContexts();
         Collections.sort(sortedMarkers);
-        Set<String> mappedNames = new HashSet<String>();
-        FootNoteRefMarker fnrm;
-        StringBuilder footNotesBuffer = new StringBuilder();
-        StringBuilder indexBuffer = new StringBuilder();
-        for (BufferMarker m : sortedMarkers)
-            if (m instanceof FootNoteRefMarker) {
-                fnrm = (FootNoteRefMarker) m;
-                if (mappedNames.contains(fnrm.getName())) continue;
-                mappedNames.add(fnrm.getName());
-                if (!idToFoot.containsKey(fnrm.getTargNum()))
-                    throw new CreoleParseException(
-                            "Orphan footnote ref: " + fnrm.getName());
-                footNotesBuffer.append("<dl>\n  <dt>")
-                        .append(fnrm.getRefNum()).append("</td>\n  <dd>")
-                        .append(idToFoot.remove(fnrm.getTargNum()))
-                        .append("</dd>\n</dl>\n");
-            }
-        for (Map.Entry<Integer, String> e : idToFoot.entrySet()) {
-            log.warn("Unreferenced footnote with HTML id " + e.getKey());
-            footNotesBuffer.append("<dl>\n  <dt>")
-                    .append("unreferenced").append("</td>\n  <dd>")
-                    .append(e.getValue()).append("</dd>\n</dl>\n");
-        }
         Collections.reverse(sortedMarkers);
-        StringBuilder masterDefBuffer = new StringBuilder();
-        for (Map.Entry<String, String> e :
-                new TreeMap<String, String>(nameToDefHtml).entrySet())
-            masterDefBuffer.append("<dl>\n  <dt>")
-                    .append(e.getKey()).append("</td>\n  <dd>")
-                    .append(e.getValue()).append("</dd>\n</dl>\n");
-        for (Map.Entry<String, List<Integer>> e :
-                new TreeMap<String, List<Integer>>(indexMap).entrySet()) {
-            indexBuffer.append("<dl>\n  <dt>")
-                    .append(e.getKey()).append("</td><dd>");
-            int refCount = 0;
-            for (Integer iger : e.getValue())
-                indexBuffer.append("<a href=\"#jcindexed").append(iger)
-                        .append("\">").append(++refCount).append("</a> ");
-            indexBuffer.append("</dd>\n</dl>\n");
-        }
-        for (BufferMarker m : sortedMarkers) {
-            if (m instanceof MasterDefListMarker) {
-                ((MasterDefListMarker) m).setBody(masterDefBuffer.toString());
-                m.updateBuffer();
-            } else if (m instanceof FootNotesMarker) {
-                ((FootNotesMarker) m).setBody(footNotesBuffer.toString());
-                m.updateBuffer();
-            } else if (m instanceof IndexMarker) {
-                ((IndexMarker) m).setBody(indexBuffer.toString());
-                m.updateBuffer();
-            }
-        }
+        for (BufferMarker m : sortedMarkers)
+            if (m == indexMarker)
+                indexMarker.updateBuffer();
+            else if (m == footNotesMarker)
+                footNotesMarker.updateBuffer();
+            else if (m == masterDefListMarker)
+                masterDefListMarker.updateBuffer();
         return buffer;
     }
 
@@ -213,14 +193,15 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
 
     /**
      * Sets context (buffer and offset) for markers.
+     * This must be called before sorting Markers or before calling
+     * updateBuffer() on a Marker.
      *
      * @param bodyUpdaterMarkers If true then only update BodyUpdaterMakers,
      *        otherwise then only update non-BodyUpdaterMarkers.
      * @return Number of markers found
      */
-    private int unorderedPass(boolean bodyUpdaterMarkers) {
+    private void setContexts() {
         BufferMarker marker;
-        List<Integer> markerOffsets = new ArrayList<Integer>();
         String idString;
         int id;
         int offset = 0;
@@ -236,19 +217,10 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             marker = get(Integer.valueOf(id));
             if (marker == null)
                 throw new IllegalStateException("Lost marker with id " + id);
-            if (bodyUpdaterMarkers) {
-                if (!(marker instanceof BodyUpdaterMarker)) continue;
-            } else {
-                if (marker instanceof BodyUpdaterMarker) continue;
-            }
-            markerOffsets.add(Integer.valueOf(offset));
             marker.setContext(buffer, offset);
         } finally {
             offset += 5;  // Move past the marker that we just found
         }
-        log.debug(Integer.toString(markerOffsets.size())
-                + " markings: " + markerOffsets);
-        return markerOffsets.size();
     }
 
     /**
@@ -258,33 +230,23 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         HeadingMarker hm;
         SectionHeading sectionHeading;
         Map<String, Integer> nameToRefNum = new HashMap<String, Integer>();
-        int fnRefNum = 0, ieTargNum = 0;
-        FootNoteRefMarker fnrm;
-        IndexEntryMarker iem;
-        indexMap = new HashMap<String, List<Integer>>();
         for (BufferMarker m : sortedMarkers)
             if (m instanceof HeadingMarker) {
                 hm = (HeadingMarker) m;
                 sectionHeading = hm.getSectionHeading();
-                idToTextMap.put(sectionHeading.getXmlId(),
+                idToTextHMap.put(sectionHeading.getXmlId(),
                         sectionHeading.getText());
             } else if (m instanceof TocMarker) {
                 ((TocMarker) m).setDefaultLevelInclusions(enumerationFormats);
             } else if (m instanceof FootNoteRefMarker) {
-                fnrm = (FootNoteRefMarker) m;
-                if (nameToRefNum.containsKey(fnrm.getName())) {
-                    fnrm.setRefNum(nameToRefNum.get(fnrm.getName()));
-                } else {
-                    fnrm.setRefNum(++fnRefNum);
-                    nameToRefNum.put(fnrm.getName(), fnRefNum);
-                }
+                if (footNotesMarker != null)
+                    footNotesMarker.add((FootNoteRefMarker) m);
             } else if (m instanceof IndexEntryMarker) {
-                iem = (IndexEntryMarker) m;
-                iem.setTargNum(++ieTargNum);
-
-                if (!indexMap.containsKey(iem.getName()))
-                    indexMap.put(iem.getName(), new ArrayList<Integer>());
-                indexMap.get(iem.getName()).add(Integer.valueOf(ieTargNum));
+                if (indexMarker != null)
+                    indexMarker.add((IndexEntryMarker) m);
+            } else if (m instanceof DeferredUrlMarker) {
+                if (masterDefListMarker != null)
+                    masterDefListMarker.add((DeferredUrlMarker) m);
             }
     }
 
@@ -323,10 +285,6 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         InlineMarker prevInline = null;
         int headingLevel = 0;
         int[] curSequences = new int[] {-1, -1, -1, -1, -1, -1};
-
-        Map<Integer, String> revDefNameMap = new HashMap<Integer, String>();
-        for (Map.Entry<String, Integer> e : masterDefNameMap.entrySet())
-            revDefNameMap.put(e.getValue(), e.getKey());
 
         for (BufferMarker m : sortedMarkers) {
             if (m instanceof TagMarker) {
@@ -540,7 +498,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 linkM = (LinkMarker) m;
                 linkText = linkM.getLinkText();
                 String lookedUpLabel =
-                        idToTextMap.get(linkM.getLinkText().substring(1));
+                        idToTextHMap.get(linkM.getLinkText().substring(1));
                 if (linkM.getLabel() == null)
                     linkM.setLabel((lookedUpLabel == null)
                             ? linkM.getLinkText()
@@ -557,12 +515,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof IndexEntryMarker) {
                 ;
             } else if (m instanceof DeferredUrlMarker) {
-                duM = (DeferredUrlMarker) m;
-                Integer overrideId = masterDefNameMap.get(duM.getInUrl());
-                if (overrideId != null) {
-                    duM.setTargetId(overrideId.intValue());
-                    duM.setName(revDefNameMap.get(overrideId));
-                }
+                ;
             } else {
                 throw new CreoleParseException(
                         "Unexpected close marker class: "

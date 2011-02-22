@@ -161,6 +161,6 @@ public class CreoleParseTest {
 
 
     public static void main(String args[]) {
-      org.junit.runner.JUnitCore.main(CreoleParseTest.class.getName());
+        org.junit.runner.JUnitCore.main(CreoleParseTest.class.getName());
     }
 }

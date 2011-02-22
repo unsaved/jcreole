@@ -78,10 +78,6 @@
     private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
     private Character formatResetChar;
     private EnumSet<JCreolePrivilege> jcreolePrivs = DEFAULT_PLUGIN_PRIVILEGES;
-    private Map<String, Integer> nameToMasterListEntry =
-            new HashMap<String, Integer>();
-    private Map<String, Integer> nameToFootNoteEntry =
-            new HashMap<String, Integer>();
 
     /**
      * Set enumeration formats to display section/heading enumerations in TOCs
@@ -528,6 +524,16 @@
             throw new CreoleParseException(
                     "You lack the required privilege " + jcreolePriv, (Token) s);
     }
+
+    private EntryOrdering orderingFor(String s, Symbol sy) {
+        if (s == null) return null;
+        try {
+            return Enum.valueOf(EntryOrdering.class, s);
+        } catch (IllegalArgumentException iae) {
+            throw new CreoleParseException(
+                    "Unsupported EntryOrdering: " + s, (Token) sy);
+        }
+    }
 :};
 
 %terminals ROOTLVL_PRE, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
@@ -555,21 +561,10 @@
 blocks = topblock.b+ {:
             StringBuilder sb = joinWashedSymbols(_list_b);
             log.debug("PRE-PostProcess[" + sb + ']');
-            FootNoteRefMarker fnrm;
-
-            for (BufferMarker m : markers.values())
-                if (m instanceof FootNoteRefMarker) {
-                    fnrm = (FootNoteRefMarker) m;
-                    if (!nameToFootNoteEntry.containsKey(fnrm.getName()))
-                        throw new CreoleParseException(
-                                "Orphaned foot note ref: " + fnrm.getName());
-                    fnrm.setTargNum(nameToFootNoteEntry.get(fnrm.getName()));
-                }
-
             // Following sets formats for headers and default section labels in
             // TOCs, but has no effect on TOC inclusion.
-            return new WashedSymbol(markers.apply(sb, enumerationFormats,
-                    nameToFootNoteEntry, nameToMasterListEntry).toString());
+            return new WashedSymbol(
+                    markers.apply(sb, enumerationFormats).toString());
         :}
         | {: return new WashedSymbol("");:};  // This allows for empty document
 
@@ -671,27 +666,13 @@ leafblock = ROOTLVL_PRE.text {:
             int lastI = b.length() - 1;
             if (b.charAt(lastI) == '\n') b.deleteCharAt(lastI);
 
-            b.append(autoCloseInlines());
-            b.append(markClose(TagType.BLOCK));
-            b.append("</p>\n");
-            b.insert(0, '>');
-            b.insert(0, markBlock("p", true, false));
-            if (es != null) {
-                es.setEntryId(1 + ((es.getEntryType() == EntryType.FOOTNOTE)
-                        ? nameToFootNoteEntry : nameToMasterListEntry).size());
-                b.insert(0, '"');
-                // IMPORTANT!  Goal here is just to write a unique ID!
-                // The id does not necessarily correspond to any sequence!
-                b.insert(0, es.getIdAttr());
-                b.insert(0, " id=\"");
-            }
-            b.insert(0, "<p");
+            b.append(autoCloseInlines()).append(markClose(TagType.BLOCK))
+                    .append("</p>").insert(0, '>')
+                    .insert(0, markBlock("p", true, false))
+                    .insert(0, "<p");
 
-            if (es == null) return new WashedSymbol(b.toString());
+            if (es == null) return new WashedSymbol(b.append('\n').toString());
             es.setCleanString(b.toString());
-            ((es.getEntryType() == EntryType.FOOTNOTE)
-                    ? nameToFootNoteEntry : nameToMasterListEntry)
-                    .put(es.getName(), es.getEntryId());
             return es;
         :}
         | TOC.text {:
@@ -728,38 +709,89 @@ leafblock = ROOTLVL_PRE.text {:
         :}
         | MASTERDEFLIST.text {:
             require(JCreolePrivilege.MASTERDEF, _symbol_text);
-            if (text != null &&
-                !CssNamesPattern.matcher(text).matches())
-                    throw new CreoleParseException("Bad CSS name(s): " + text,
-                            (Token) _symbol_text);
-            BufferMarker tm = new MasterDefListMarker(++lastMarkerId);
+            String classNames = null;
+            String orderStr = null;
+            if (text != null) try {
+                Matcher m = SlashDelimitedPattern.matcher(text);
+                if (!m.matches() || m.groupCount() != 2)
+                    throw new java.lang.Exception("not [x][/y]");
+                String str1 = m.group(1);
+                String str2 = m.group(2);
+                if (str1 != null) classNames = str1.trim();
+                if (str2 != null) orderStr = str2.trim();
+                if (classNames != null
+                        && !CssNamesPattern.matcher(classNames).matches())
+                    throw new java.lang.Exception("bad CSS Name(s)");
+            } catch (java.lang.Exception e) {
+                throw new CreoleParseException(
+                        "Index spec. not of format "
+                        + "'[class names] [/sortOrder]' ("
+                        + e.getMessage() + "):  " + text,
+                        (Token) _symbol_text);
+            }
+            BufferMarker tm = new MasterDefListMarker(
+                    ++lastMarkerId, orderingFor(orderStr, _symbol_text));
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_masterDef"
-                    + ((text == null) ? "" : (" " + text))
+                    + ((classNames == null) ? "" : (" " + classNames))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
         | FOOTNOTES.text {:
             require(JCreolePrivilege.FOOTNOTES, _symbol_text);
-            if (text != null &&
-                !CssNamesPattern.matcher(text).matches())
-                    throw new CreoleParseException("Bad CSS name(s): " + text,
-                            (Token) _symbol_text);
-            BufferMarker tm = new FootNotesMarker(++lastMarkerId);
+            String classNames = null;
+            String orderStr = null;
+            if (text != null) try {
+                Matcher m = SlashDelimitedPattern.matcher(text);
+                if (!m.matches() || m.groupCount() != 2)
+                    throw new java.lang.Exception("not [x][/y]");
+                String str1 = m.group(1);
+                String str2 = m.group(2);
+                if (str1 != null) classNames = str1.trim();
+                if (str2 != null) orderStr = str2.trim();
+                if (classNames != null
+                        && !CssNamesPattern.matcher(classNames).matches())
+                    throw new java.lang.Exception("bad CSS Name(s)");
+            } catch (java.lang.Exception e) {
+                throw new CreoleParseException(
+                        "Index spec. not of format "
+                        + "'[class names] [/sortOrder]' ("
+                        + e.getMessage() + "):  " + text,
+                        (Token) _symbol_text);
+            }
+            BufferMarker tm = new FootNotesMarker(
+                    ++lastMarkerId, orderingFor(orderStr, _symbol_text));
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_footnotes"
-                    + ((text == null) ? "" : (" " + text))
+                    + ((classNames == null) ? "" : (" " + classNames))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
         | INDEX.text {:
             require(JCreolePrivilege.INDEX, _symbol_text);
-            if (text != null &&
-                !CssNamesPattern.matcher(text).matches())
-                    throw new CreoleParseException("Bad CSS name(s): " + text,
-                            (Token) _symbol_text);
-            BufferMarker tm = new IndexMarker(++lastMarkerId);
+            String classNames = null;
+            String orderStr = null;
+            if (text != null) try {
+                Matcher m = SlashDelimitedPattern.matcher(text);
+                if (!m.matches() || m.groupCount() != 2)
+                    throw new java.lang.Exception("not [x][/y]");
+                String str1 = m.group(1);
+                String str2 = m.group(2);
+                if (str1 != null) classNames = str1.trim();
+                if (str2 != null) orderStr = str2.trim();
+                if (classNames != null
+                        && !CssNamesPattern.matcher(classNames).matches())
+                    throw new java.lang.Exception("bad CSS Name(s)");
+            } catch (java.lang.Exception e) {
+                throw new CreoleParseException(
+                        "Index spec. not of format "
+                        + "'[class names] [/sortOrder]' ("
+                        + e.getMessage() + "):  " + text,
+                        (Token) _symbol_text);
+            }
+            BufferMarker tm = new IndexMarker(
+                    ++lastMarkerId, orderingFor(orderStr, _symbol_text));
             markers.put(Integer.valueOf(lastMarkerId), tm);
             return new WashedSymbol("<div class=\"jcx_index"
-                    + ((text == null) ? "" : (" " + text))
+                    + ((classNames == null) ? "" : (" " + classNames))
                     + "\">\n" + tm.getMarkerString() + "\n</div>\n\n");
         :}
         ;

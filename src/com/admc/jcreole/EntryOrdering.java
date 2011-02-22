@@ -17,28 +17,6 @@
 
 package com.admc.jcreole;
 
-import beaver.Symbol;
-
-/**
- * A Parser Symbol for entry definition for a master-def or foot note.
- *
- * @author Blaine Simpson (blaine dot simpson at admc dot com)
- * @since 1.0
- */
-class EntrySymbol extends WashedSymbol {
-    EntryType eType;
-    String name;
-
-    public EntrySymbol(EntryType eType, String name) {
-        this.eType = eType;
-        this.name = name;
-    }
-
-    /**
-     * Sandwiches content between binary control characters STX and ETX.
-     */
-    public String toString() {
-        return "\u0002" + ((eType == EntryType.MASTERDEF) ? 'D' : 'F')
-                + name + '\n' + super.toString() + '\u0003';
-    }
+public enum EntryOrdering {
+    NAME_BY_JAVA, NAME_BY_DICTIONARY, DEF_ORDER, REF_ORDER
 }
