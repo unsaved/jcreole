@@ -19,6 +19,8 @@ package com.admc.jcreole;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -345,6 +347,10 @@ public class JCreole {
                     "Author-supplied style-sheets, but boilerplate has no "
                     + "'headers' insertion-point");
         }
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .format(new Date());
+        while ((index = html.indexOf("${timeStamp}")) > -1)
+            html.replace(index, index + "${timeStamp}".length(), timeStamp);
         index = html.indexOf("${pageTitle}");
         if (pageTitle != null && index > -1)
             html.replace(index, index + "${pageTitle}".length(), pageTitle);

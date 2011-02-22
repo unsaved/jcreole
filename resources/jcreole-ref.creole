@@ -480,10 +480,7 @@ compromise between conciseness and descriptiveness.
 
 //If you click on a footnote link (superscripted digit) and the footnote text
 is not displayed in a pop-up, then this reference document was built in standalone mode.
-In that case, because of my goal to keep the following sample tiny, if you
-want to see the links scroll to the targets, you will have to scroll your
-browser up until the Sample Footnotes Document Section is below the visible
-area (before clicking each link).
+In that case, your browser will scroll to the target location in the document.
 
 ==== Full Footnotes Sample
 
@@ -534,11 +531,6 @@ parameter of exactly what the text of the index entry heading will be.
 For the first method, enclose just the target text, not markup, or the markup
 characters may appear in the generated heading.
 If you don't want to deal with that, then just use the second method.
-
-//Because of my goal to keep the following sample tiny, if you want to see
-the links scroll to the targets, you will have to scroll your browser down
-until the Sample Index Document Section is at the very top of your screen
-(before clicking each link).
 
 ==== Full Index Sample
 
@@ -609,10 +601,7 @@ Definition entries do not need to be linked to at all.
 
 //If you click on a reference link  and the definition text
 is not displayed in a pop-up, then this reference document was built in standalone mode.
-In that case, because of my goal to keep the following sample tiny, if you
-want to see the links scroll to the targets, you will have to scroll your
-browser up until the Sample Master Definition List Section is below the visible
-area (before clicking each link).
+In that case, your browser will scroll to the target location in the document.
 
 ==== Full Master Definition List Sample
 

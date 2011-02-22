@@ -1,7 +1,5 @@
 SHORT TERM
 
-Add a timestamp substitution for boilerplates.
-
 Allow URLs in explicit links to start with &, meaning open in new window/tab.
 
 Consider how to allow author to hyperlink a broader set of content than just a
