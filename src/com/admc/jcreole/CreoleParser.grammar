@@ -68,6 +68,7 @@
 
     private boolean wrote;  // Just used to write block-separating blank lines
     private boolean authorSetEnumFormats;
+    private boolean indexAdded, masterDefListAdded, footNotesAdded;
     private InterWikiMapper interWikiMapper;
     private int lastMarkerId = 0;
     private MarkerMap markers = new MarkerMap();
@@ -709,6 +710,11 @@ leafblock = ROOTLVL_PRE.text {:
         :}
         | MASTERDEFLIST.text {:
             require(JCreolePrivilege.MASTERDEF, _symbol_text);
+            if (masterDefListAdded)
+                throw new CreoleParseException("Can not have more than one "
+                        + "Master def list per Creole document",
+                        (Token) _symbol_text);
+            masterDefListAdded = true;
             String classNames = null;
             String orderStr = null;
             if (text != null) try {
@@ -738,6 +744,11 @@ leafblock = ROOTLVL_PRE.text {:
         :}
         | FOOTNOTES.text {:
             require(JCreolePrivilege.FOOTNOTES, _symbol_text);
+            if (footNotesAdded)
+                throw new CreoleParseException("Can not have more than one "
+                        + "Foot notes listing per Creole document",
+                        (Token) _symbol_text);
+            footNotesAdded = true;
             String classNames = null;
             String orderStr = null;
             if (text != null) try {
@@ -767,6 +778,11 @@ leafblock = ROOTLVL_PRE.text {:
         :}
         | INDEX.text {:
             require(JCreolePrivilege.INDEX, _symbol_text);
+            if (indexAdded)
+                throw new CreoleParseException(
+                        "Can not have more than one index per Creole document",
+                        (Token) _symbol_text);
+            indexAdded = true;
             String classNames = null;
             String orderStr = null;
             if (text != null) try {
