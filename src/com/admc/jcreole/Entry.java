@@ -80,7 +80,8 @@ public class Entry implements Comparable<Entry> {
             throw new IllegalStateException(
                     "Prefix set but entryId not set for entry: " + label);
         StringBuilder sb = new StringBuilder().append("<dl");
-        if (prefix != null) sb.append(" id=\"").append(prefix).append(entryId);
+        if (prefix != null)
+                sb.append(" id=\"").append(prefix).append(entryId).append('"');
         return sb.append(">\n  <dt>").append(label).append("</td>\n  <dd>")
                 .append(html).append("</dd>\n</dl>\n").toString();
     }
