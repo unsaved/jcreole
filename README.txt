@@ -64,14 +64,19 @@ DOCUMENTATION
 
 There are text documentation files in the doc subdirectory.
 
-There is also a reference guide for Creole authors, which briefly describes the
-available markup directives.  It is provided in HTML format in the binary zip
-distribution as "jcreole-ref.html" in the doc directory.  But the source Creole
+There is also a reference guide for Creole authors.
+It is provided in 100% standalone HTML format in the binary zip distribution as
+"jcreole-ref.html" in the doc directory.  But the source Creole
 for it is also provided as "jcreole-ref.creole" in the jcreole-*.jar file and
 in the "resources" source code directory.  Integrators can use
 "jcreole-ref.creole" to serve the author guide framed and styled like your other
 application content.  You can obviously edit "jcreole-ref.creole".  The Ant
 target "ref" will build "tmp/jcreole-ref.html" from the .creole file.
+For a more interactive reference that is not 100% standalone, set Ant property
+"refstyle" to "jqueryui" before executing the "ref" target.
+(The jqueryui-mode document is standalone in that it will work fine if you
+distribute that one file, but it requires an Internet connection at read-time
+because of references to resources at https://ajax.googleapis.com.
 
 The web site http://admc.com/jcreole has interactive JCreole demonstrations and
 comprehensive Creole tutorials.

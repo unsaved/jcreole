@@ -1,7 +1,5 @@
 SHORT TERM
 
-Update reference docs to reflect recent enhancements.
-
 Add a timestamp substitution for boilerplates.
 
 Enforce in .grammar that only one index, footNotes, and masterDefList for one

@@ -435,46 +435,55 @@ directive must be placed on a line by itself.
 
 ===Footnotes
 
-Add references ~<<footNote yourEntryName>> like this, and write the foot note
+Add references~<<footNote yourEntryName>> like this, and write the footnote
 entries in paragraphs...
 
 ~<<footNoteEntry yourEntryName>>Like this.
 The paragraph may contain any regular paragraph markup, excepting
-foot note, master list, and index Directives.
+footnote, master list, and index Directives.
 For reference or bibliography entries, you will often want to use 
 [[#jcsect_ExplicitHyperlinks]].
 
 Then finally, where you want the footnote entries to appear in the document,
 add...
 
-~<<footNotes>>
+======{{{<<footNotes>>}}}
+or\\
+======{{{<<footNotes className1>>}}}
+or\\
+======{{{<<footNotes /DEF_ORDER>>}}}
+or\\
+======{{{<<footNotes className1 className 2 /DEF_ORDER>>}}}
+
+Just use "##~<<footNotes>>##" for the default footnotes layout.
+"##DEF_ORDER##" specifies to list the footnotes in the sequence that the
+footnotes were written (with ##footNoteEntry##s), instead of the default
+order (##REF_ORDER##, the order of the first reference to each footnote in
+the main document body).
 
 The sequence of all of the 3 directives (##footNote##, ##footNoteEntry##,
 and ##footNotes##) makes no difference.
 Write them in whatever order is easiest or best for you to organize your
 document.
-In the generated footNotes listing, the entries will always be ordered in the
-sequence that references occur in the document, not in the order that the
-footNoteEntries occur.
-Your audience is assured that the first foot note in the footnotes listing will
-be the foot note for the first footnote reference in the document.
 
 The reference names, ##yourEntryName## in the examples above, are arbitrary.
 Though they do not appear in the generated document at all, they serve an
 important purpose.
 They allow multiple references (##footNote## directives) to point to a single
-foot note entry.
+footnote entry.
 Since you can use any names that you want to, you can use names that remind you
 of what the entry is for, are easy to remember, and are easy to type.
 For example, if you have a footnote entry listing your source documents for
 genetic inheritance details, you could name that entry something like
-//genetic-inheritance-sourcedocs// or //inheritance-src//, depending on how you
+//genetic-inheritance-sourcedocs// or //inheritance-src//, depending on your
 compromise between conciseness and descriptiveness.
 
-Because of the minimalistic setup used for this reference document, and the
-goal to keep this sample inside one sub-section, the following sample can't show
-how clicking on references usually pops up the entry text, nor even scroll the
-browser to the targeted entry.
+//If you click on a footnote link (superscripted digit) and the footnote text
+is not displayed in a pop-up, then this reference document was built in standalone mode.
+In that case, because of my goal to keep the following sample tiny, if you
+want to see the links scroll to the targets, you will have to scroll your
+browser up until the Sample Footnotes Document Section is below the visible
+area (before clicking each link).
 
 ==== Full Footnotes Sample
 
@@ -501,7 +510,18 @@ like this~<<indexEntry Entry name>>.
 
 Then where you want the index to appear in the document, add...
 
-~<<index>>
+======{{{<<index>>}}}
+or\\
+======{{{<<index className1>>}}}
+or\\
+======{{{<<index /REF_ORDER>>}}}
+or\\
+======{{{<<index className1 className 2 /NAME_BY_JAVA>>}}}
+
+Just use "##~<<index>>##" for the default index layout.
+"##REF_ORDER##" or "##NAME_BY_JAVA##" specify to display the index entries
+sorted by reference order or by Java collation of the heading text, instead of
+by the default dictionary sorting of the heading text.
 
 Mark targets of index entries in the main document body using these two methods.
 #When you want the index entry heading to be exactly the same as the target text
@@ -514,6 +534,11 @@ parameter of exactly what the text of the index entry heading will be.
 For the first method, enclose just the target text, not markup, or the markup
 characters may appear in the generated heading.
 If you don't want to deal with that, then just use the second method.
+
+//Because of my goal to keep the following sample tiny, if you want to see
+the links scroll to the targets, you will have to scroll your browser down
+until the Sample Index Document Section is at the very top of your screen
+(before clicking each link).
 
 ==== Full Index Sample
 
@@ -538,37 +563,56 @@ And write the definition list entries in paragraphs...
 
 ~<<masterDefEntry yourEntryName>>Like this.
 The paragraph may contain any regular paragraph markup, excepting
-foot note, glossary, and index Directives.
+footnote, glossary, and index Directives.
 Then finally, where you want the definition entries to appear in the document,
 add...
 
-~<<masterDefList>>
+======{{{<<masterDefList>>}}}
+or\\
+======{{{<<masterDefList className1>>}}}
+or\\
+======{{{<<masterDefList /REF_ORDER>>}}}
+or\\
+======{{{<<masterDefList className1 className 2 /NAME_BY_JAVA>>}}}
+
+Just use "##~<<masterDefList>>##" for the default list layout.
+"##REF_ORDER##" or "##NAME_BY_JAVA##" above are samples of (optional)
+specification for ordering of the list entries.
+The supported values are
+*=NAME_BY_DICTIONARY|Definienda are sorted with dictionary collation. **
+ This is the default setting.**
+*=NAME_BY_JAVA|Same as NAME_BY_DICTIONARY except Java collation is used.
+*=DEF_ORDER|List is displayed in the same exact order as you authored the
+ entries (i.e. the order of your ##masterDefEntry## directives).
+*=REF_ORDER|List is displayed in the order of the first reference to each one
+ in the main document body.
 
 A Master Definition List is a generalization of a glossary.
-One Creole file can have one master definition file (hence //master//).
-Add definitions for any words, terms, phrases, or whatever that are appropriate
-and useful to your document.
+One Creole document can have only one master definition file (hence //master//).
+Add definitions for any words, terms, phrases, or whatever you want to
+explicitly define for your audience.
 
 Notice that you write links to definition entries as
 [[#jcsect_ExplicitHyperlinks]].
-Each explicit hyperlink in your document with a relative URL (i.e. not
-#localAnchor URL and not absolute URL and not wiki:link) is checked against all
-def list entries.
+Each explicit hyperlink in your document with a relative URL (i.e.
+not #localAnchor URL and not absolute URL and not wiki:link) is checked against
+all def list entries.
 If the URL matches a master definition list entry name, then it is linked to it.
 
 The sequence of all of the 3 directives (##~[[...]]]##, ##masterDefEntry##,
 and ##masterDefList##) makes no difference.
 Write them in whatever order is easiest or best for you to organize your
 document.
-In the generated definition listing, the entries will alphabetized.
 
 Multiple links can point to a single definition entry.
 Definition entries do not need to be linked to at all.
 
-Because of the minimalistic setup used for this reference document, and the
-goal to keep this sample inside one sub-section, the following sample can't show
-how clicking on references usually pops up the entry text, nor even scroll the
-browser to the targeted entry.
+//If you click on a reference link  and the definition text
+is not displayed in a pop-up, then this reference document was built in standalone mode.
+In that case, because of my goal to keep the following sample tiny, if you
+want to see the links scroll to the targets, you will have to scroll your
+browser up until the Sample Master Definition List Section is below the visible
+area (before clicking each link).
 
 ==== Full Master Definition List Sample
 
