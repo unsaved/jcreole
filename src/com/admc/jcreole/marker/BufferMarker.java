@@ -30,7 +30,7 @@ abstract public class BufferMarker implements Comparable<BufferMarker> {
      * Would have to complicate parser code by passiing around the
      * originating non-terminals all over the place. */
     protected int offset = -1;
-    private int id = -1;
+    protected int id = -1;
     protected StringBuilder targetSb;
     public static final char markerChar = '\u001a';
     protected boolean applied;

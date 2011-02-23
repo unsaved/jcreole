@@ -221,7 +221,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     pushState();
     yybegin(PSTATE);
 }
-<YYINITIAL> ^[ \t]* "<<"{s}*footNote[ \t] {
+<YYINITIAL> ^[ \t]* "<<"{s}*(footNote|indexed)[ \t] {
     yypushback(yylength());
     pushState();
     yybegin(PSTATE);
@@ -334,7 +334,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
-<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
+<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
@@ -356,7 +356,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
+<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_LI);
@@ -377,7 +377,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index) ~ ">>"[ \t]*\n {
+<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_DT);
@@ -400,8 +400,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.NESTED_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL, JCXBLOCKSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)
-~ ">>"[ \t]*\n {
+<YYINITIAL, JCXBLOCKSTATE>
+^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] ~ \n {
     Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
         throw new RuntimeException(
@@ -679,9 +679,11 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 ("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
+<PSTATE, HEADSTATE, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
 "<<"{s}*footNote[ \t]+[^>]+">>" {
     return newToken(Terminals.FOOTREF, matcher(ParamPluginPattern).group(2));
 }
+<PSTATE, HEADSTATE, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
 "<<"{s}*indexed[ \t]+[^>]+">>" {
     return newToken(Terminals.INDEXED, matcher(ParamPluginPattern).group(2));
 }

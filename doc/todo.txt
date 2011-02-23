@@ -1,5 +1,8 @@
 SHORT TERM
 
+Document that toc, footNotes, masterDefList, and index must be on a line by
+themselves.
+
 Consider how to allow author to hyperlink a broader set of content than just a
 non-markup label.
 

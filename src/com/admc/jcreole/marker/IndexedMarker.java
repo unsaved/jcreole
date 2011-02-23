@@ -46,10 +46,7 @@ public class IndexedMarker extends BufferMarker {
     }
 
     public void updateBuffer() {
-        if (targNum < 0)
-            throw new IllegalStateException(
-                    "Can't generate Index Entry tag until targNum is set");
         super.updateBuffer();
-        targetSb.insert(offset, targNum);
+        targetSb.insert(offset, (targNum < 0) ? id : targNum);
     }
 }

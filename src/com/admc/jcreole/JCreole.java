@@ -253,12 +253,17 @@ public class JCreole {
         } catch (beaver.Parser.Exception bpe) {
             throw new CreoleParseException(bpe);
         } catch (RuntimeException rte) {
+            log.error("Unexpected problem.  Passing RuntimeException to caller",
+                    rte);
             throw new CreoleParseException("Unexpected problem", rte);
         }
-        if (!(retVal instanceof WashedSymbol))
+        if (!(retVal instanceof WashedSymbol)) {
+            log.error("Parser returned unexpected type "
+                    + retVal.getClass().getName() + ".  Throwing RTE.");
             throw new IllegalStateException(
                     "Parser returned unexpected type: "
                     + retVal.getClass().getName());
+        }
         return ((WashedSymbol) retVal).toString();
     }
 

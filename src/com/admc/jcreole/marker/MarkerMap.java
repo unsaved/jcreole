@@ -81,6 +81,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         String idString;
         String name;
         while ((offset2 = buffer.indexOf("\u0002", offset3 + 1)) > -1) {
+            // Load Entries (without data)
             offsetNl = buffer.indexOf("\n", offset2 + 2);
             if (offsetNl < 0)
                 throw new CreoleParseException("No name termination for Entry");
@@ -105,10 +106,12 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         "Unexpected EntryType indicator: "
                         + buffer.charAt(offset2 + 1));
             }
-            if (eType == EntryType.FOOTNOTE)
+            if (footNotesMarker != null && eType == EntryType.FOOTNOTE) {
                 footNotesMarker.add(name);
-            else if (eType == EntryType.MASTERDEF)
+            } else if (masterDefListMarker != null
+                    && eType == EntryType.MASTERDEF) {
                 masterDefListMarker.add(name);
+            }
         }
 
         if (footNotesMarker != null) {
@@ -141,6 +144,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
         // Extract all Entries
         offset2 = 0;
         while ((offset2 = buffer.indexOf("\u0002", offset2)) > -1) {
+            // Load data for Entries
             offsetNl = buffer.indexOf("\n", offset2 + 2);
             if (offsetNl < 0)
                 throw new CreoleParseException("No name termination for Entry");
@@ -165,10 +169,12 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                         "Unexpected EntryType indicator: "
                         + buffer.charAt(offset2 + 1));
             }
-            if (eType == EntryType.FOOTNOTE)
+            if (footNotesMarker != null
+                    && eType == EntryType.FOOTNOTE)
                 footNotesMarker.set(
                         name, buffer.substring(offsetNl + 1, offset3));
-            else if (eType == EntryType.MASTERDEF)
+            else if (masterDefListMarker != null
+                    && eType == EntryType.MASTERDEF)
                 masterDefListMarker.set(
                         name, buffer.substring(offsetNl + 1, offset3));
             buffer.delete(offset2, offset3 +1);

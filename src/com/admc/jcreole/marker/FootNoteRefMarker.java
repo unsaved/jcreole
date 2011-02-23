@@ -51,13 +51,9 @@ public class FootNoteRefMarker extends BufferMarker {
     }
 
     public void updateBuffer() {
-        if (targNum < 0)
-            throw new IllegalStateException(
-                    "Can't generate FootNote tag until targNum is assigned");
-        if (entryLabel == null)
-            throw new IllegalStateException("Can't generate FootNote tag "
-                    + "until target entryLabel is set");
         super.updateBuffer();
-        targetSb.insert(offset, targNum + "\"><sup>" + entryLabel);
+        targetSb.insert(offset, (targNum < 0 || entryLabel == null) 
+                ? (0 + "\"><sup class=\"jcreole_orphanLink\">orphaned")
+                : (targNum + "\"><sup>" + entryLabel));
     }
 }

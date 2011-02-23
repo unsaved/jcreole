@@ -9,7 +9,8 @@ ref to the first entry<<footNote first Entry>>.
 
 Orphan <<footNoteEntry orphan Entry>> entry.
 
-<<footNoteEntry first Entry>>First sample entry.
+<<footNoteEntry first Entry>>First sample entry, with an
+[[&http://wiki.wikicreole.org/Creole%201.0|external link]].
 
 =====Sample Footnotes Document Section
 Note that though you will usually want to insert the footnote entry listing at

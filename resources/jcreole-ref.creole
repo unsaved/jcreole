@@ -452,14 +452,15 @@ directive must be placed on a line by itself.
 
 ===Footnotes
 
-Add references~<<footNote yourEntryName>> like this, and write the footnote
-entries in paragraphs...
+Add references~<<footNote yourEntryName>> like this, and..
 
-~<<footNoteEntry yourEntryName>>Like this.
+Mark paragraphs as footNote entries like ~<<footNoteEntry yourEntryName>> this.
+The ##footNoteEntry## directive instructs Creole to remove this paragraph from
+its position in the document body and put it into the footnotes listing instead.
 The paragraph may contain any regular paragraph markup, excepting
 footnote, master list, and index Directives.
 For reference or bibliography entries, you will often want to use 
-[[#jcsect_ExplicitHyperlinks]].
+[[#jcsect_ExplicitHyperlinks]] in the paragraph.
 
 Then finally, where you want the footnote entries to appear in the document,
 add...
@@ -477,6 +478,9 @@ Just use "##~<<footNotes>>##" for the default footnotes layout.
 footnotes were written (with ##footNoteEntry##s), instead of the default
 order (##REF_ORDER##, the order of the first reference to each footnote in
 the main document body).
+To make it clear that ##footNotes## directives are in no way a //part// of
+any other element (like a paragraph, list, or table), the ##footNotes##
+directive must be placed on a line by itself.
 
 You place ##footNote## directives where you want references to appear;
 you place the single ##footNotes## directive where you want the footnotes
@@ -486,15 +490,8 @@ footnotes listing).
 Write the ##footNoteEntry##s wherever it is more convenient for you.
 You may want to keep them together, or maintain each one by the relevant
 body content.
-Be aware that, regardless of location, you will want to write your ##footNotes##
-directive first, because the document can not validate if there are
-##footNote## or ##footNoteEntry## directives with no ##footNotes## directive
-present.
-Since you'll usually want footnotes at the end of your document, you can either
-insert new content above the ##footNotes## directive, or move (or recreate) the
-##footNotes## directive later on.
 
-The reference names, ##yourEntryName## in the examples above, are arbitrary.
+The entry names, ##yourEntryName## in the examples above, are arbitrary.
 Though they do not appear in the generated document at all, they serve an
 important purpose.
 They allow multiple references (##footNote## directives) to point to a single
@@ -513,8 +510,8 @@ In that case, your browser will scroll to the target location in the document.
 ==== Full Footnotes Sample
 
 <<footNoteEntry secondEntry>>Second sample entry.
-Notice that even though I have written this entry first, it will be second in
-the list of entries because it is //referenced// second.
+Notice that even though I have written this entry first, with default ordering
+it will be second in the list of entries because it is //referenced// second.
 
 Main body text paragraph here, with the first reference<<footNote firstEntry>>
 and a second reference<<footNote secondEntry>>.
@@ -530,7 +527,7 @@ be able to place it wherever you want to.
 <<footNotes>>
 
 === Index
-Mark entries in the document body ~<<(>>like this~<<)>> and
+Mark entries in the document body ~<<(>>like this~<<)>> or
 like this~<<indexed Entry name>>.
 
 Then where you want the index to appear in the document, add...
@@ -547,17 +544,14 @@ Just use "##~<<index>>##" for the default index layout.
 "##REF_ORDER##" or "##NAME_BY_JAVA##" specify to display the index entries
 sorted by reference order or by Java collation of the heading text, instead of
 by the default dictionary sorting of the heading text.
+To make it clear that ##index## directives are in no way a //part// of
+any other element (like a paragraph, list, or table), the ##index##
+directive must be placed on a line by itself.
 
 You place ##indexed## or ##(...)## directives in the document body where you
-want index entries to pint to; and
+want index entries to point to; and
 you place the single ##index## directive where you want the index
 listing to appear.
-Be aware that, regardless of location, you will want to write your ##footNotes##
-directive first, because the document can not validate if there are
-##indexed## or ##(...)## directives with no ##index## directive present.
-Since you'll usually want the index at the end of your document, you can either
-insert new content above the ##index## directive, or move (or recreate) the
-##index## directive later on.
 
 Mark targets of index entries in the main document body using these two methods.
 #When you want the index entry heading to be exactly the same as the target text
@@ -588,11 +582,12 @@ be able to place it wherever you want to.
 
 ===Master Definition List
 
-Add ~[[entryName|explicitly labelled reference]]s or automatically labelled
-references like this: ~[[entryName]].
-And write the definition list entries in paragraphs...
+Add ~[[entryName|explicitly labelled reference]]s or default-labelled
+references like this: ~[[entryName]], and...
 
-~<<masterDefEntry yourEntryName>>Like this.
+Mark paragraphs as master definition entries like ~<<masterDefEntry yourEntryName>> this.
+The ##masterDefEntry## directive instructs Creole to remove this paragraph from
+its position in the document body and put it into the masterDefList listing instead.
 The paragraph may contain any regular paragraph markup, excepting
 footnote, glossary, and index Directives.
 Then finally, where you want the definition entries to appear in the document,
@@ -617,6 +612,9 @@ The supported values are
  entries (i.e. the order of your ##masterDefEntry## directives).
 *=REF_ORDER|List is displayed in the order of the first reference to each one
  in the main document body.
+To make it clear that ##masterDefList## directives are in no way a //part// of
+any other element (like a paragraph, list, or table), the ##masterDefList##
+directive must be placed on a line by itself.
 
 A Master Definition List is a generalization of a glossary.
 One Creole document can have only one master definition file (hence //master//).
@@ -631,12 +629,6 @@ entry listing).
 Write the ##masterDefEntry##s wherever it is more convenient for you.
 You may want to keep them together, or maintain each one by the relevant
 body content.
-Be aware that, regardless of location, you will want to write your ##masterDefList##
-before your ##masterDefEntry##s, because the document can not validate if there are
-##masterDefEntry## directives with no ##masterDefList## directive present.
-If you don't want the definition list displayed at the top of your document,
-you can either insert new content above the ##masterDefList## directive, or
-move (or recreate) the ##masterDefList## directive later on.
 
 Notice that you write links to definition entries as
 [[#jcsect_ExplicitHyperlinks]].
@@ -644,11 +636,6 @@ Each explicit hyperlink in your document with a relative URL (i.e.
 not #localAnchor URL and not absolute URL and not wiki:link) is checked against
 all def list entries.
 If the URL matches a master definition list entry name, then it is linked to it.
-
-The sequence of all of the 3 directives (##~[[...]]]##, ##masterDefEntry##,
-and ##masterDefList##) makes no difference.
-Write them in whatever order is easiest or best for you to organize your
-document.
 
 Multiple links can point to a single definition entry.
 Definition entries do not need to be linked to at all.
