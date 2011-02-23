@@ -31,7 +31,7 @@ public class TocMarker extends BufferMarker {
     /**
      * @param levelInclusions  See param levelInclusions for method
      *        SectionHeading.generateToc().
-     * @see SectionHeading#generateToc
+     * @see Sections#generateToc(String)
      */
     public TocMarker(int id, String levelInclusions) {
         super(id);
