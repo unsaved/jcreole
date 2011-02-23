@@ -1,7 +1,7 @@
-Main body text paragraph here, with the first index target<<indexEntry first  Entry>>
-and a second index target<<indexEntry secondEntry>>.
+Main body text paragraph here, with the first index target<<indexed first  Entry>>
+and a second index target<<indexed secondEntry>>.
 And to show that multiple index targets for a shared entry work, here's a second
-target for the first entry<<indexEntry first  Entry>>.
+target for the first entry<<indexed first  Entry>>.
 
 Another paragraph with <<(>>two instances<<)>> of index targets.  Here's a third target for the multi-entry <<(>> first  Entry  <<)>>.
 

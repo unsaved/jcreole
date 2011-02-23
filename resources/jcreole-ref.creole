@@ -478,10 +478,21 @@ footnotes were written (with ##footNoteEntry##s), instead of the default
 order (##REF_ORDER##, the order of the first reference to each footnote in
 the main document body).
 
-The sequence of all of the 3 directives (##footNote##, ##footNoteEntry##,
-and ##footNotes##) makes no difference.
-Write them in whatever order is easiest or best for you to organize your
-document.
+You place ##footNote## directives where you want references to appear;
+you place the single ##footNotes## directive where you want the footnotes
+listing to appear; and you put ##footNoteEntry## directives any place at all
+(because JCreole will collect all ##footNoteEntry## paragraphs into the
+footnotes listing).
+Write the ##footNoteEntry##s wherever it is more convenient for you.
+You may want to keep them together, or maintain each one by the relevant
+body content.
+Be aware that, regardless of location, you will want to write your ##footNotes##
+directive first, because the document can not validate if there are
+##footNote## or ##footNoteEntry## directives with no ##footNotes## directive
+present.
+Since you'll usually want footnotes at the end of your document, you can either
+insert new content above the ##footNotes## directive, or move (or recreate) the
+##footNotes## directive later on.
 
 The reference names, ##yourEntryName## in the examples above, are arbitrary.
 Though they do not appear in the generated document at all, they serve an
@@ -520,7 +531,7 @@ be able to place it wherever you want to.
 
 === Index
 Mark entries in the document body ~<<(>>like this~<<)>> and
-like this~<<indexEntry Entry name>>.
+like this~<<indexed Entry name>>.
 
 Then where you want the index to appear in the document, add...
 
@@ -537,12 +548,23 @@ Just use "##~<<index>>##" for the default index layout.
 sorted by reference order or by Java collation of the heading text, instead of
 by the default dictionary sorting of the heading text.
 
+You place ##indexed## or ##(...)## directives in the document body where you
+want index entries to pint to; and
+you place the single ##index## directive where you want the index
+listing to appear.
+Be aware that, regardless of location, you will want to write your ##footNotes##
+directive first, because the document can not validate if there are
+##indexed## or ##(...)## directives with no ##index## directive present.
+Since you'll usually want the index at the end of your document, you can either
+insert new content above the ##index## directive, or move (or recreate) the
+##index## directive later on.
+
 Mark targets of index entries in the main document body using these two methods.
 #When you want the index entry heading to be exactly the same as the target text
 in the document body, mark the entry by surrounding the target text with
 "##~<<(>>##"... "##~<<)>>##" directives.
 #When you do not want the index entry heading to be exactly the same as
-text in the document body, add a single "##~<<indexEntry...>>##" Directive with
+text in the document body, add a single "##~<<indexed...>>##" Directive with
 parameter of exactly what the text of the index entry heading will be.
 
 For the first method, enclose just the target text, not markup, or the markup
@@ -551,10 +573,10 @@ If you don't want to deal with that, then just use the second method.
 
 ==== Full Index Sample
 
-Main body text paragraph here, with the first index target<<indexEntry first  Entry>>
-and a second index target<<indexEntry secondEntry>>.
+Main body text paragraph here, with the first index target<<indexed first  Entry>>
+and a second index target<<indexed secondEntry>>.
 And to show that multiple index targets for a shared entry work, here's a second
-target for the first entry<<indexEntry first  Entry>>.
+target for the first entry<<indexed first  Entry>>.
 
 Another paragraph with <<(>>two instances<<)>> of index targets.  Here's a third target for the multi-entry <<(>> first  Entry  <<)>>.
 
@@ -600,6 +622,21 @@ A Master Definition List is a generalization of a glossary.
 One Creole document can have only one master definition file (hence //master//).
 Add definitions for any words, terms, phrases, or whatever you want to
 explicitly define for your audience.
+
+You place explicit link directives where you want references to appear;
+you place the single ##masterDefList## directive where you want the entry
+listing to appear; and you put ##masterDefEntry## directives any place at all
+(because JCreole will collect all ##masterDefEntry## paragraphs into the
+entry listing).
+Write the ##masterDefEntry##s wherever it is more convenient for you.
+You may want to keep them together, or maintain each one by the relevant
+body content.
+Be aware that, regardless of location, you will want to write your ##masterDefList##
+before your ##masterDefEntry##s, because the document can not validate if there are
+##masterDefEntry## directives with no ##masterDefList## directive present.
+If you don't want the definition list displayed at the top of your document,
+you can either insert new content above the ##masterDefList## directive, or
+move (or recreate) the ##masterDefList## directive later on.
 
 Notice that you write links to definition entries as
 [[#jcsect_ExplicitHyperlinks]].

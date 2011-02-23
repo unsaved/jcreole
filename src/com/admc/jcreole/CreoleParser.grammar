@@ -548,13 +548,13 @@
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
-%terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXENTRY;
+%terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED;
 
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
-%typeof MASTERDEFLIST, FOOTNOTES, FOOTREF, INDEXENTRY, INDEX = "String";
+%typeof MASTERDEFLIST, FOOTNOTES, FOOTREF, INDEXED, INDEX = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -1196,9 +1196,9 @@ inline = NESTED_PRE.text {:
             return new WashedSymbol("<a class=\"jcreole_fnref\" href=\"#jcfn"
                     + fnrm.getMarkerString() + "</sup></a>");
         :}
-        | INDEXENTRY.text {:
-            IndexEntryMarker iem =
-                    new IndexEntryMarker(++lastMarkerId, clean(text));
+        | INDEXED.text {:
+            IndexedMarker iem =
+                    new IndexedMarker(++lastMarkerId, clean(text));
             markers.put(Integer.valueOf(lastMarkerId), iem);
             return new WashedSymbol("<a class=\"jcreole_indexed\" "
                     + "id=\"jcindexed" + iem.getMarkerString() + "\"></a>");

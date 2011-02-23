@@ -24,11 +24,11 @@ import com.admc.jcreole.Sections;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since 1.1
  */
-public class IndexEntryMarker extends BufferMarker {
+public class IndexedMarker extends BufferMarker {
     private int targNum = -1;
     private String name;
 
-    public IndexEntryMarker(int id, String name) {
+    public IndexedMarker(int id, String name) {
         super(id);
         this.name = name;
     }

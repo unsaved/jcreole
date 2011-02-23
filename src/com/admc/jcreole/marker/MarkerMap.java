@@ -241,9 +241,9 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
             } else if (m instanceof FootNoteRefMarker) {
                 if (footNotesMarker != null)
                     footNotesMarker.add((FootNoteRefMarker) m);
-            } else if (m instanceof IndexEntryMarker) {
+            } else if (m instanceof IndexedMarker) {
                 if (indexMarker != null)
-                    indexMarker.add((IndexEntryMarker) m);
+                    indexMarker.add((IndexedMarker) m);
             } else if (m instanceof DeferredUrlMarker) {
                 if (masterDefListMarker != null)
                     masterDefListMarker.add((DeferredUrlMarker) m);
@@ -512,7 +512,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
                 ;
             } else if (m instanceof FootNoteRefMarker) {
                 ;
-            } else if (m instanceof IndexEntryMarker) {
+            } else if (m instanceof IndexedMarker) {
                 ;
             } else if (m instanceof DeferredUrlMarker) {
                 ;

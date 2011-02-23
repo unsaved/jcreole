@@ -29,10 +29,10 @@ import com.admc.jcreole.DictionaryComparator;
 /**
  * Lifecycle <ol>
  *   <li>Instantiate</li>
- *   <li>add(IndexEntryMarker)</li>
+ *   <li>add(IndexedMarker)</li>
  *   <li>generateEntries()</li>
  *   <li>sort</li>
- *   <li>EXTERNALLY updateBuffer IndexEntryMarkers)</li>
+ *   <li>EXTERNALLY updateBuffer IndexedMarkers)</li>
  *   <li>updateBuffer</li>
  * </ol>
  *
@@ -40,12 +40,12 @@ import com.admc.jcreole.DictionaryComparator;
  * @since 1.1
  */
 public class IndexMarker extends BodyUpdaterMarker {
-    public List<IndexEntryMarker> refMarkers =
-            new ArrayList<IndexEntryMarker>();
-    public Map<Entry, List<IndexEntryMarker>> entryLinks =
-            new HashMap<Entry, List<IndexEntryMarker>>();
+    public List<IndexedMarker> refMarkers =
+            new ArrayList<IndexedMarker>();
+    public Map<Entry, List<IndexedMarker>> entryLinks =
+            new HashMap<Entry, List<IndexedMarker>>();
 
-    public void add(IndexEntryMarker refMarker) {
+    public void add(IndexedMarker refMarker) {
         refMarkers.add(refMarker);
     }
 
@@ -60,13 +60,13 @@ public class IndexMarker extends BodyUpdaterMarker {
     public void generateEntries() {
         Entry entry;
         int counter = 0;
-        for (IndexEntryMarker refMarker : refMarkers) {
+        for (IndexedMarker refMarker : refMarkers) {
             if (origKeyToEntry.containsKey(refMarker.getName())) {
                 entry = origKeyToEntry.get(refMarker.getName());
             } else {
                 entry = new Entry(1 + entries.size());
                 entry.setLabel(refMarker.getName());
-                entryLinks.put(entry, new ArrayList<IndexEntryMarker>());
+                entryLinks.put(entry, new ArrayList<IndexedMarker>());
                 entries.add(entry);
                 origKeyToEntry.put(refMarker.getName(), entry);
             }
@@ -75,11 +75,11 @@ public class IndexMarker extends BodyUpdaterMarker {
         }
         StringBuilder sb = new StringBuilder();
         int refCount;
-        for (Map.Entry<Entry, List<IndexEntryMarker>> e :
+        for (Map.Entry<Entry, List<IndexedMarker>> e :
                 entryLinks.entrySet()) {
             sb.setLength(0);
             refCount = 0;
-            for (IndexEntryMarker refMarker : e.getValue()) {
+            for (IndexedMarker refMarker : e.getValue()) {
                 if (sb.length() > 0) sb.append(' ');
                 sb.append("<a href=\"#jcindexed").append(refMarker.getTargNum())
                         .append("\">").append(++refCount).append("</a>");

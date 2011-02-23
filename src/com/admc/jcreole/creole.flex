@@ -660,7 +660,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
                 yychar, yyline, yycolumn);
     needIndexCloser = true;
     yypushback(yylength() - m.group(1).length());
-    return newToken(Terminals.INDEXENTRY, m.group(2));
+    return newToken(Terminals.INDEXED, m.group(2));
 }
 "<<"{s}*")"{s}*">>" {
     if (!needIndexCloser)
@@ -682,8 +682,8 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "<<"{s}*footNote[ \t]+[^>]+">>" {
     return newToken(Terminals.FOOTREF, matcher(ParamPluginPattern).group(2));
 }
-"<<"{s}*indexEntry[ \t]+[^>]+">>" {
-    return newToken(Terminals.INDEXENTRY, matcher(ParamPluginPattern).group(2));
+"<<"{s}*indexed[ \t]+[^>]+">>" {
+    return newToken(Terminals.INDEXED, matcher(ParamPluginPattern).group(2));
 }
 
 
