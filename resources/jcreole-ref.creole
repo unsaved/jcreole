@@ -265,7 +265,7 @@ Definition Lists are not as powerful as lists though (and are even less powerful
 === Popup Links
 
 ======~[["Like"|this]]
-Popups up a message.
+Pops up a message.
 
 This requires simple application integration (at least a one-line JavaScript
  function definition), and the page author needs a specific privilege.
@@ -459,8 +459,9 @@ The ##footNoteEntry## directive instructs Creole to remove this paragraph from
 its position in the document body and put it into the footnotes listing instead.
 The paragraph may contain any regular paragraph markup, excepting
 footnote, master list, and index Directives.
-For reference or bibliography entries, you will often want to use 
-[[#jcsect_ExplicitHyperlinks]] in the paragraph.
+For reference or bibliography entries, you will often want to use
+[[#jcsect_ExplicitHyperlinks]] with & [[#jcsect_TargetedLinks]]
+in the paragraph.
 
 Then finally, where you want the footnote entries to appear in the document,
 add...
@@ -510,8 +511,6 @@ In that case, your browser will scroll to the target location in the document.
 ==== Full Footnotes Sample
 
 <<footNoteEntry secondEntry>>Second sample entry.
-Notice that even though I have written this entry first, with default ordering
-it will be second in the list of entries because it is //referenced// second.
 
 Main body text paragraph here, with the first reference<<footNote firstEntry>>
 and a second reference<<footNote secondEntry>>.
@@ -651,9 +650,6 @@ You can insert the Definition List wherever you want to in your document.
 <<masterDefList>>
 
 <<masterDefEntry Scott, Michael>>Office manager.
-Notice that even though I have written this entry first and I have referenced
-it first, it will not be first
-in the list of entries because the list gets sorted by the definienda.
 
 Main body text paragraph here, with the [[Scott, Michael]] auto-labelled link,
 and a second [[Beasley, Pam|explicitly labelled link]].
