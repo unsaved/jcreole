@@ -167,6 +167,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
+// Gobble up leading whitespace:
+<YYINITIAL> ^[ \t]+ / "<<"{s}*"["{wsdash}*">>" { }
 <YYINITIAL> ^[ \t]*[#]= {
     pushState();
     yybegin(LISTATE);

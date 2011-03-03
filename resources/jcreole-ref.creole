@@ -310,9 +310,9 @@ Code HTML right into your wikitext page.
 This directive is usually restricted to users with a special authorization.
 
 === jcxBlock: Create custom-stylable Block element
-======{{{<<[>>>Like this<<]>>}}}
+======{{{<<[>>Like this<<]>>}}}
 or\\
-======{{{<<[cssClassName1 cssClassName2>>>Like this<<]>>}}}
+======{{{<<[cssClassName1 cssClassName2>>Like this<<]>>}}}
 You can assign CSS classes to your custom elements as shown by the second
 sample here, or by using Styler directives as shown below.
 
@@ -324,7 +324,7 @@ element) inside of a HTML paragraph.
 === jcxSpan: Create custom-stylable Inline element
 ======{{{<<{>>Like this<<}>>}}}
 or\\
-======{{{<<{cssClassName1 cssClassName2>>>Like this<<}>>}}}
+======{{{<<{cssClassName1 cssClassName2>>Like this<<}>>}}}
 You can assign CSS classes to your custom elements as shown by the second
 sample here, or by using Styler directives as shown immediately below.
 
