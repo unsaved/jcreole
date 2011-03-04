@@ -72,6 +72,7 @@
     private InterWikiMapper interWikiMapper;
     private int lastMarkerId = 0;
     private int ewinCount = 0;
+    private int tabCount = 0;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
     // hIds is only for checking ID uniqueness
@@ -328,6 +329,17 @@
         return new WashedSymbol(sb.toString());
     }
 
+    public WashedSymbol newTabSet(List<TabSymbol> tabSymbolList) {
+        StringBuilder sb = new StringBuilder(
+                "<div class=\"jcreole_tabset\"><ul>\n");
+        for (TabSymbol tabSymbol : tabSymbolList)
+            sb.append("  ").append(tabSymbol.getLabelLi()).append('\n');
+        sb.append("</ul></div>\n");
+        for (TabSymbol tabSymbol : tabSymbolList)
+            sb.append(tabSymbol.getContentBlock()).append('\n');
+        return new WashedSymbol(sb.toString());
+    }
+
     private String markBlock(
             String tagName, boolean writeAttr, boolean atomic) {
         BufferMarker bm =
@@ -548,7 +560,7 @@
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
-%terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED;
+%terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED, TAB;
 
 %typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
@@ -603,6 +615,7 @@ topblock = HOR {:
 // Blocks which may occur at different levels
 masterblock = jcxblock
         | listnest.l {: return new WashedSymbol(l.toString()); :}
+        | tabset.t {: return new WashedSymbol(t.toString()); :}
         | dl.l {: return new WashedSymbol(l.toString()); :}
         | table.t {: return new WashedSymbol(t.toString()); :}
         ;
@@ -874,7 +887,7 @@ cell  = CELL.c jcxblockOrInline.l+ {: return new WashedSymbol(
                     + joinWashedSymbols(_list_l) + autoCloseInlines()); :};
 
 dl = lastdt.ldtitem {:
-                // A single <li> list.
+                // A single <dt> list.
                 // Not useful in final docs, but definitely useful for drafts.
                 return newDl(Collections.singletonList((DtSymbol) ldtitem));
             :}
@@ -893,6 +906,30 @@ listnest = lastli.llitem {:
                 List<LiSymbol> liSymbols = (List<LiSymbol>) _list_litem;
                 liSymbols.add((LiSymbol) llitem);
                 return newListNest(liSymbols);
+            :};
+
+tabset = lasttab.llitem {:
+                // A single <li> list.
+                // Not useful in final docs, but definitely useful for drafts.
+                return newTabSet(Collections.singletonList((TabSymbol) llitem));
+            :}
+         | tab.litem+ lasttab.llitem {:
+                List<TabSymbol> tabSymbols = (List<TabSymbol>) _list_litem;
+                tabSymbols.add((TabSymbol) llitem);
+                return newTabSet(tabSymbols);
+            :};
+
+tab       = TAB.tb jcxblockOrInline.l+ END_LI {:
+                require(JCreolePrivilege.TAB, tb);
+                return new TabSymbol((Token) tb,
+                        joinWashedSymbols(_list_l).toString()
+                        + autoCloseInlines(), ++tabCount);
+            :};
+lasttab   = TAB.tb jcxblockOrInline.l+ FINAL_LI {:
+                require(JCreolePrivilege.TAB, tb);
+                return new TabSymbol((Token) tb,
+                        joinWashedSymbols(_list_l).toString()
+                        + autoCloseInlines(), ++tabCount);
             :};
 
 li       = liel.li jcxblockOrInline.l+ END_LI {:

@@ -36,5 +36,6 @@ public enum JCreolePrivilege {
     MASTERDEF,
     FOOTNOTES,
     INDEX,
-    WINDOWTARGETING
+    WINDOWTARGETING,
+    TAB
 }

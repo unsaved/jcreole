@@ -169,6 +169,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 }
 // Gobble up leading whitespace:
 <YYINITIAL> ^[ \t]+ / "<<"{s}*"["{wsdash}*">>" { }
+<YYINITIAL> ^[ \t]*[#*]"]" {
+    pushState();
+    yybegin(LISTATE);
+    return newToken(Terminals.TAB);
+}
 <YYINITIAL> ^[ \t]*[#]= {
     pushState();
     yybegin(LISTATE);
@@ -304,6 +309,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.END_JCXBLOCK);
 }
+<LISTATE> ^[ \t]*(#|"*")"]" { return newToken(Terminals.TAB); }
 <LISTATE> ^[ \t]*((#+)|("*"+))=? {
     Matcher m = matcher(ListLevelPattern);
     if (m.groupCount() != 2)
