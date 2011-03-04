@@ -220,7 +220,8 @@ or
 if using another Creole engine.
 
 This feature is a generalization paralleling table's "##|=##" option.
-By suffixing the leading heading directive with "##=##", like "##~***=##", you
+By suffixing the * or # list directive characters with "##=##",
+ like "##~***=##", you
  instruct JCreole to divide the list item into a heading segment and a data
  (non-heading) segment.
  The first pipe character, "##|##", in your content specifies where the heading
@@ -236,6 +237,29 @@ about the special usage of ##=## and ##|## here, so that another Creole engine
 would display an input line of "##{{{#=Like|this}}} as a list item with content
 "##=Like|this##", but JCreole will make it look...
 #=Like|this
+
+=== Tabs
+======#]Like|this
+//This feature is JCreole-specific, but it is designed so as to degrade gracefully
+if using another Creole engine.
+
+This requires application integration,
+ and the page author needs a specific privilege.
+
+You write the tab label and the content for that tab just very similar to a
+headed list item.
+Start the line with ##*## followed with the label then ##|## then the content.
+Write one line for each tab that you want.
+
+If you submit this to a Creole engine other than JCreole, it will interpet
+the ##*]...## lines as a regular 1-level list, with the ##]## and ##|##
+characters displayed in the list item contents.
+
+If this reference guide was built without tab support, the following will be
+displayed as a regular list.
+*]first tab|Contents
+like this
+*]second tab|Looks like this
 
 === Definition List
 ======;Definiendum like this:And definiens like this
