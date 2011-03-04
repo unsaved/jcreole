@@ -52,7 +52,8 @@ class TabSymbol extends Token {
     }
 
     public String getContentBlock() {
-        return "<div id=\"jcreole_tab" + refId + "\">\n  " + content + "\n</div>";
+        return "<div id=\"jcreole_tab"
+                + refId + "\">\n    " + content + "\n  </div>";
     }
 
     public String toString() {

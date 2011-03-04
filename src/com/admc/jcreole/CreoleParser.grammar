@@ -331,12 +331,13 @@
 
     public WashedSymbol newTabSet(List<TabSymbol> tabSymbolList) {
         StringBuilder sb = new StringBuilder(
-                "<div class=\"jcreole_tabset\"><ul>\n");
+                "<div class=\"jcreole_tabset\">\n  <ul>\n");
         for (TabSymbol tabSymbol : tabSymbolList)
-            sb.append("  ").append(tabSymbol.getLabelLi()).append('\n');
-        sb.append("</ul></div>\n");
+            sb.append("    ").append(tabSymbol.getLabelLi()).append('\n');
+        sb.append("  </ul>\n\n");
         for (TabSymbol tabSymbol : tabSymbolList)
-            sb.append(tabSymbol.getContentBlock()).append('\n');
+            sb.append("  ").append(tabSymbol.getContentBlock()).append('\n');
+        sb.append("</div>\n");
         return new WashedSymbol(sb.toString());
     }
 
