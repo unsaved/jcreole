@@ -215,7 +215,7 @@ This---
 === Headed List Items
 ======#=Like|this
 or
-======*Like|this
+======*=Like|this
 //This feature is JCreole-specific, but it is designed so as to degrade gracefully
 if using another Creole engine.
 
