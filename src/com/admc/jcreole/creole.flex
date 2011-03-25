@@ -471,30 +471,15 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // entirely redundant listing for "Nowiki Open/Close (handled by the
 // Image Open/Close in a more general way).
 // ANYWHERES
-"~*"[*]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~/"[/]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~#"[#]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~-"[-]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~_"[_]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~^"[\^]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~,"[,]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~["[\[]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~]"[\]]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~\\"[\\]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~{"[{]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~}"[}]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~<"[<]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~>"[>]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~"[-*/#_\^,\[\]\\{}<>~] {
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
 "~"[~]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 ^[ \t]*"~"[*#=|] {
     int len = yylength();
     return newToken(Terminals.TEXT,
             yytext().substring(0, len - 2) + yytext().substring(len - 1));
-}
-^[ \t]*"~"---- {
-    return newToken(Terminals.TEXT,
-            yytext().substring(0, yylength() - 5) + "----");
 }
 // Only remaining special case is for escaping line breaks in TRs with | or ~.
 // END of Escapes
@@ -589,6 +574,8 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
             sb.substring(2, yylength()-2), sb.indexOf("|") - 2);
 }
 "{{" ~ "}}" {
+    // Seems to be a JFlex bug here.  "{{...}}}" captures the whole thing
+    // even though it should end after the first "}}.
     if (yystate() == YYINITIAL) {
         pushState();
         yybegin(PSTATE);
