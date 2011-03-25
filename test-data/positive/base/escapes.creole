@@ -1,1 +1,7 @@
-One ~<<<! two ~>>> ~{{{ three ~}}} four ~<< five ~>> six ~{{ seven ~}}.
+One ~<<<! two ~>>> ~{{{ three }}} four ~<< five ~>> six ~{{ seven ~}} eight}}.
+
+//~/~/test~/~///
+
+One {{{two}}} three}}} four
+
+One {{{two~}}} three}}} four

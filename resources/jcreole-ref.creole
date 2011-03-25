@@ -47,7 +47,7 @@ are), but only for displaying tabular data.
 
 Without coding anything special, all content for a table row must be specified
 on a single wikitext line--- as you may imagine, that can be quite inconvenient.
-To split a single table into multiple rows, you can end a row line with the tilde character ##~##, or use a [[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlock]].
+To split a single table into multiple rows, you can end a row line with the tilde character ##~~##, or use a [[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlock]].
 |=Looks|=Like|=this
 |and|like|this
 |and|like|this
@@ -81,7 +81,7 @@ One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## means a 
 Automatically made into hyperlinks with a label matching the URL.\\
 ~http://wiki.wikicreole.org/Creole%201.0
 
-To prevent link-generation, add a tilde (##~##) right before an URL, like
+To prevent link-generation, add a tilde (##~~##) right before an URL, like
 {{{~http://wiki.wikicreole.org/Creole%201.0}}} .
 
 === Explicit hyperlinks
@@ -117,16 +117,25 @@ Looks like\\
 [[http://wiki.wikicreole.org/Creole%201.0|{{http://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png|Alternate text}}]]
 
 === Preventing markup interpretation
-...by prefixing the special character(s) with ~, or by enclosing the text with
+...by prefixing the special character(s) with ~~, or by enclosing the text with
 ~{{{ and ~}}}.
 These tactics are called //escaping//, and the last method is called //Nowiki//.
 (Nowiki where ~{{{ and ~}}} are on separate lines with no blank space also
 cause the enclosed, escaped text to be wrapped in a HTML //pre// element).\\
 ======{{{Works like this with <<>> __ \\ Special characters}}}.
 
-~ normally escapes just the special markup character following it.
-An exceptional usage of ~ is that you can prefix an entire URL with ~ to
-prevent bare-URL linking.
+~~ normally escapes just the special markup character following it.
+The exceptions where ~~ escapes more than one following character are
+(1) immediately before an URL will prevent bare-URL linking; and
+(2) immediately before "{{{" will escape the entire "{{{".
+
+It makes no sense to escape inside of ~<<plugins>> (including the comment
+plugins), or ~{{{...}}} literals, because those spans of text are already
+escaped.
+It is not possible to escape the closing markers for these elements because, as
+I said, ~~ is not allowed in these situations.
+Therefore, ~>> in a plugin will //always// close the current plugin, and ~}}}
+will always close the current Nowki.
 
 See the [[#jcsect_EmDash]] section about escaping hyphens.
 
@@ -171,7 +180,7 @@ Just add named (not numerical) character entities and they will be preserved.\\
 &quot;see?&quot;.
 
 === Hard spaces
-======{{{~ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(That is a tilde followed by a space character).}}}
+======~~ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(That is a tilde followed by a space character).
 This is equivalent to writing ##&amp;nbsp;##.\\
 Four such spaces looks like ~ ~ ~ ~ this.
 
@@ -221,7 +230,7 @@ if using another Creole engine.
 
 This feature is a generalization paralleling table's "##|=##" option.
 By suffixing the * or # list directive characters with "##=##",
- like "##~***=##", you
+ like "##{{{***}}}=##", you
  instruct JCreole to divide the list item into a heading segment and a data
  (non-heading) segment.
  The first pipe character, "##|##", in your content specifies where the heading

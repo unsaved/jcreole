@@ -474,6 +474,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 "~"[-*/#_\^,\[\]\\{}<>~] {
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
+"~{{{" { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~"[~]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
 "~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 ^[ \t]*"~"[*#=|] {

@@ -120,7 +120,7 @@
         this.sectIdPrefix = sectIdPrefix;
     }
 
-    public List<SectionHeading> getSectionHeadings() {
+    public Sections getSectionHeadings() {
         return markers.getSectionHeadings();
     }
 
