@@ -75,7 +75,9 @@ import org.apache.commons.io.input.CharSequenceReader;
     private void pushState() {
         stateStack.add(0, yystate());
     }
-    private int popState() { return stateStack.remove(0); }
+    private int popState() {
+        return (stateStack.size() < 1) ? YYINITIAL : stateStack.remove(0);
+    }
 
     /**
      * Static factory method.
@@ -144,7 +146,7 @@ import org.apache.commons.io.input.CharSequenceReader;
     }
 %}
 
-%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE, DLSTATE
+%states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE, DLSTATE, DEATH
 
 S = [^ \t\f\n]
 s = [ \t\f\n]
@@ -160,6 +162,11 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // ** lose the ability to match ^.
 
 // ********************************************************
+// This is a work-around because Flex gives no ability to return tokens right
+// before returning EOF.  Without this, you either return something else or
+// you return EOF.
+<DEATH> .* { return newToken(Terminals.EOF); }
+
 // State changes from YYINITIAL.
 // URLs and a couple special cases are handled elsewhere.
 <YYINITIAL> ^[ \t]+ / "**" {
@@ -464,23 +471,31 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 //    non-escaping behavior (the list says it's a list of what would "trigger
 //    escaping, whereas these 2 items are there to say they do not trigger
 //    escaping").
-// I see no reason at all fo do anything special for ~ inside of URLs.
+// I see no reason at all to do anything special for ~ inside of URLs.
 // None of the cases for escape here will occur in a real-world legal URL.
 // Ah, I see that they missed ^"*".
 // AND! I see that though they missed inline {{{}}}, they have written the
 // entirely redundant listing for "Nowiki Open/Close (handled by the
 // Image Open/Close in a more general way).
 // ANYWHERES
-"~"[-*/#_\^,\[\]\\{}<>~] {
-    return newToken(Terminals.TEXT, yytext().substring(1));
-}
-"~{{{" { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~"[~]* { return newToken(Terminals.TEXT, yytext().substring(1)); }
-"~ " { return newToken(Terminals.HARDSPACE); }  // Going with HardSpace here
 ^[ \t]*"~"[*#=|] {
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
     int len = yylength();
     return newToken(Terminals.TEXT,
             yytext().substring(0, len - 2) + yytext().substring(len - 1));
+}
+"~"[-*/#_\^,\[\]\\{}<>~] {
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
+"~{{{" { return newToken(Terminals.TEXT, yytext().substring(1)); }
+"~"[~]* {
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
+    return newToken(Terminals.TEXT, yytext().substring(1));
+}
+"~ " {
+    if (yystate() == YYINITIAL) yybegin(PSTATE);
+    return newToken(Terminals.HARDSPACE); // Going with HardSpace here
 }
 // Only remaining special case is for escaping line breaks in TRs with | or ~.
 // END of Escapes
@@ -488,7 +503,6 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 // General/Global stuff
 <YYINITIAL> [ \t]*\n { return newToken(Terminals.ROOTLVL_NEWLINE); }
-<<EOF>> { return newToken(Terminals.EOF); }
 // Following statement is for developers to TEMPORARY enable for debugging.
 //. { if (yylength() != 1) throw new CreoleParseException("Match length != 1 for '.'  UNMATCHED: [" + yytext() + ']', yychar, yyline, yycolumn); }
 
@@ -537,7 +551,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
-<PSTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.END_PARA); }
+<PSTATE> <<EOF>> { yybegin(DEATH); return newToken(Terminals.END_PARA); }
 
 
 // Misc Creole Inline elements.  May occur inside of Paras, TRs, LIs
@@ -702,8 +716,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.FINAL_LI); }
-// Would this last not defeat sending proper EOF to the parser?
+<LISTATE> <<EOF>> { yybegin(DEATH); return newToken(Terminals.FINAL_LI); }
 
 
 // DLSTATE stuff
@@ -723,7 +736,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> <<EOF>> { yybegin(popState()); return newToken(Terminals.FINAL_DT); }
+<DLSTATE> <<EOF>> { yybegin(DEATH); return newToken(Terminals.FINAL_DT); }
 // Would this last not defeat sending proper EOF to the parser?
 
 
@@ -734,10 +747,7 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
   // 1 is the SOH character code for "Start Of Header"
 <TABLESTATE> "|" { return newToken(Terminals.CELL); }
 <TABLESTATE> . { return newToken(Terminals.TEXT, yytext()); }
-<TABLESTATE> <<EOF>> {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_ROW);
-}
+<TABLESTATE> <<EOF>> { yybegin(DEATH); return newToken(Terminals.FINAL_ROW); }
 // I believe that the following can only be called if very last thing in file,
 // since above we have captured both "\n\s*[|]" and "\n\s*[^|]".
 <TABLESTATE> \n { yybegin(popState()); return newToken(Terminals.FINAL_ROW); }
@@ -762,3 +772,5 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "<<" {
     throw new CreoleParseException("Unknown plugin", yychar, yyline, yycolumn);
 }
+
+<<EOF>> { return newToken(Terminals.EOF); }
