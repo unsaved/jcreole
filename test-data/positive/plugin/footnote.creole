@@ -2,7 +2,7 @@
 Notice that even though I have written this entry first, it will be second in
 the list of entries because it is //referenced// second.
 
-Main body text pagraph here, with the first reference<<footNote first Entry>>
+Main body text paragraph here, with the first reference<<footNote first Entry>>
 and a second reference<<footNote second Entry>>.
 And to show that multiple references to a shared entry work, here's a second
 ref to the first entry<<footNote first Entry>>.
