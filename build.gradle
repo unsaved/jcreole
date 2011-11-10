@@ -54,7 +54,8 @@ jar { doFirst {
 } }
 
 task beaver << {
-    File grammarFile = file('src/com/admc/jcreole/CreoleParser.grammar')
+    File grammarFile =
+            file('src/main/java/com/admc/jcreole/CreoleParser.grammar')
     File parserFile =
             file('build/derived-src/com/admc/jcreole/CreoleParser.java')
     if (parserFile.exists()) parserFile.delete()
@@ -67,7 +68,8 @@ task beaver << {
 }
 beaver.description = '''Generate Beaver parser 'CreoleParser'.'''
 beaver.onlyIf {
-    File grammarFile = file('src/com/admc/jcreole/CreoleParser.grammar')
+    File grammarFile = file(
+            'src/main/java/com/admc/jcreole/CreoleParser.grammar')
     File scannerFile =
             file('build/derived-src/com/admc/jcreole/CreoleParser.java')
     (!grammarFile.exists()
@@ -78,12 +80,12 @@ task jflex (dependsOn: beaver) << {
     /*
 task jflex (dependsOn: beaver) {
     inputs.source fileTree(
-        dir:'src', exclude:'**&.*&**', include:'com/admc/jcreole&*.grammar')
-    inputs.file new File('src/com/admc/jcreole/CreoleParser.grammar')
+        dir:'src/main/java', exclude:'**&.*&**', include:'com/admc/jcreole&*.grammar')
+    inputs.file new File('src/main/java/com/admc/jcreole/CreoleParser.grammar')
     outputs.file new File('build/derived-src/com/admc/jcreole/CreoleScanner.java')
     doLast {
     */
-        File flexFile = file('src/com/admc/jcreole/creole.flex')
+        File flexFile = file('src/main/java/com/admc/jcreole/creole.flex')
         String jxVerbSwitch = ((project.hasProperty('jflex.verbose')
             && Boolean.parseBoolean(project.property('jflex.verbose')))
             ? '-v' : '-q')
@@ -98,14 +100,11 @@ task jflex (dependsOn: beaver) {
         }
     /*
     }
-    <mkdir dir="build/derived-src"/>
-    <jflex file="src/com/admc/jcreole/creole.flex" destdir="build/derived-src"
-           verbose="${jflex.debug}" nobak="true" />
        */
 }
 jflex.description = '''Generate JFlext scanner 'CreoleScanner'.'''
 jflex.onlyIf {
-    File flexFile = file('src/com/admc/jcreole/creole.flex')
+    File flexFile = file('src/main/java/com/admc/jcreole/creole.flex')
     File termsFile = file('build/derived-src/com/admc/jcreole/Terminals.java')
     File scannerFile =
             file('build/derived-src/com/admc/jcreole/CreoleScanner.java')
@@ -184,11 +183,8 @@ void resolveCheck(configName) {
 
 compileJava.dependsOn jflex
 
-sourceSets.test.java.srcDirs = [file('test-src')]
-sourceSets.main.java.srcDirs = [file('src'), file('build/derived-src')]
-sourceSets.main.resources.srcDirs = [file('resources')]
-//sourceSets.main.java.srcDirs << file('src')
-//java.srcDirs << file('build/derived-src')
+sourceSets.main.java.srcDirs =
+        [file('src/main/java'), file('build/derived-src')]
 compileJava.dependsOn << {
     if (!project.hasProperty('resolveCheck.skip')
             || !Boolean.parseBoolean(project.property('resolveCheck.skip')))
