@@ -277,12 +277,12 @@ task ref(dependsOn: ['stage', 'ensureLogCfgfile']) << {
                 '-r',
                 'boilerplate-' + refStyle + '.html',
                 '-o', 
-                'tmp/jcreole-ref.html',
+                'build/distributions/jcreole-ref.html',
                 'jcreole-ref.creole'
         ]
         systemProperties 'java.util.logging.config.file': julCfgfile.path
     }
-    println '''HTML reference written to 'tmp/jcreole-ref.html'.'''
+    println '''HTML reference written to 'build/distributions/jcreole-ref.html'.'''
 }
 ref.description = 'Generate JCreole Reference doc'
 
