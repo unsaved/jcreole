@@ -1,9 +1,8 @@
 /dist
-/*classes
-/local*
-/tmp
+/.gradle
+gradle-app.setting
 .*.sw?
 *~
 *.bak
-/test-reports
-/ivysettings.xml
+/local*
+/build

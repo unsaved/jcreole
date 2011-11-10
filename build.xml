@@ -112,6 +112,7 @@
     </javac>
   </target>
 
+TODO
   <target name="scan" description="run scanner" depends="compile, -run-init">
     <fail unless="creolepath" message="Property 'creolepath' is required"/>
     <ivy:cachepath conf="run" pathid="run.ivyrefid"/>
