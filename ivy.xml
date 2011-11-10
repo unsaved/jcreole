@@ -20,7 +20,7 @@
     <dependency org="de.jflex" name="jflex" rev="1.4.3" conf="jflex"/>
     <dependency org="net.sf.beaver" name="beaver-cc" rev="0.9.9" conf="beaver"/>
     <dependency org="net.sf.beaver" name="beaver-rt" rev="0.9.9"
-                conf="compile"/>
+                conf="compile; run"/>
     <dependency org="junit" name="junit" rev="4.8.2" conf="testCompile"/>
   </dependencies>
 </ivy-module>

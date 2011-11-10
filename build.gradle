@@ -297,14 +297,13 @@ task ref(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     }
     println '''HTML reference written to 'build/distributions/jcreole-ref.html'.'''
 }
+ref.description='Generate JCreole Reference doc'
 
 task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     assert project.hasProperty('creolepath'):
         '''Property 'creolepath' is required by task 'html'.'''
     if (!project.hasProperty('htmloutPath'))
         project.htmloutPath = 'build/tmp/generated.html'
-    /*   Set Gradle param 'refstyle' to 'jqueryui' to generate jquery-ui
-         dependent document, instead of the default standalone document. */
     javaexec {
         main = '-jar'
         args = [ 'build/stage/' + project.name + '-' + project.version
@@ -319,7 +318,20 @@ task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
 If the document includes relative links, you'll need to copy the resources
 accordingly."""
 }
-ref.description = 'Generate JCreole Reference doc'
+html.description = 'Generate HTML'
+
+task scan(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
+    assert project.hasProperty('creolepath'):
+        '''Property 'creolepath' is required by task 'html'.'''
+    javaexec {
+        main = 'com.admc.jcreole.JFlexDriver'
+        args = [project.creolepath]
+        classpath file('build/classes/main')
+        classpath configurations.run.asPath
+        systemProperties 'java.util.logging.config.file': julCfgfile.path
+    }
+}
+scan.description = 'Run scanner'
 
 apply from: 'ivyxml-support.gradle'
 
