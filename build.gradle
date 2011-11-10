@@ -26,7 +26,6 @@ configurations {
     jflex
     beaver
     baseconf
-    run
 }
 
 // De-transify dependencies. We aim for precision, not laziness.
@@ -322,16 +321,29 @@ html.description = 'Generate HTML'
 
 task scan(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
     assert project.hasProperty('creolepath'):
-        '''Property 'creolepath' is required by task 'html'.'''
+        '''Property 'creolepath' is required by task 'scan'.'''
     javaexec {
         main = 'com.admc.jcreole.JFlexDriver'
         args = [project.creolepath]
         classpath file('build/classes/main')
-        classpath configurations.run.asPath
+        classpath configurations.runtime.asPath
         systemProperties 'java.util.logging.config.file': julCfgfile.path
     }
 }
-scan.description = 'Run scanner'
+scan.description = 'Run JFlex scanner'
+
+task parse(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
+    assert project.hasProperty('creolepath'):
+        '''Property 'creolepath' is required by task 'parse'.'''
+    javaexec {
+        main = 'com.admc.jcreole.JCreole'
+        args = [project.creolepath]
+        classpath file('build/classes/main')
+        classpath configurations.runtime.asPath
+        systemProperties 'java.util.logging.config.file': julCfgfile.path
+    }
+}
+scan.description = 'Run Beaver parser'
 
 apply from: 'ivyxml-support.gradle'
 
