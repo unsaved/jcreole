@@ -204,43 +204,30 @@ task checkTabs << {
 }
 checkTabs.description = 'Reports on any text files containing tab characters'
 
-/*
-          depends="ref, condl-javadoc">
-         filesonly="true" whenempty="fail">
-                  dir="tmp/stage" excludes="**@.*"/>
-                  dir="." excludes="**@.*" includes="doc@**"/>
-                  dir="dist" excludes="**@.*" includes="apidocs@**"/>
-      <zipfileset prefix="${ant.project.name}-${version}/doc"
-                  file="README.txt"/>
-      <zipfileset prefix="${ant.project.name}-${version}/doc"
-                  dir="tmp" includes="jcreole-ref.html"/>
-task zip(dependsOn: 'jar, javadoc', type: Zip) {
+task zip(dependsOn: ['ref', 'javadoc'], type: Zip) {
+    exclude '**/.*/**'
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
-    from new File(buildDir, 'filtered-docs')
     into(project.name + '-' + project.version)
+    from ('build/docs/javadoc') {
+        exclude '**/.*/**'  // Is this redundant to the general one?
+        into 'apidocs'
+    }
+    from ('.') {
+        exclude '**/.*/**'  // Is this redundant to the general one?
+        include 'doc/**'
+    }
+    from ('.') {
+        include 'README.txt'
+        into 'doc'
+    }
+    from ('build/distributions') {
+        include 'jcreole-ref.html'
+        into 'doc'
+    }
 }
 zip.description =
         'Build zip of end-user executable JCreole jar with dependencies'
-
-import java.text.SimpleDateFormat
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.apache.tools.ant.filters.FixCrLfFilter
-zip { doFirst {
-    copy {
-        from 'doc'
-        into new File(buildDir, 'filtered-docs')
-        exclude '**@.*@**'
-        filter(ReplaceTokens, tokens: [
-            VERSION: (upstreamVersion
-                    + ' (ADMC Relames v. ' + project.version + ')'),
-            YEAR: new SimpleDateFormat("yyyy").format(new Date())
-        ])
-        //Ask how to do this at Gradle forum:
-        //filter(FixCrLfFilter, eol: 'lf')
-    }
-} }
-*/
 
 task stage(dependsOn: jar, type: Copy) {
     from configurations.runtime.allArtifacts.files
@@ -248,7 +235,6 @@ task stage(dependsOn: jar, type: Copy) {
     into 'build/stage'
 }
 stage.description = 'Stage JCreole jar and dependency jars in build/stage'
-//task x << { println configurations.runtime.allArtifacts.files.asPath }
 
 task ensureLogCfgfile << {
     assert !project.julCfgfile.exists():
@@ -297,9 +283,6 @@ task sourcesJar(type: Jar, dependsOn:classes) {
 }
 sourcesJar.description = 'Build sources jar file'
 
-// Required for Gradle 1.0 milestone 3, but not for milestone 5:
-javadoc.failOnError = false
- 
 task javadocJar(type: Jar, dependsOn:javadoc) {
      classifier = 'javadoc'
      from javadoc.destinationDir
