@@ -337,7 +337,7 @@ task parse(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
         '''Property 'creolepath' is required by task 'parse'.'''
     javaexec {
         main = 'com.admc.jcreole.JCreole'
-        args = [project.creolepath]
+        args = ['-', project.creolepath]
         classpath file('build/classes/main')
         classpath configurations.runtime.asPath
         systemProperties 'java.util.logging.config.file': julCfgfile.path
