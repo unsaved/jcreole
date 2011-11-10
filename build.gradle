@@ -132,7 +132,7 @@ updateWrapper << {
     gradleVersion = project['newVersion']
     println 'WARNING:  Merge our customizations into the newly-generated wrapper scripts'
 }
-updateWrapper.description = 'Update Gradle version.  For HSQLDB Administrators.'
+updateWrapper.description = 'Update Gradle version.  For Administrators.'
 
 task serialver(dependsOn: compileJava) << {
     assert project.hasProperty('className'):
