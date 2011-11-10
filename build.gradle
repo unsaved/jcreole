@@ -281,8 +281,8 @@ ensureLogCfgfile.onlyIf {
 task ref(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     String refStyle = (project.hasProperty('refStyle')
             ? project.property('refStyle') : 'default')
-    /*   Set ant param 'refstyle' to 'jqueryui' to generate jquery-ui dependent
-         document, instead of the default standalone document. */
+    /*   Set Gradle param 'refstyle' to 'jqueryui' to generate jquery-ui
+         dependent document, instead of the default standalone document. */
     javaexec {
         main = '-jar'
         args = [ 'build/stage/' + project.name + '-' + project.version
@@ -296,6 +296,28 @@ task ref(dependsOn: ['stage', 'ensureLogCfgfile']) << {
         systemProperties 'java.util.logging.config.file': julCfgfile.path
     }
     println '''HTML reference written to 'build/distributions/jcreole-ref.html'.'''
+}
+
+task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
+    assert project.hasProperty('creolepath'):
+        '''Property 'creolepath' is required by task 'html'.'''
+    if (!project.hasProperty('htmloutPath'))
+        project.htmloutPath = 'build/tmp/generated.html'
+    /*   Set Gradle param 'refstyle' to 'jqueryui' to generate jquery-ui
+         dependent document, instead of the default standalone document. */
+    javaexec {
+        main = '-jar'
+        args = [ 'build/stage/' + project.name + '-' + project.version
+                + '.jar',
+                '-o', 
+                project.htmloutPath,
+                project.creolepath
+        ]
+        systemProperties 'java.util.logging.config.file': julCfgfile.path
+    }
+    println """HTML written to '$project.htmloutPath'.
+If the document includes relative links, you'll need to copy the resources
+accordingly."""
 }
 ref.description = 'Generate JCreole Reference doc'
 
