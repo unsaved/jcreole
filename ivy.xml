@@ -1,20 +1,22 @@
 <ivy-module version="2.0">
   <info organisation="admc.com" module="jcreole"/>
   <configurations defaultconf="compile">
-    <conf name="compile" description="Dependencies for compiling"/>
-    <conf name="jflex" description="Dependencies for running JFlex Generator"/>
-    <conf name="beaver"
+    <conf name="compile" description="Dependencies for compiling"
+          transitive="false"/>
+    <conf name="jflex" description="Dependencies for running JFlex Generator"
+          transitive="false"/>
+    <conf name="beaver" transitive="false"
           description="Dependencies for running Beaver Generator"/>
     <conf name="testCompile" description="Dependencies for Unit Testing"
-          extends="compile" />
+          transitive="false" extends="compile" />
   </configurations>
   <dependencies defaultconfmapping="*->default">
     <dependency org="commons-logging" name="commons-logging" rev="1.1.1"/>
-    <dependency org="commons-io" name="commons-io" rev="2.0.1"/>
+    <dependency org="commons-io" name="commons-io" rev="2.1"/>
     <dependency org="commons-lang" name="commons-lang" rev="2.6"/>
     <dependency org="de.jflex" name="jflex" rev="1.4.3" conf="jflex"/>
     <dependency org="net.sf.beaver" name="beaver-cc" rev="0.9.9" conf="beaver"/>
     <dependency org="net.sf.beaver" name="beaver-rt" rev="0.9.9"/>
-    <dependency org="junit" name="junit" rev="4.8.2" conf="testCompile"/>
+    <dependency org="junit" name="junit" rev="4.10" conf="testCompile"/>
   </dependencies>
 </ivy-module>
