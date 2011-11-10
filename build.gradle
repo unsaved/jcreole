@@ -229,6 +229,33 @@ task zip(dependsOn: ['ref', 'javadoc'], type: Zip) {
 zip.description =
         'Build zip of end-user executable JCreole jar with dependencies'
 
+task srcZip(dependsOn: ['ref', 'javadoc'], type: Zip) {
+    classifier = 'src'
+    exclude '**/.*/**'
+    into(project.name + '-' + project.version)
+    from ('build/docs/javadoc') {
+        exclude '**/.*/**'  // Is this redundant to the general one?
+        into 'apidocs'
+    }
+    from ('.') {
+        exclude '**/.*/**'  // Is this redundant to the general one?
+        include 'app.properties'
+        include 'ivy.xml'
+        include 'README.txt'
+        include 'template*/**'
+        include 'src/**'
+        include 'test-data/**'
+        include 'doc/**'
+        include 'build.gradle'
+        include 'common.gradle'
+        include 'gradle/**'
+        include 'gradlew'
+        include 'gradlew.bat'
+        include 'ivyxml-support.gradle'
+    }
+}
+srcZip.description = 'Build source distribution zip file'
+
 task stage(dependsOn: jar, type: Copy) {
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
