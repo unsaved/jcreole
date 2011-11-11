@@ -50,16 +50,6 @@ abstract public class BufferMarker implements Comparable<BufferMarker> {
         return Integer.valueOf(offset).compareTo(Integer.valueOf(other.offset));
     }
 
-    /**
-     * @param blockType False for pure inline HTML attrs, true for all others
-     *                  (including semi-blocks like TD).
-     * @param jcxType  True if a jcx_ element.
-     * @param writeAttr  If need to write the ' class="' + '"' to surround the
-     *                   output class names (otherwise just output the class
-     *                   names preceded with one space).
-     *                   Set this true unless your beginning tag already has
-     *                   a 'class' attr.
-     */
     protected BufferMarker(int id) {
         this.id = id;
         if (id < 0 || id > 0xFFFF)
