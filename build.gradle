@@ -9,7 +9,6 @@ defaultTasks 'jar'
 project['repos.useMaven'] = 'true'
 apply from: 'common.gradle'
 apply plugin: 'java'
-apply plugin: 'maven'
 
 // This only present because a Java boolean can't be set in a Java properties
 // file.
