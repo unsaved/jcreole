@@ -39,8 +39,8 @@ uploadArchives {
             url project.url
             inceptionYear project.inceptionYear
             scm {
-                url project.getProperty('scm.url')
-                connection project.getProperty('scm.connection')
+                url project.property('scm.url')
+                connection project.property('scm.connection')
             }
             licenses {
                 license {
