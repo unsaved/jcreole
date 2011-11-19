@@ -1,25 +1,47 @@
 defaultTasks 'jar'
 
-/**
- * You can add to what is here by creating a build file name "local.gradle".
- * If present, it will be applied automatically.
- * One use case for this is to define additional repositories.
- */
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath 'com.admc:gradle-javaPropFile-plugin:latest.milestone'
+        classpath 'com.admc:gradle-ivyxml-plugin:latest.milestone'
+    }
+}
 
-project['repos.useMaven'] = 'true'
-apply from: 'common.gradle'
 apply plugin: 'java'
+apply plugin: 'ivyxml'
+apply plugin: 'javaPropFile'
 
-// This only present because a Java boolean can't be set in a Java properties
-// file.
-compileJava.options.debug = (!project.hasProperty('javac.debug')
-            || Boolean.parseBoolean(project.property('javac.debug')))
+def localGradleFile = file('local.gradle')
+if (localGradleFile.isFile()) {
+    logger.info('''Executing optional build file 'localGradleFile'.''')
+    apply from: localGradleFile
+}
+
+// Defaults that can be overridden with property files:
 sourceCompatibility = '1.5'
 targetCompatibility = sourceCompatibility
-description = 'JCreole Creole'
+project.setProperty('org.name', System.properties['user.name'])
+project.setProperty('jar.title', 'Customization')
+compileJava.options.debug = true
 
-//  Work-around for Gradle bug where Runtime classpath must include every
-//  Compilation classpath element:
+propFileLoader.typeCasting = true
+propFileLoader.traditionalPropertiesInit()
+
+if (project.hasProperty('javac.debug'))
+    compileJava.options.debug = project.property('javac.debug')
+
+repositories { mavenCentral() }
+// De-transify dependencies. We aim for precision, not laziness.
+//for (Configuration c in configurations) c.transitive = false
+// We now let 'ivy.xml' configure transitiveness.
+
+task noop << { }
+noop.description = 'Noop task for Gradle testing'
+
+
+// compileOnly is a Work-around for short-sighted Maven convention where
+// Runtime classpath must include every compilation classpath element:
 configurations {
     compileOnly
     jflex
@@ -31,23 +53,22 @@ configurations {
 //for (Configuration c in configurations) c.transitive = false
 // We now let 'ivy.xml' configure transitiveness.
 
+ivyxml.load()
+
 project.rtLibs = null
 jar { doFirst {
     project.rtLibs = []
     configurations.runtime.files.each { project.rtLibs << it.name }
-    String implVendor = (project.hasProperty('organization')
-                        ? project.organization
-                        : System.properties['user.name'])
     project.metaInf << files('doc/LICENSE.txt')
     jar { manifest { attributes(
         'Main-Class': 'com.admc.jcreole.JCreole',
         'Class-Path': project.rtLibs.join(' '),
         'Specification-Title': 'JCreole',
-        'Specification-Version': project.version,
+        'Specification-Version': project.property('spec.version'),
         'Specification-Vendor': 'Axis Data Management Corp.',
-        'Implementation-Title': 'JCreole executable jar',
+        'Implementation-Title': project.property('jar.title'),
         'Implementation-Version': project.version,
-        'Implementation-Vendor': implVendor
+        'Implementation-Vendor': project.property('org.name')
     ) } }
 } }
 
@@ -107,7 +128,7 @@ jflex.description = '''Generate JFlex scanner 'CreoleScanner'.'''
 // This task only for SCM administrator.  Update version and execute this task.
 task updateWrapper(type: Wrapper) { doFirst {
     assert project.hasProperty('newVersion') :
-            "Property 'newVersion' is required for task 'updateWrapper'"
+        '''Property 'newVersion' is required for task 'updateWrapper'.'''
     assert project.newVersion == gradle.gradleVersion :
         "You invoke Gradle system with version $gradle.gradleVersion instead of desired version $project.newVersion"
 } }
@@ -115,7 +136,7 @@ updateWrapper << {
     gradleVersion = project['newVersion']
     println 'WARNING:  Merge our customizations into the newly-generated wrapper scripts'
 }
-updateWrapper.description = 'Update Gradle version.  For Administrators.'
+updateWrapper.description = 'Update Gradle version.  For SCM Administrators.'
 
 task serialver(dependsOn: compileJava) << {
     assert project.hasProperty('className'):
@@ -166,13 +187,8 @@ void resolveCheck(configName) {
 
 compileJava.dependsOn jflex
 
-sourceSets.main.java.srcDirs =
-        [file('src/main/java'), file('build/derived-src')]
-compileJava.dependsOn << {
-    if (!project.hasProperty('resolveCheck.skip')
-            || !Boolean.parseBoolean(project.property('resolveCheck.skip')))
-        resolveCheck('compile')
-}
+sourceSets.main.java.srcDirs = [file('src/main/java'), file('build/derived-src')]
+compileJava.dependsOn << { resolveCheck('compile') }
 
 task checkTabs << {
     FileTree tree = fileTree(dir: '.')
@@ -322,11 +338,6 @@ task parse(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
 }
 scan.description = 'Run Beaver parser'
 
-apply from: 'ivyxml-support.gradle'
-
-// Following 3 tasks copied from
-// http://blog.andresteingress.com/2011/01/14/using-gradle-in-practice/
-// custom tasks for creating source/javadoc jars
 task sourcesJar(type: Jar, dependsOn:classes) {
      classifier = 'sources'
      from sourceSets.main.allSource
@@ -337,10 +348,4 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
      classifier = 'javadoc'
      from javadoc.destinationDir
 }
-sourcesJar.description = 'Build javadoc jar file'
- 
-// add javadoc/source jar tasks as artifacts
-artifacts {
-     archives sourcesJar
-     archives javadocJar
-}
+javadocJar.description = 'Build javadoc jar file'
