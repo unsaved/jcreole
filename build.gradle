@@ -32,9 +32,6 @@ if (project.hasProperty('javac.debug'))
     compileJava.options.debug = project.property('javac.debug')
 
 repositories { mavenCentral() }
-// De-transify dependencies. We aim for precision, not laziness.
-//for (Configuration c in configurations) c.transitive = false
-// We now let 'ivy.xml' configure transitiveness.
 
 task noop << { }
 noop.description = 'Noop task for Gradle testing'
@@ -48,10 +45,6 @@ configurations {
     beaver
     baseconf
 }
-
-// De-transify dependencies. We aim for precision, not laziness.
-//for (Configuration c in configurations) c.transitive = false
-// We now let 'ivy.xml' configure transitiveness.
 
 ivyxml.load()
 
