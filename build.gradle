@@ -23,13 +23,9 @@ sourceCompatibility = '1.5'
 targetCompatibility = sourceCompatibility
 project.setProperty('org.name', System.properties['user.name'])
 project.setProperty('jar.title', 'Customization')
-compileJava.options.debug = true
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
-
-if (project.hasProperty('javac.debug'))
-    compileJava.options.debug = project.property('javac.debug')
 
 repositories { mavenCentral() }
 
