@@ -331,7 +331,7 @@ import java.util.regex.Pattern
  *
  * @throws GradleException containing list of non-satisfied dependencies
  */
-void verifyResolve(config) {
+static void verifyResolve(config) {
     Set<String> artifactSet = [] as Set
     String classifierStr
     boolean satisfied
