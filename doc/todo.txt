@@ -1,5 +1,8 @@
 SHORT TERM
 
+Add a code block tag leveraging
+http://google-code-prettify.googlecode.com/svn/trunk/README.html
+
 Document that toc, footNotes, masterDefList, and index must be on a line by
 themselves.
 
