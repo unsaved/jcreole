@@ -12,6 +12,10 @@ apply plugin: 'java'
 apply plugin: 'ivyxml'
 apply plugin: 'javaPropFile'
 
+import com.admc.gradle.GradleUtil
+
+ivyxml.load()
+
 def localGradleFile = file('local.gradle')
 if (localGradleFile.isFile()) {
     logger.info('''Executing optional build file 'localGradleFile'.''')
@@ -42,8 +46,6 @@ configurations {
     baseconf
 }
 
-ivyxml.load()
-
 project.rtLibs = null
 jar { doFirst {
     project.rtLibs = []
@@ -61,15 +63,12 @@ jar { doFirst {
     ) } }
 } }
 
-private File grammarFile =
-        file('src/main/java/com/admc/jcreole/CreoleParser.grammar')
-private File scannerFile =
+File grammarFile = file('src/main/java/com/admc/jcreole/CreoleParser.grammar')
+File scannerFile =
         file('build/derived-src/com/admc/jcreole/CreoleScanner.java')
-private File lexSpecFile = file('src/main/java/com/admc/jcreole/creole.flex')
-private File parserFile =
-        file('build/derived-src/com/admc/jcreole/CreoleParser.java')
-private File termsFile =
-        file('build/derived-src/com/admc/jcreole/Terminals.java')
+File lexSpecFile = file('src/main/java/com/admc/jcreole/creole.flex')
+File parserFile = file('build/derived-src/com/admc/jcreole/CreoleParser.java')
+File termsFile = file('build/derived-src/com/admc/jcreole/Terminals.java')
 
 task beaver {
     inputs.source grammarFile
@@ -85,9 +84,7 @@ beaver << {
     assert parserFile.exists()
 }
 beaver.description = '''Generate Beaver parser 'CreoleParser'.'''
-beaver.dependsOn << { verifyResolve(configurations.beaver) }
-//task namedTask << { verifyResolve(configurations.beaver) }
-//beaver.dependsOn << namedTask
+beaver.dependsOn << { GradleUtil.verifyResolve(configurations.beaver) }
 
 task jflex(dependsOn: beaver) {
     inputs.source lexSpecFile
@@ -116,7 +113,7 @@ jflex << {
     }
 }
 jflex.description = '''Generate JFlex scanner 'CreoleScanner'.'''
-jflex.dependsOn << { verifyResolve(configurations.jflex) }
+jflex.dependsOn << { GradleUtil.verifyResolve(configurations.jflex) }
 
 // This task only for SCM administrator.  Update version and execute this task.
 task updateWrapper(type: Wrapper) { doFirst {
@@ -160,8 +157,10 @@ serialver.description = "Generates Java serialversion for specified 'classname'"
 compileJava.dependsOn jflex
 
 sourceSets.main.java.srcDirs = [file('src/main/java'), file('build/derived-src')]
-compileJava.dependsOn << { verifyResolve(configurations.compile) }
-compileTestJava.dependsOn << { verifyResolve(configurations.testCompile) }
+compileJava.dependsOn << { GradleUtil.verifyResolve(configurations.compile) }
+compileTestJava.dependsOn << {
+    GradleUtil.verifyResolve(configurations.testCompile)
+}
 
 task checkTabs << {
     FileTree tree = fileTree(dir: '.')
@@ -322,74 +321,3 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
      from javadoc.destinationDir
 }
 javadocJar.description = 'Build javadoc jar file'
-
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.DependencyArtifact
-import java.util.regex.Pattern
-/**
- * Throws if any dependencies of the specified Configuration are not satisfied
- *
- * @throws GradleException containing list of non-satisfied dependencies
- */
-static void verifyResolve(config) {
-    Set<String> artifactSet = [] as Set
-    String classifierStr
-    boolean satisfied
-    List<ModuleDependency> unsatisfiedDeps = []
-    List<DependencyArtifact> unsatisfiedArts = []
-    config.allDependencies.each { it.artifacts.each {
-        // The ModuleDependencies only have artifict members if either
-        // classifier or extension/type are specified for the dependency.
-        // If neither is, then we'll check the dependency in the findAll
-        // loop below.
-        DependencyArtifact depArt ->
-        classifierStr =
-                (depArt.classifier == null) ? '' : ('-' + depArt.classifier)
-        Pattern pat = Pattern.compile(
-                depArt.name + '-.+' + classifierStr + '.' + depArt.extension)
-        satisfied = false
-        for (File f in config.files) {
-            if (pat.matcher(f.name).matches()) {
-                satisfied = true
-                break
-            }
-        }
-        if (!satisfied) {
-            unsatisfiedDeps << it
-            unsatisfiedArts << depArt
-        }
-    } }
-    config.allDependencies.findAll { it.artifacts.size() == 0 }.each {
-        ModuleDependency dep ->
-        Pattern pat = Pattern.compile(
-                dep.name + '-' + dep.version + '[.-].+')
-        satisfied = false
-        for (File f in config.files) {
-            if (pat.matcher(f.name).matches()) {
-                satisfied = true
-                break
-            }
-        }
-        if (!satisfied) {
-            unsatisfiedDeps << dep
-            unsatisfiedArts << null
-        }
-    }
-    if (unsatisfiedDeps.size() == 0) return
-    StringBuilder sb = new StringBuilder()
-    DependencyArtifact depArt
-    int oneBasedInt
-    unsatisfiedDeps.eachWithIndex{ ModuleDependency dep, int i ->
-        depArt = unsatisfiedArts[i]
-        sb.append('    ').append(i + 1)
-        sb.append(": $dep.group:$dep.name:$dep.version")
-        if (depArt != null) {
-            sb.append('  ARTIFACT: ').append("$depArt.name $depArt.extension")
-            if (depArt.classifier != null)
-                sb.append(" (classifier '$depArt.classifier')")
-        }
-        sb.append('\n')
-    }
-    throw new GradleException(
-        "Unsatisfied dependencies for configuration '$config.name':\n" + sb)
-}
