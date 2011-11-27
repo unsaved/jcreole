@@ -308,7 +308,7 @@ task parse(dependsOn: ['compileJava', 'ensureLogCfgfile']) << {
         systemProperties 'java.util.logging.config.file': julCfgfile.path
     }
 }
-scan.description = 'Run Beaver parser'
+parse.description = 'Run Beaver parser'
 
 task sourcesJar(type: Jar, dependsOn:classes) {
      classifier = 'sources'
