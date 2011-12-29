@@ -1,4 +1,4 @@
-/.gradle
+.gradle
 gradle-app.setting
 .*.sw?
 *~
