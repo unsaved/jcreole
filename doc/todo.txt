@@ -1,8 +1,8 @@
 SHORT TERM
 
-Change default privileges when executed from command-line to allow everything.
-
 Bundle a Servlet, and perhaps a Spring HttpRequestHandler.
+
+Update JQuery library.
 
 Add a code block tag leveraging
 http://google-code-prettify.googlecode.com/svn/trunk/README.html
@@ -18,6 +18,7 @@ non-markup label.
 LONG TERM
 
 Branch Beaver and do some major re-design.
+    Throw more consistently, passing problem offset wherever possible.
     Write Terminals as a real enum.
     Fix the anti-OO way that beaver.Symbol must be overridden.
     Change label-variable behavior to be consistent.  Don't have the semantics

@@ -61,7 +61,7 @@ public class JCreole {
         + "  NONE:    Default built-in boilerplate.\n"
         + "  -:       No boilerplate.  Output will be just a HTML fragment.\n"
         + "  -r path: Load specified boilerplate file from Classpath.\n"
-        + "  -f path: Load specified boilerplate file file system.\n"
+        + "  -f path: Load specified boilerplate file from file system.\n"
         + "If either -r or -f is specified, the specified boilerplate should "
         + "include\n'${content}' at the point(s) where you want content "
         + "generated from your Creole\ninserted.\n"
@@ -87,6 +87,8 @@ public class JCreole {
      * Any long-running program should use the lower-level methods in this
      * class instead (or directly use CreoleParser and CreoleScanner
      * instances).
+     * </p> <p>
+     * This method executes with all JCreole privileges.
      * </p>
      *
      * @throws IOException for any I/O problem that makes it impossible to
@@ -192,8 +194,7 @@ public class JCreole {
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
                 : inFile.getName().replaceFirst("[.][^.]*$", ""));
-        jCreole.setPrivileges(
-                EnumSet.complementOf(EnumSet.of(JCreolePrivilege.RAWHTML)));
+        jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
                 : jCreole.parseCreole(new StringBuilder(
