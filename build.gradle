@@ -252,13 +252,13 @@ private void ref(String style) {
     String boilerQualifier = null
     switch (style) {
       case 'i':  // Internet
-        boilerQualifier = 'jqueryui'
+        boilerQualifier = 'inet'
         break
       case 's':  // Standalone
-        boilerQualifier = 'default'
+        boilerQualifier = 'standalone'
         break
       default:
-        assert false: """Unsupported 'refStyle' value:  $style
+        assert false: """Unsupported 'style' param value:  $style
 """
     }
     String outputDoc = 'build/distributions/jcreole-ref-' + style + '.html'

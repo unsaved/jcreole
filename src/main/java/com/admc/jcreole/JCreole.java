@@ -52,8 +52,7 @@ import org.apache.commons.logging.LogFactory;
 public class JCreole {
     private static Log log = LogFactory.getLog(JCreole.class);
 
-    private static final String DEFAULT_BP_RES_PATH =
-            "boilerplate-default.html";
+    private static final String DEFAULT_BP_RES_PATH = "boilerplate-inet.html";
 
     public static final String SYNTAX_MSG =
         "java -jar .../jcreole-*.jar [-d] [-] [-r /classpath/boiler.html] "
