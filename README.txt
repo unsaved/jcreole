@@ -64,19 +64,23 @@ DOCUMENTATION
 
 There are text documentation files in the doc subdirectory.
 
-There is also a reference guide for Creole authors.
-It is provided in 100% standalone HTML format in the binary zip distribution as
-"jcreole-ref.html" in the doc directory.  But the source Creole
-for it is also provided as "jcreole-ref.creole" in the jcreole-*.jar file and
-in the "resources" source code directory.  Integrators can use
-"jcreole-ref.creole" to serve the author guide framed and styled like your other
-application content.  You can obviously edit "jcreole-ref.creole".  The Ant
-target "ref" will build "tmp/jcreole-ref.html" from the .creole file.
-For a more interactive reference that is not 100% standalone, set Ant property
-"refstyle" to "jqueryui" before executing the "ref" target.
-(The jqueryui-mode document is standalone in that it will work fine if you
-distribute that one file, but it requires an Internet connection at read-time
-because of references to resources at https://ajax.googleapis.com.
+There is also a HTML reference guide for Creole authors, provided in a
+standalone version and an Internet version.
+The 100% standalone format is "jcreole-ref-s.html" the binary zip distribution;
+the fancier Internet format is "jcreole-ref-i.html" the binary zip distribution.
+(The Internet version has references to highly-available Internet resources
+such as JQuery-UI and google-code-prettify.
+"jcreole-ref-i.html" is independent in that it can be distributed alone, but it
+does require an Internet connection at 'read-time' to satisfy the references
+just described.  "jcreole-re-s.html" is completely independent.)
+But the source Creole is also provided as "jcreole-ref.creole" in the
+jcreole-*.jar file and in the "resources" source code directory.
+Integrators can use "jcreole-ref.creole" to serve the author guide framed and
+styled like your other application content.
+You can obviously edit "jcreole-ref.creole".
+The Ant target "standaloneRef" will build "tmp/jcreole-ref-s.html" from
+the .creole file; and target "internetRef" will build "tmp/jcreole-i.html"
+from the same .creole file.
 
 The web site http://admc.com/jcreole has interactive JCreole demonstrations and
 comprehensive Creole tutorials.

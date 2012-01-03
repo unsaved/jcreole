@@ -178,7 +178,7 @@ task checkTabs << {
 }
 checkTabs.description = 'Reports on any text files containing tab characters'
 
-task zip(dependsOn: ['ref', 'javadoc'], type: Zip) {
+task zip(dependsOn: ['standaloneRef', 'internetRef', 'javadoc'], type: Zip) {
     exclude '**/.*/**'
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
@@ -190,14 +190,14 @@ task zip(dependsOn: ['ref', 'javadoc'], type: Zip) {
         into 'doc'
     }
     from ('build/distributions') {
-        include 'jcreole-ref.html'
+        include 'jcreole-ref-*.html'
         into 'doc'
     }
 }
 zip.description =
         'Build zip of end-user executable JCreole jar with dependencies'
 
-task srcZip(dependsOn: ['ref', 'javadoc'], type: Zip) {
+task srcZip(dependsOn: ['standaloneRef', 'internetRef', 'javadoc'], type: Zip) {
     classifier = 'src'
     exclude '**/.*/**'
     into(project.name + '-' + project.version)
@@ -245,26 +245,47 @@ ensureLogCfgfile.onlyIf {
     !project.julCfgfile.exists()
 }
 
-task ref(dependsOn: ['stage', 'ensureLogCfgfile']) << {
-    String refStyle = (project.hasProperty('refStyle')
-            ? project.property('refStyle') : 'default')
-    /*   Set Gradle param 'refstyle' to 'jqueryui' to generate jquery-ui
-         dependent document, instead of the default standalone document. */
+private void ref(String style) {
+    assert style != null:
+        '''Parameter 'style' may not be null.
+'''
+    String boilerQualifier = null
+    switch (style) {
+      case 'i':  // Internet
+        boilerQualifier = 'jqueryui'
+        break
+      case 's':  // Standalone
+        boilerQualifier = 'default'
+        break
+      default:
+        assert false: """Unsupported 'refStyle' value:  $style
+"""
+    }
+    String outputDoc = 'build/distributions/jcreole-ref-' + style + '.html'
     javaexec {
         main = '-jar'
         args = [ 'build/stage/' + project.name + '-' + project.version
                 + '.jar',
                 '-r',
-                'boilerplate-' + refStyle + '.html',
+                'boilerplate-' + boilerQualifier + '.html',
                 '-o', 
-                'build/distributions/jcreole-ref.html',
+                outputDoc,
                 'jcreole-ref.creole'
         ]
         systemProperties 'java.util.logging.config.file': julCfgfile.path
     }
-    println '''HTML reference written to 'build/distributions/jcreole-ref.html'.'''
+    println "HTML reference written to '$outputDoc'."
 }
-ref.description='Generate JCreole Reference doc'
+
+task internetRef(dependsOn: ['stage', 'ensureLogCfgfile']) << {
+    ref('i')
+}
+internetRef.description='Generate Standalone JCreole Reference doc'
+
+task standaloneRef(dependsOn: ['stage', 'ensureLogCfgfile']) << {
+    ref('s')
+}
+standaloneRef.description='Generate Standalone JCreole Reference doc'
 
 task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     assert project.hasProperty('creolepath'):
