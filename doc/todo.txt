@@ -1,12 +1,14 @@
 SHORT TERM
 
+Move test-data to src/test/data
+
+Update inputset to test task
+
 Change default privileges when executed from command-line to allow everything.
 
 Bundle a Servlet, and perhaps a Spring HttpRequestHandler.
 
-Fix scanner or parser to allow insertion of vertical white space without
-requiring a(nother?) block element.  See my FM .creole docs for example of the
-required work-around.
+Allow \\ as sole thing in a paragraph.
 
 Add a code block tag leveraging
 http://google-code-prettify.googlecode.com/svn/trunk/README.html
