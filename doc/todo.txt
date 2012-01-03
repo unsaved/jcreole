@@ -2,8 +2,6 @@ SHORT TERM
 
 Bundle a Servlet, and perhaps a Spring HttpRequestHandler.
 
-Update JQuery library.
-
 Add a code block tag leveraging
 http://google-code-prettify.googlecode.com/svn/trunk/README.html
 
