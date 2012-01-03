@@ -4,8 +4,6 @@ Change default privileges when executed from command-line to allow everything.
 
 Bundle a Servlet, and perhaps a Spring HttpRequestHandler.
 
-Allow \\ as sole thing in a paragraph.
-
 Add a code block tag leveraging
 http://google-code-prettify.googlecode.com/svn/trunk/README.html
 

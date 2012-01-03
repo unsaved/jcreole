@@ -281,6 +281,12 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(PSTATE);
     return newToken(Terminals.STRONG_TOGGLE);
 }
+
+<YYINITIAL> \\\\ {
+    pushState();
+    yybegin(PSTATE);
+    return newToken(Terminals.HARDLINE);
+}
 <YYINITIAL> . {
     pushState();
     yybegin(PSTATE);
