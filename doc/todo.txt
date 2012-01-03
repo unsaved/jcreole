@@ -1,8 +1,6 @@
 SHORT TERM
 
-Move test-data to src/test/data
-
-Update inputset to test task
+Optimize inputs and outputs for ref tasks.
 
 Change default privileges when executed from command-line to allow everything.
 

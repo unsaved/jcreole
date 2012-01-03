@@ -41,10 +41,10 @@ import org.apache.commons.io.FileUtils;
 public class CreoleParseTest {
     private File creoleFile, htmlExpectFile, htmlFile;
     private boolean shouldSucceed;
-    private static File pCreoleInRoot = new File("test-data/positive");
+    private static File pCreoleInRoot = new File("src/test/data/positive");
     private static File pWorkOutRoot = new File("build/test-results/positive");
     private static final String pCreoleInRootPath = pCreoleInRoot.getPath();
-    private static File nCreoleInRoot = new File("test-data/negative");
+    private static File nCreoleInRoot = new File("src/test/data/negative");
     private static File nWorkOutRoot = new File("build/test-results/negative");
     private static final String nCreoleInRootPath = nCreoleInRoot.getPath();
     private static String FSEP = System.getProperty("file.separator");

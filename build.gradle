@@ -208,7 +208,6 @@ task srcZip(dependsOn: ['standaloneRef', 'internetRef', 'javadoc'], type: Zip) {
         include 'README.txt'
         include 'template*/**'
         include 'src/**'
-        include 'test-data/**'
         include 'doc/**'
         include 'build.gradle'
         include 'common.gradle'
@@ -347,3 +346,5 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
     from javadoc.destinationDir
 }
 javadocJar.description = 'Build javadoc jar file'
+
+test.inputs.dir 'src/test/data'
