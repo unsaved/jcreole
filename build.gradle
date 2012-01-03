@@ -279,12 +279,44 @@ private void ref(String style) {
 task internetRef(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     ref('i')
 }
-internetRef.description='Generate Standalone JCreole Reference doc'
+internetRef.onlyIf { 
+    File f = file('build/distributions/jcreole-ref-i.html')
+    if (!f.exists()) return true
+    long lastMod = f.lastModified()
+    File fOther = file('build/stage/' + project.name + '-' + project.version
+            + '.jar')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/resources/jcreole-ref.creole')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/resources/boilerplate-inet.html')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    return false
+}
+internetRef.description = 'Generate Standalone JCreole Reference doc'
 
 task standaloneRef(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     ref('s')
 }
-standaloneRef.description='Generate Standalone JCreole Reference doc'
+standaloneRef.onlyIf { 
+    File f = file('build/distributions/jcreole-ref-s.html')
+    if (!f.exists()) return true
+    long lastMod = f.lastModified()
+    File fOther = file('build/stage/' + project.name + '-' + project.version
+            + '.jar')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/resources/jcreole-ref.creole')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/resources/boilerplate-standalone.html')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    return false
+}
+standaloneRef.description = 'Generate Standalone JCreole Reference doc'
 
 task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     assert project.hasProperty('creolepath'):

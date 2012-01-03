@@ -1,7 +1,5 @@
 SHORT TERM
 
-Optimize inputs and outputs for ref tasks.
-
 Change default privileges when executed from command-line to allow everything.
 
 Bundle a Servlet, and perhaps a Spring HttpRequestHandler.
