@@ -463,6 +463,9 @@ or\\
 ======{{{<<toc /___xxx>>}}}
 or\\
 ======{{{<<toc className1 className 2 /___xxx>>}}}
+##toc## elements must be in a separate block.
+I.e. they have to be separated from other text with a blank line.
+
 These samples all generate a table of contents listing at the location where
 you code the directive--- just like the one
 [[#jcsect_JcreoleAuthorReference|at the top of this page]].
@@ -506,6 +509,8 @@ or\\
 ======{{{<<footNotes /DEF_ORDER>>}}}
 or\\
 ======{{{<<footNotes className1 className 2 /DEF_ORDER>>}}}
+##footNotes## elements must be in a separate block.
+I.e. they have to be separated from other text with a blank line.
 
 Just use "##~<<footNotes>>##" for the default footnotes layout.
 "##DEF_ORDER##" specifies to list the footnotes in the sequence that the
@@ -632,6 +637,8 @@ or\\
 ======{{{<<masterDefList /REF_ORDER>>}}}
 or\\
 ======{{{<<masterDefList className1 className 2 /NAME_BY_JAVA>>}}}
+##masterDefList## elements must be in a separate block.
+I.e. they have to be separated from other text with a blank line.
 
 Just use "##~<<masterDefList>>##" for the default list layout.
 "##REF_ORDER##" or "##NAME_BY_JAVA##" above are samples of (optional)
