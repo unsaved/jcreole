@@ -283,8 +283,8 @@ internetRef.onlyIf {
     File f = file('build/distributions/jcreole-ref-i.html')
     if (!f.exists()) return true
     long lastMod = f.lastModified()
-    File fOther = file('build/stage/' + project.name + '-' + project.version
-            + '.jar')
+    File fOther =
+            file('build/stage/' + project.name + '-' + project.version + '.jar')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/resources/jcreole-ref.creole')
@@ -304,8 +304,8 @@ standaloneRef.onlyIf {
     File f = file('build/distributions/jcreole-ref-s.html')
     if (!f.exists()) return true
     long lastMod = f.lastModified()
-    File fOther = file('build/stage/' + project.name + '-' + project.version
-            + '.jar')
+    File fOther =
+            file('build/stage/' + project.name + '-' + project.version + '.jar')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/resources/jcreole-ref.creole')
@@ -380,3 +380,27 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
 javadocJar.description = 'Build javadoc jar file'
 
 test.inputs.dir 'src/test/data'
+
+import com.admc.gradle.ContentAsStringFilter
+import com.admc.gradle.JavaPropFile
+processResources {
+    exclude '**/.*/**'
+    // The eachFile intermediary here is how you filter a subset of a
+    // plugin-provided input file collection (in this case, the resource
+    // file collection provided by the java plugin).
+    eachFile { fcd ->
+        // Unlike Gradles plain {... } filter, our closure here will get
+        // executed just one time for each matching file.
+        if (fcd.name == 'boilerplate-inet.html')
+            fcd.filter(ContentAsStringFilter, closure: {
+                // Making this setting immediately before the expand() call to
+                // eliminate dependencies on Gradle's complicated
+                // execution-time dependencies.
+                propFileLoader.unsatisfiedRefBehavior =
+                        JavaPropFile.Behavior.LITERAL
+                propFileLoader.expand(it, [
+                    ('ver|jquery'): '1.7.1', ('ver|jqueryui'): '1.8.16'
+                ])
+            })
+    }
+}
