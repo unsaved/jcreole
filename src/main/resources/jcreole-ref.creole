@@ -359,36 +359,60 @@ involvement
 display of table-of-contents).
 
 === Pretty-printed Code
-======{{{<<prettyPrint>>}}}~{{{\\...\\~}}}
+======{{{<<prettyPrint>>}}} ~{{{\\...\\~}}}
 The ##{{{<<addClass>>}}} directive is an optional enhancement for
 ##~{{{...~}}}## code blocks as described in the
 [[#jcsect_CodeBlocks]] section.
 
 The code to be pretty-printed must be preceded with a line containing only
-"##{{{<<prettyPrint>>}}}}##".
-(Except that you may add a language specifier right after ##prettyPrint##.
+"##{{{<<prettyPrint>> }}}}##".
+(Except that you may add CSS class specifiers right after ##prettyPrint##.
 See below about that).
 
-<<addClass +block prettyprint>>
+Sample creole:
+{{{
+<<prettyPrint linenums>> {{{
+class Voila {
+public:
+    // Voila
+    static const string VOILA = "Voila";
+
+    public String toString() { return "me"; }
+}
+}}}
+}}}
+
+Generates:
+
+<<addClass +block prettyprint linenums>>
 {{{
 class Voila {
 public:
-  // Voila
-  static const string VOILA = "Voila";
+    // Voila
+    static const string VOILA = "Voila";
 
-  // will not interfere with embedded tags.
+    public String toString() { return "me"; }
 }
 }}}
 
 This feature does require simple server-side support.
 If the code above is not pretty-printed, then you are viewing the standalone
 mode reference doc.
-JCreole uses the [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify library]] to accomplish this.
+
+JCreole uses the [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify library]] to perform pretty-printing.
+
+As shown in the example above, the word ##prettyPrint## may be followed by
+CSS classes to control optional prettify behaviors, as shown in our example.
 JCreole (actually google-code-prettify) can usually detect what the code
 language is, but for ambiguous cases like little code snippets, you can
-specify the language inside the pretty print tag like this:  ##{{{prettyPrint java}}}##.
-The language must be specified in lower case exactly as specified in the
+specify the language by CSS class like this:  ##{{{prettyPrint lang-java}}}##.
+The language must be specified with one of the supported ##lang-x## class names
+exactly as specified in the
 [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify documentation]].
+The same documentation describes the ##linenums## CSS class to display line
+numbers (as shown in the example above) and other features.
+JCreole does not yet support prettify's //nocode// class for illustrative code
+comments.
 
 === Raw HTML
 ======{{{<<~Like this>>}}}
