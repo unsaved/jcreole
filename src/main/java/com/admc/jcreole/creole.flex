@@ -455,6 +455,10 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     // Pres starting at ^[ \t] inside jcxBlocks handled by NESTED_...
     return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
 }
+<YYINITIAL> ^("<<"prettyPrint">>"{s}*"{{{"\n) ~ (\n"}}}"\n) {
+    // Pres starting at ^[ \t] inside jcxBlocks handled by NESTED_...
+    return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
+}
 "{{{" ~ ("}"* "}}}") {
     if (yystate() == YYINITIAL) {
         pushState();

@@ -623,12 +623,21 @@ masterblock = jcxblock
 
 // Blocks which may not contain any other block
 leafblock = ROOTLVL_PRE.text {:
-            return new WashedSymbol("<pre" + markBlock("pre", true, true) + ">\n"
+            int eotIndex = text.indexOf('\u0003');
+            if (eotIndex < 0)
+                return new WashedSymbol(
+                    "<pre" + markBlock("pre", true, true) + ">\n"
                     + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
                 // The replace here is for allowing ^}}} inside of pref block.
                 // Spec says to do this for all " }}}", but that is
                 // unnecessarily liberal since no escaping is needed except
                 // for "^ }}}".
+            String body = text.substring(0, eotIndex);
+            String addlClasses = (eotIndex > text.length() - 2) ? ""
+                    : (" " + text.substring(eotIndex + 1));
+            return new WashedSymbol("<pre class=\"prettyprint" + addlClasses
+                    + markBlock("pre", false, true) + "\">\n"
+                    + clean(body.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
         :}
         | ROOTLVL_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
