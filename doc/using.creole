@@ -1,7 +1,10 @@
 = Using JCreole
 
 
-You can try out JCreole without downloading it, at http://admc.com/jcreole .
+You can try out JCreole without downloading it, at http://admc.com/jcreole.
+
+You can download JCreole at the project home at
+https://github.com/unsaved/jcreole.
 
 
 == Generating HTML from the Command-Line
