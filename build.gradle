@@ -407,6 +407,7 @@ processResources {
                     ('ver|jquery'): project.jqueryVer,
                     ('ver|jqueryui'): project.jqueryUiVer,
                     ('ver|prettify'): project.prettifyVer,
+                    ('ver|jcreole'): project.version,
                     ('buildInc|prettifyCss'): prettifyCss
                 ])
             })
