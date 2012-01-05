@@ -90,9 +90,18 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-
                 .dialog({autoOpen: false});
       });
       $("div.jcreole_tabset").tabs();
+      prettyPrint()
   });
 </script>
+<script type="text/javascript"
+  src="https://github.com/unsaved/jcreole/raw/master/google-code-prettify-small/${!ver|prettify}/prettify.js">
+</script>
 <style>
+  /******************************************************************
+   * Build-time dynamically-including google-code-prettify, because absolute
+   * URLs not working to the .css file, for unknown reason.  */
+   ${!buildInc|prettifyCss}
+  /*****  End of google-code-prettify inclusion  ********************/
   body,table { font-size:16px; font-family:serif; }
   tr { vertical-align:top; }
   table.jcreole_data, table.jcreole_data input, table.jcreole_data select,
@@ -174,7 +183,7 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-
       text-align:center;
   }
 
-  div.jcreole .yellow { background-color:yellow; display:table-cell; }
+  div.jcreole .yellow { background-color:yellow; }
 
   div.jcx_toc { font-size:12px; }
   div.jcx_toc span.jcx_enum { font-variant:normal; font-weight:bold; }

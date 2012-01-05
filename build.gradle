@@ -27,6 +27,9 @@ sourceCompatibility = '1.5'
 targetCompatibility = sourceCompatibility
 project.setProperty('org.name', System.properties['user.name'])
 project.setProperty('jar.title', 'Customization')
+jqueryVer = '1.7.1'
+jqueryUiVer = '1.8.16'
+prettifyVer = '1'
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
@@ -384,6 +387,8 @@ test.inputs.dir 'src/test/data'
 import com.admc.gradle.ContentAsStringFilter
 import com.admc.gradle.JavaPropFile
 processResources {
+    String prettifyCss = file('google-code-prettify-small/'
+            + project.prettifyVer + '/prettify.css').getText('UTF-8')
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource
@@ -399,7 +404,10 @@ processResources {
                 propFileLoader.unsatisfiedRefBehavior =
                         JavaPropFile.Behavior.LITERAL
                 propFileLoader.expand(it, [
-                    ('ver|jquery'): '1.7.1', ('ver|jqueryui'): '1.8.16'
+                    ('ver|jquery'): project.jqueryVer,
+                    ('ver|jqueryui'): project.jqueryUiVer,
+                    ('ver|prettify'): project.prettifyVer,
+                    ('buildInc|prettifyCss'): prettifyCss
                 ])
             })
     }

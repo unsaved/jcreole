@@ -145,6 +145,27 @@ prevent changing your input to be //HTML safe// (such as translating "##>##" to
 To avoid this level of translation you would need to use the [[#jcsect_RawHtml]]
 directive.
 
+=== Code Blocks
+======~{{{\\...\\~}}}
+This is a Creole-specified special case for the ~{{{...~}}} operator described
+in the previous item.
+When the ~{{{ and ~}}} are alone on their respective lines, the interceding
+text is displayed with the author-typed formatted (via HTML ##pre## tag).
+Since ##pre## is usually styled with a monospaced font, it works great for
+code sample blocks.
+{{{
+class Voila {
+public:
+  // Voila
+  static const string VOILA = "Voila";
+
+  // will not interfere with embedded tags.
+}
+}}}
+You could definitely user Stylers to indent or decorate the code block however
+you wish to, but jost authors will want their code sample code pretty-printed,
+so see the [[#jcsect_PrettyPrintedCode]] section.
+
 === Hard linebreaks
 ======~\\
 Can use multiple to create blank lines.\\\\Looks like that.
@@ -337,6 +358,38 @@ involvement
 (specifically, enumerating sections by default, and automatic generation and
 display of table-of-contents).
 
+=== Pretty-printed Code
+======{{{<<prettyPrint>>}}}~{{{\\...\\~}}}
+The ##{{{<<addClass>>}}} directive is an optional enhancement for
+##~{{{...~}}}## code blocks as described in the
+[[#jcsect_CodeBlocks]] section.
+
+The code to be pretty-printed must be preceded with a line containing only
+"##{{{<<prettyPrint>>}}}}##".
+(Except that you may add a language specifier right after ##prettyPrint##.
+See below about that).
+
+<<addClass +block prettyprint>>
+{{{
+class Voila {
+public:
+  // Voila
+  static const string VOILA = "Voila";
+
+  // will not interfere with embedded tags.
+}
+}}}
+
+This feature does require simple server-side support.
+If the code above is not pretty-printed, then you are viewing the standalone
+mode reference doc.
+JCreole uses the [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify library]] to accomplish this.
+JCreole (actually google-code-prettify) can usually detect what the code
+language is, but for ambiguous cases like little code snippets, you can
+specify the language inside the pretty print tag like this:  ##{{{prettyPrint java}}}##.
+The language must be specified in lower case exactly as specified in the
+[[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify documentation]].
+
 === Raw HTML
 ======{{{<<~Like this>>}}}
 Code HTML right into your wikitext page.
@@ -371,7 +424,7 @@ or\\
 {{{<<addClass =jcxBlock className1 className2 className3>>}}}\\
 or\\
 {{{<<addClass =jcxSpan className1>>}}}\\
-These samples show how to ass classes to immediate parent HTML block element,
+These samples show how to add classes to immediate parent HTML block element,
 HTML inline element, jcxBlock, or jcxSpan element.
 
 {{{<<addClass -block className1 classname2>>}}}\\
@@ -543,7 +596,7 @@ genetic inheritance details, you could name that entry something like
 compromise between conciseness and descriptiveness.
 
 //If you click on a footnote link (superscripted digit) and the footnote text
-is not displayed in a pop-up, then this reference document was built in standalone mode.
+is not displayed in a pop-up, then standalone mode reference doc.
 In that case, your browser will scroll to the target location in the document.
 
 ==== Full Footnotes Sample
@@ -680,7 +733,7 @@ Multiple links can point to a single definition entry.
 Definition entries do not need to be linked to at all.
 
 //If you click on a reference link  and the definition text
-is not displayed in a pop-up, then this reference document was built in standalone mode.
+is not displayed in a pop-up, then you are viewing the standalone mode reference doc.
 In that case, your browser will scroll to the target location in the document.
 
 ==== Full Master Definition List Sample
@@ -773,6 +826,14 @@ As mentioned in the relevant sections above, by default JCreole generates no
 section enumerations or table-of-contents, so setting the CSS classes for those
 functions will have no effect if you or your application don't enable the
 feature.
+
+===Pretty-printing CSS Classes
+
+If your JCreole system has been set up with pretty-printing support, then you
+can use or modify the CSS classes written by the google-code-prettify
+Javascript library.
+The [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify web site]]
+is the definitive source for documentation about google-code-prettify CSS.
 
 ==Enumeration Formats
 
