@@ -384,8 +384,7 @@ public:
 
 Generates:
 
-<<addClass +block prettyprint linenums>>
-{{{
+<<prettyPrint linenums>> {{{
 class Voila {
 public:
     // Voila

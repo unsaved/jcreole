@@ -55,6 +55,9 @@ import org.apache.commons.io.input.CharSequenceReader;
             Pattern.compile("(?s)<<\\s*([\\[{])\\s*(.*\\S)?\\s*>>");
     private static final Pattern IndexSandwichPattern = Pattern.compile(
             "(?s)(<<\\s*\\(\\s*>>\\s*)(.*?\\S)\\s*<<\\s*\\)\\s*>>");
+    private static final Pattern PrettyPattern =
+            Pattern.compile("(?s)<<prettyPrint(?: +([-\\w ]+))?>> *"
+                    + "\\Q{{{\\E\n(.*?)\n\\Q}}}\\E\n");
 
     private boolean needIndexCloser;
     private Token newToken(short id) {
@@ -456,8 +459,13 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
 }
 <YYINITIAL> ^("<<"prettyPrint">>"{s}*"{{{"\n) ~ (\n"}}}"\n) {
-    // Pres starting at ^[ \t] inside jcxBlocks handled by NESTED_...
-    return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
+    return newToken(Terminals.ROOTLVL_PRE,
+            matcher(PrettyPattern).group(2) + '\u0003');
+}
+<YYINITIAL> ^("<<"prettyPrint{s}{wsdash}+">>"{s}*"{{{"\n) ~ (\n"}}}"\n) {
+    Matcher m = matcher(PrettyPattern);
+    return newToken(Terminals.ROOTLVL_PRE,
+            m.group(2) + '\u0003' + m.group(1));
 }
 "{{{" ~ ("}"* "}}}") {
     if (yystate() == YYINITIAL) {
@@ -550,6 +558,10 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "**" { return newToken(Terminals.STRONG_TOGGLE); } // YYINITIAL handled already
 // End PSTATE to make way for another element:
 <PSTATE> \n / ("{{{" \n) {
+    yybegin(popState());
+    return newToken(Terminals.END_PARA);
+}
+<PSTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
     yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
@@ -691,12 +703,12 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 }
 "<<"{s}*# ~ ">>" {}  // PLUGIN: Author comment
 <PSTATE, HEADSTATE>
-"<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}+{wsdash}+">>" {
+"<<"{s}*addClass[ \t]+[-=+]("block"|"inline"|"jcxSpan"){s}{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
 <JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
 "<<"{s}*addClass[ \t]+[-=+]
-("block"|"inline"|"jcxSpan"|"jcxBlock"){s}+{wsdash}+">>" {
+("block"|"inline"|"jcxSpan"|"jcxBlock"){s}{wsdash}+">>" {
     return newToken(Terminals.STYLER, matcher(ParamPluginPattern).group(2));
 }
 <PSTATE, HEADSTATE, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
@@ -722,6 +734,10 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
+<LISTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_LI);
+}
 <LISTATE> \n / [ \t]*----[ \t]*\n {
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
@@ -739,6 +755,10 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 <DLSTATE> \n { }  // Ignore if last char in file
 // End DLSTATE to make way for another element:
 <DLSTATE> \n / ("{{{" \n) {
+    yybegin(popState());
+    return newToken(Terminals.FINAL_DT);
+}
+<DLSTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
