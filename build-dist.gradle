@@ -4,8 +4,8 @@ buildscript {
     // When we "apply" 'build.gradle, the 'buildscript' there will be ignored.
     repositories { mavenCentral() }
     dependencies {
-        classpath 'com.admc:gradle-javaPropFile-plugin:latest.milestone'
-        classpath 'com.admc:gradle-ivyxml-plugin:latest.milestone'
+        classpath 'com.admc:gradle-javaPropFile-plugin:latest.integration'
+        classpath 'com.admc:gradle-ivyxml-plugin:latest.integration'
     }
 }
 

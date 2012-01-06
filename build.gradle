@@ -3,8 +3,8 @@ defaultTasks 'jar'
 buildscript {
     repositories { mavenCentral() }
     dependencies {
-        classpath 'com.admc:gradle-javaPropFile-plugin:latest.milestone'
-        classpath 'com.admc:gradle-ivyxml-plugin:latest.milestone'
+        classpath 'com.admc:gradle-javaPropFile-plugin:latest.integration'
+        classpath 'com.admc:gradle-ivyxml-plugin:latest.integration'
     }
 }
 
@@ -403,6 +403,13 @@ processResources {
                 // execution-time dependencies.
                 propFileLoader.unsatisfiedRefBehavior =
                         JavaPropFile.Behavior.LITERAL
+                /* N.b. You may get errors for the assignment above if this
+                 * task is invoked by 'apply from' of another build file.
+                 * This is due to terrible Gradle project interdependency
+                 * incompetence.  Hopefully that will be fixed some day.
+                 * Until then, use this processResources task by using this
+                 * build file directly, then use the other build file which
+                 * will skip this task due to UP-TO-DATE.  */
                 propFileLoader.expand(it, [
                     ('ver|jquery'): project.jqueryVer,
                     ('ver|jqueryui'): project.jqueryUiVer,
