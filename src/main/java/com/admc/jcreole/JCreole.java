@@ -314,7 +314,7 @@ public class JCreole {
      *    postProcess(htmlFrag, System.getProperty("line.separator"));
      * to have output match your local platform default.
      * </p> <p>
-     *  Input htmlFrag doesn't need to worry about line delimiters, because it
+     * Input htmlFrag doesn't need to worry about line delimiters, because it
      * will be cleaned up as required.
      * </p>
      *
