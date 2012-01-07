@@ -27,9 +27,9 @@ import java.io.IOException;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import com.admc.util.IOUtil;
 
 /**
  * Generates HTML fragments from supplied Creole wikitext, optionally making a
@@ -158,7 +158,7 @@ public class JCreole {
                     .getContextClassLoader().getResourceAsStream(bpResPath);
             if (iStream == null)
                 throw new IOException("Boilerplate inaccessible: " + bpResPath);
-            rawBoilerPlate = IOUtils.toString(iStream, "UTF-8");
+            rawBoilerPlate = IOUtil.toString(iStream);
         } else if (bpFsPath != null) {
             rawBoilerPlate =
                     FileUtils.readFileToString(new File(bpFsPath), "UTF-8");
@@ -197,8 +197,7 @@ public class JCreole {
         jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
-                : jCreole.parseCreole(new StringBuilder(
-                        IOUtils.toString(creoleStream, "UTF-8")));
+                : jCreole.parseCreole(IOUtil.toStringBuilder(creoleStream));
         String html = jCreole.postProcess(
                 generatedHtml, SystemUtils.LINE_SEPARATOR);
         if (outPath == null) {
