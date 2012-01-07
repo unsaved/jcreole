@@ -7,4 +7,4 @@ JCreole is a program that...
     creole text.
 
 Basic usage instructions are at
-http://admc.com/projects/jcreole/using.html
+http://admc.com/projectdocs/jcreole/using.html
