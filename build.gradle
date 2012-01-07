@@ -138,11 +138,11 @@ task serialver(dependsOn: compileJava) << {
     assert project.hasProperty('className'):
             '''Property 'className' is required for task 'serialver'.'''
     String fileSep = System.properties['file.separator']
-    // Could alternatively use Gradle's ExecSpec via exec(...)
     String javaHome = System.properties['java.home']
     String javacHome = (javaHome.endsWith("jre")
             ? javaHome.substring(0, javaHome.length() - "/jre".length())
             : javaHome)
+    // Could alternatively use Gradle's ExecSpec via exec(...)
     Process process = new ProcessBuilder([
         javacHome + fileSep + 'bin' + fileSep + 'serialver',
         '-classpath',
@@ -161,6 +161,10 @@ so you can read it into your editor."""
 serialver.description = "Generates Java serialversion for specified 'classname'"
 
 compileJava.dependsOn jflex
+// This parallels what built-in source set 'providedCompile' does for wars.
+compileJava.doFirst {
+    setClasspath(compileJava.classpath.plus(configurations.buildOnly))
+}
 
 sourceSets.main.java.srcDirs = [file('src/main/java'), file('build/derived-src')]
 compileJava.dependsOn << { GradleUtil.verifyResolve(configurations.compile) }
@@ -265,9 +269,11 @@ private void ref(String style) {
     }
     String outputDoc = 'build/distributions/jcreole-ref-' + style + '.html'
     javaexec {
+        String stageJarName = project.name + (
+                (project.version == 'unspecified')
+                ? '' : ('-' + project.version)) + '.jar'
         main = '-jar'
-        args = [ 'build/stage/' + project.name + '-' + project.version
-                + '.jar',
+        args = [ 'build/stage/' + stageJarName,
                 '-r',
                 'boilerplate-' + boilerQualifier + '.html',
                 '-o', 
@@ -327,9 +333,11 @@ task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     if (!project.hasProperty('htmloutPath'))
         project.htmloutPath = 'build/tmp/generated.html'
     javaexec {
+        String stageJarName = project.name + (
+                (project.version == 'unspecified')
+                ? '' : ('-' + project.version)) + '.jar'
         main = '-jar'
-        args = [ 'build/stage/' + project.name + '-' + project.version
-                + '.jar',
+        args = [ 'build/stage/' + stageJarName,
                 '-o', 
                 project.htmloutPath,
                 project.creolepath
@@ -403,13 +411,10 @@ processResources {
                 // execution-time dependencies.
                 propFileLoader.unsatisfiedRefBehavior =
                         JavaPropFile.Behavior.LITERAL
-                /* N.b. You may get errors for the assignment above if this
-                 * task is invoked by 'apply from' of another build file.
-                 * This is due to terrible Gradle project interdependency
-                 * incompetence.  Hopefully that will be fixed some day.
-                 * Until then, use this processResources task by using this
-                 * build file directly, then use the other build file which
-                 * will skip this task due to UP-TO-DATE.  */
+                /* N.b. You will run into classpath problems for the setting
+                 * above if you nest this build file into another with
+                 * 'apply from'.  This is due to terrible project
+                 * hierarchy design in Gradle. */
                 propFileLoader.expand(it, [
                     ('ver|jquery'): project.jqueryVer,
                     ('ver|jqueryui'): project.jqueryUiVer,
@@ -420,3 +425,116 @@ processResources {
             })
     }
 }
+
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+signing {
+    sign configurations.archives
+}
+
+artifacts {
+     archives sourcesJar
+     archives javadocJar
+}
+
+configurations { deployJars }
+
+if (project.hasProperty('mavenRepository.dest.url')) {
+    def url = project.property('mavenRepository.dest.url')
+    assert url != null:
+        '''Property 'mavenRepository.dest.url' may not be null
+'''
+    assert url instanceof URL:
+        ('''Property 'mavenRepository.dest.url' must be of type URL.  Is a '''
+                + url.class.name + '\n')
+    if (url.protocol == 'scp') {
+        repositories { mavenCentral() }
+        dependencies {
+            deployJars 'org.apache.maven.wagon:wagon-ssh:latest.milestone'
+        }
+    }
+}
+
+uploadArchives {
+    def authMap = [:]
+    if (project.hasProperty('mavenRepository.dest.username'))
+        authMap['userName'] = project.property('mavenRepository.dest.username')
+    if (project.hasProperty('mavenRepository.dest.password'))
+        authMap['password'] = project.property('mavenRepository.dest.password')
+    if (project.hasProperty('mavenRepository.dest.privateKey'))
+        authMap['privateKey'] =
+                project.property('mavenRepository.dest.privateKey')
+
+    repositories.mavenDeployer {
+        configuration = configurations.deployJars
+        beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+        if (project.hasProperty('mavenRepository.dest.url'))
+            repository(url: project.property('mavenRepository.dest.url')) {
+                authentication(authMap)
+            }
+        pom.project {
+            // The hasProperty tests are necessary even for required variables
+            // because this code is evaluated even if the uploadArchives task
+            // will never be executed.
+            if (project.hasProperty('title')) name project.property('title')
+            if (project.hasProperty('description'))
+                description project.property('description')
+            if (project.hasProperty('url')) url project.property('url')
+            if (project.hasProperty('inceptionYear'))
+                inceptionYear project.property('inceptionYear')
+            scm {
+                if (project.hasProperty('scm.url'))
+                    url project.property('scm.url')
+                if (project.hasProperty('scm.connection'))
+                    connection project.property('scm.connection')
+                if (project.hasProperty('scm.tag'))
+                    tag project.property('scm.tag')
+            }
+            if (project.hasProperty('org.name')
+                    || project.hasProperty('org.url')) organization {
+                if (project.hasProperty('org.name'))
+                    name project.property('org.name')
+                if (project.hasProperty('org.url'))
+                    url project.property('org.url')
+            }
+            licenses {
+                license {
+                    name 'Apache 2.0'
+                    url 'https://github.com/unsaved/jcreole/raw/master/doc/LICENSE.txt'
+                    distribution 'repo'
+                }
+            }
+            if (project.hasProperty('developer.name')
+                    || project.hasProperty('developer.email')) developers {
+                developer {
+                    if (project.hasProperty('developer.id'))
+                        id project.property('developer.id')
+                    if (project.hasProperty('developer.name'))
+                        name project.property('developer.name')
+                    if (project.hasProperty('developer.email'))
+                        email project.property('developer.email')
+                }
+            }
+        }
+    }
+}
+
+uploadArchives { doFirst {
+    ['title', 'group', 'mavenRepository.dest.url', 'scm.connection',
+            'scm.url', 'url', 'inceptionYear', 'description'].each {
+        assert (project.hasProperty(it) && project.property(it) != null
+                && project.property(it) != '') :
+            """Property '$it' is required by 'uploadArchives' task.
+"""
+    }
+    ['mavenRepository.dest.url', 'scm.url', 'url', 'org.url'].each {
+        assert project.property(it) != null:
+            """Property '$it' may not be null
+"""
+        assert (!project.hasProperty(it)
+                || project.property(it) instanceof URL):
+            ("""Property '$it' must be of type URL.  Is a """
+                    + project.property(it).class.name + '\n')
+    }
+} }
