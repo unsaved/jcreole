@@ -40,7 +40,7 @@ public class JFlexDriver {
             throw new IllegalArgumentException(
                     "SYNTAX: java com.admc.jcreole.JFlexDriver data.file");
         CreoleScanner scanner =
-                CreoleScanner.newCreoleScanner(new File(sa[0]), false);
+                CreoleScanner.newCreoleScanner(new File(sa[0]), false, null);
                 // Change 'false' to 'true' to silently strip bad input chars.
                 // instead of aborting with notification.
         Token token;

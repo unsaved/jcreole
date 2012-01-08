@@ -110,7 +110,7 @@ public class Expander {
         } else {
             key = newKey;
         }
-        map.put(prefix + key, expand(newVal));
+        map.put(prefix + key, expand(newVal).toString());
         return retVal;
     }
 
@@ -151,11 +151,15 @@ public class Expander {
         return renameMap;
     }
 
+    public CharSequence expandToString(CharSequence inString) {
+        return expand(inString).toString();
+    }
+
     /**
      * @throws IllegalArgumentException if inString contains an unsatisfied
      *         ! reference (like ${!ref}).
      */
-    synchronized public String expand(String inString) {
+    synchronized public StringBuilder expand(CharSequence inString) {
         Set throwRefs = new HashSet<String>();
         Matcher matcher = refPattern.matcher(inString);
         int prevEnd = 0;
@@ -163,7 +167,7 @@ public class Expander {
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             if (throwRefs.size() < 1)
-                sb.append(inString.substring(prevEnd, matcher.start()));
+                sb.append(inString.subSequence(prevEnd, matcher.start()));
             prevEnd = matcher.end();
             if (map.containsKey(matcher.group(2))) {
                 if (throwRefs.size() < 1) sb.append(map.get(matcher.group(2)));
@@ -187,8 +191,8 @@ public class Expander {
         if (throwRefs.size() > 0)
             throw new IllegalArgumentException(
                     "Unsatisfied ! reference(s): " + throwRefs);
-        sb.append(inString.substring(prevEnd));
-        return sb.toString();
+        sb.append(inString.subSequence(prevEnd, inString.length()));
+        return sb;
     }
 
     static public void main(String[] sa) {

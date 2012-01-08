@@ -24,8 +24,9 @@ import java.io.IOException;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CharSequenceReader;
+import com.admc.util.Expander;
+import com.admc.util.IOUtil;
 
 %%
 %class CreoleScanner
@@ -88,11 +89,10 @@ import org.apache.commons.io.input.CharSequenceReader;
      * @param doClean If true will silently remove illegal input characters.
      *                If false, will throw if encounter any illegal input char.
      */
-    public static CreoleScanner newCreoleScanner(
-            File inFile, boolean doClean) throws IOException {
+    public static CreoleScanner newCreoleScanner(File inFile,
+            boolean doClean, Expander expander) throws IOException {
         return newCreoleScanner(
-                new StringBuilder(FileUtils.readFileToString(inFile, "UTF-8")),
-                doClean);
+                IOUtil.toStringBuilder(inFile), doClean, expander);
     }
 
     /**
@@ -109,10 +109,11 @@ import org.apache.commons.io.input.CharSequenceReader;
      *         control character(s) other than \n, \r, \t are found in the
      *         StringBuilder.
      */
-    public static CreoleScanner newCreoleScanner(
-            StringBuilder sb, boolean doClean) throws IOException {
+    public static CreoleScanner newCreoleScanner(StringBuilder inSb,
+            boolean doClean, Expander expander) throws IOException {
         List<Integer> badIndexes = new ArrayList<Integer>();
         char c;
+        StringBuilder sb = (expander == null) ? inSb : expander.expand(inSb);
         for (int i = sb.length() - 1; i >= 0; i--) {
             c = sb.charAt(i);
             switch (c) {

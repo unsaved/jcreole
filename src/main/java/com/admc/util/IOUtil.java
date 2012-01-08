@@ -17,6 +17,8 @@
 
 package com.admc.util;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -24,6 +26,13 @@ import java.io.BufferedReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * There is much functional overlap between this class and Apache Commons IO.
+ * This class is distinctive because it has methods that efficiently generate
+ * StringBuilders.
+ * It also uses UTF-8 encoding.  It neither honors the environment encoding
+ * default not allows for configuring an alternative.
+ */
 public class IOUtil {
     private static Log log = LogFactory.getLog(IOUtil.class);
 
@@ -31,6 +40,14 @@ public class IOUtil {
      * This class provides only static methods.  Do not instantiate.
      */
     private IOUtil() { }
+
+    public static String toString(File file) throws IOException {
+        return IOUtil.toString(new FileInputStream(file), 10240);
+    }
+
+    public static StringBuilder toStringBuilder(File file) throws IOException {
+        return IOUtil.toStringBuilder(new FileInputStream(file), 10240);
+    }
 
     /**
      * Wrapper for toString(InputStream, int) with buffer size of

@@ -30,19 +30,21 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.admc.util.IOUtil;
+import com.admc.util.Expander;
 
 /**
  * Generates HTML fragments from supplied Creole wikitext, optionally making a
  * complete HTML page by merging the generated fragment with a HTML page
  * boilerplate.
- * 
+ * <p>
  * Assembles HTML pages built around main content built from Creole wikitext.
- *
+ * </p><p>
  * Applications may use CreoleScanner and CreoleParser directly for more precise
  * control over how HTML pages are constructed.
  * One development strategy would be to start with a copy of the source code of
  * this class and modify it to fit with your application design and
  * technologies.
+ * </p>
  *
  * @see CreoleScanner
  * @see CreoleParser
@@ -74,8 +76,9 @@ public class JCreole {
         + "Output is always written with UTF-8 encoding.";
 
     protected CreoleParser parser = new CreoleParser();
-    private String pageBoilerPlate;
+    private CharSequence pageBoilerPlate;
     private String pageTitle;
+    private Expander expander;
 
     /**
      * Run this method with no parameters to see syntax requirements and the
@@ -160,8 +163,7 @@ public class JCreole {
                 throw new IOException("Boilerplate inaccessible: " + bpResPath);
             rawBoilerPlate = IOUtil.toString(iStream);
         } else if (bpFsPath != null) {
-            rawBoilerPlate =
-                    FileUtils.readFileToString(new File(bpFsPath), "UTF-8");
+            rawBoilerPlate = IOUtil.toString(new File(bpFsPath));
         }
         String creoleResPath =
                 (inPath.length() > 0 && inPath.charAt(0) == '/')
@@ -241,7 +243,8 @@ public class JCreole {
     public String parseCreole(StringBuilder sb) throws IOException {
         if (sb == null || sb.length() < 1)
             throw new IllegalArgumentException("No input supplied");
-        CreoleScanner scanner = CreoleScanner.newCreoleScanner(sb, true);
+        CreoleScanner scanner =
+                CreoleScanner.newCreoleScanner(sb, true, expander);
         // using a named instance so we can enhance this to set scanner
         // instance properties.
         Object retVal = null;
@@ -284,7 +287,7 @@ public class JCreole {
         if (creoleFile == null || creoleFile.length() < 1)
             throw new IllegalArgumentException("No input supplied");
         CreoleScanner scanner =
-                CreoleScanner.newCreoleScanner(creoleFile, false);
+                CreoleScanner.newCreoleScanner(creoleFile, false, expander);
         // using a named instance so we can enhance this to set scanner
         // instance properties.
         Object retVal = null;
@@ -361,6 +364,16 @@ public class JCreole {
         return (outputEol == null || outputEol.equals("\n"))
                 ? html.toString() : html.toString().replace("\n", outputEol);
                 // Amazing that StringBuilder can't do a multi-replace like this
+    }
+
+    /**
+     * Will use the specified Expander when instantiating the scanner.
+     *
+     * @see CreoleScanner.newCreoleScanner(File, boolean, Expander);
+     * @see CreoleScanner.newCreoleScanner(StringBuilder, boolean, Expander);
+     */
+    public void setExpander(Expander expander) {
+        this.expander = expander;
     }
 
     /**

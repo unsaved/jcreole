@@ -140,7 +140,7 @@ public class CreoleParseTest {
                 }
             });
             retVal = parser.parse(
-                    CreoleScanner.newCreoleScanner(creoleFile, false));
+                    CreoleScanner.newCreoleScanner(creoleFile, false, null));
         } catch (Exception e) {
             if (!shouldSucceed) return;  // A ok.  No output file to write.
             AssertionError ae =
