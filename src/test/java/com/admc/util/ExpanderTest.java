@@ -49,8 +49,8 @@ public class ExpanderTest {
     @org.junit.Test
     public void noMatches() {
         expander.putAll(toMap("alpha", "one", "beta", "two"));
-        assertEquals("one, ${unset1}, two\nthree, ${unset2}, four",
-                expander.expand("one, ${unset1}, two\nthree, ${unset2}, four"));
+        assertEquals("one, ${unset1}, two\nthree, , four",
+            expander.expand("one, ${unset1}, two\nthree, ${-unset2}, four"));
     }
 
     @org.junit.Test(expected=IllegalArgumentException.class)
@@ -63,5 +63,21 @@ public class ExpanderTest {
         assertEquals(toMap("al-pha", "al_pha", " gamma", "_gamma"),
                 expander.putAll(toMap(
                 "al-pha", "one", "beta", "t o", " gamma", "thr-e")));
+    }
+
+    @org.junit.Test
+    public void nestedDevs() {
+        expander.putAll(toMap("alpha", "one", "beta", "two"));
+        expander.putAll(toMap("gamma", "three", "delta", "pre${alpha}post"));
+        assertEquals("one two three preonepost",
+                expander.expand("${alpha} ${beta} ${gamma} ${delta}"));
+    }
+
+    @org.junit.Test
+    public void sysProp() {
+        System.setProperty("alpha.beta", "eins zwei");
+        expander.putAll("sys", System.getProperties());
+        assertEquals("preeins zweipost",
+                expander.expand("pre${!sys|alpha.beta}post"));
     }
 }

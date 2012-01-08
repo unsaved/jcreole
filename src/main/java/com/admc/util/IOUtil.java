@@ -21,8 +21,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.BufferedReader;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class IOUtil {
+    private static Log log = LogFactory.getLog(IOUtil.class);
+
     /**
      * This class provides only static methods.  Do not instantiate.
      */
@@ -60,25 +64,27 @@ public class IOUtil {
     /**
      * Generates a StringBuilder from specified InputStream,
      * using UTF-8 encoding.
+     *
+     * If the input stream can be initialized by this method, then this method
+     * will also close it.
      */
     public static StringBuilder toStringBuilder(
             InputStream inputStream, int bufferChars) throws IOException {
         char[] buffer = new char[bufferChars];
+        int i;
+        StringBuilder sb = new StringBuilder();
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(inputStream, "UTF-8"));
-        int i;
         try {
-            StringBuilder sb = new StringBuilder();
             while ((i = reader.read(buffer)) > -1) sb.append(buffer, 0, i);
-            return sb;
         } finally {
             try {
                 reader.close();
             } catch (IOException ioe) {
-                // Don't want any dependency upon logger classes or
-                // stdout/stderr, so for now just ignore close failures.
+                log.error("Failed to close reader", ioe);
             }
             reader = null;
         }
+        return sb;
     }
 }
