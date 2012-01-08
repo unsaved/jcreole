@@ -92,6 +92,8 @@ public class JCreole {
      * instances).
      * </p> <p>
      * This method executes with all JCreole privileges.
+     * Variable references like ${this} in the Creole text will be expanded to
+     * the corresponding Java system property values.
      * </p>
      *
      * @throws IOException for any I/O problem that makes it impossible to
@@ -176,6 +178,9 @@ public class JCreole {
         File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = (rawBoilerPlate == null)
                 ? (new JCreole()) : (new JCreole(rawBoilerPlate));
+        Expander exp = new Expander();
+        jCreole.setExpander(exp);
+        exp.putAll(null, System.getProperties());
         if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
             // This InterWikiMapper is just for prototyping.
             // Use wiki name of "nil" to force lookup failure for path.
