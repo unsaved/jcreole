@@ -345,6 +345,44 @@ Usage of this feature requires a specific page author privilege.
 [[&http://wiki.wikicreole.org/Creole%201.0|Click to see]]
 
 
+=== Variable References
+
+======${variableName}
+Variable references are coded as above.
+What variables are available for expansion is entirely dependent upon how your
+application has integrated JCreole.
+The command-line JCreole application (which is invoked most simply by using
+##java... -jar## commands) makes all Java system variables available in this
+way.
+Just be aware that if you use ##java... -jar## then use that same .creole file
+with some web or other application, the same variables may not be available
+for expansion.
+
+Variable dereferencing happens very early, so the variable values may be Creole
+or extension directives.
+Applications may leverage this behavior to create custom JCreole macros for
+Creole authors.
+
+If you will use variable references, you should be aware of the rules for their
+usage.
+* Variable names may contain only letters (case sensitive), numbers, dots, and
+underscores.
+* If the supplied variable names contains names (keys) with other characters,
+those other characters are converted to underscores.
+For example, since the command-line JCreole application makes Java system
+properties available, you can use Java system property ##user.name## in your
+.creole documents by coding ##${user_name}##.
+* If the variable name is unset, then the text will remain unchanged and
+${...} will appear in your HTML output.
+* To change the behavior of the previous item to omit the reference if the
+referenced variable is unset, just prefix the variable name with -.
+For example, instead of using name ##user_name##, you would use ##-user_name##.
+The - has an effect only if the variable is not set.
+* To change the behavior described above to cause the translation to fail if the
+referenced variable is unset, just prefix the variable name with !.
+For example, instead of using name ##user_name##, you would use ##!user_name##.
+The ! has an effect only if the variable is not set.
+
 == JCreole Extensions via ~<<...>> Plugin Directives
 
 See the file ##extensions.html## in the doc directory of JCreole distributions
