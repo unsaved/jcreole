@@ -42,6 +42,19 @@ on UNIX, or
 }}}
 on Windows.
 
+When invoked with a ##java... -jar## command as shown above, variable
+references like ${this} in your Creole text will expand the corresponding Java
+system property values.
+Be aware that web or other applications using JCreole may expand any values
+that they want to, or none.
+If your .creole files will be expanded to HTML elsewhere in addition to your
+##-jar## commands, you need to be aware of the portability issue.
+If no System property 'this' exists, then the reference ##${this}## in your
+.creole will remain exactly like that in your HTML output.
+To change that unset-reference behavior, prefix the variable name with - (like
+"##-this##") to remove the unset-reference; and prefix the name with ! (like
+"##!this##") to cause JCreole to abort if the reference is unset.
+
 To integrate with your own product, see the JavaDocs which are distributed
 with both the source and binary distributions (or at
 http://admc.com/jcreole/apidocs/ ).  If you don't plan on extending the language

@@ -33,6 +33,15 @@ import java.util.regex.Matcher;
  * The putAll methods return a map describing keys that have been renamed
  * according to this algorithm.
  * <p> </p>
+ * References look like ${this} or ${-this} or ${!this}.
+ * If the map element ('this' in these examples) is set, these references will
+ * all expand to the same exact thing (obviously the value of the map element
+ * with key 'this').
+ * The difference only applies if there is no map element with key 'this'.
+ * In that case, ${this} remains exactly as it was (the input Creole is not
+ * changed at all); ${-this} is removed (i.e. replace with an empty string);
+ * and ${!this} will cause the expand() method to throw.
+ * <p> </p>
  * I would much prefer to write this with Groovy, but GroovyDoc sucks and I
  * want to provide a real API Spec for integrators to work from.
  * <p> </p>
