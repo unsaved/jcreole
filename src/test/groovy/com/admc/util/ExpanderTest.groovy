@@ -45,4 +45,11 @@ class ExpanderTest {
     void illegalNs() {
         expander.expand("abc-def", "one, two\nthree, four")
     }
+
+    @org.junit.Test
+    void keyRenames() {
+        assertEquals([('al-pha'): 'al_pha', (' gamma'), '_gamma'],
+                expander.putAll(
+                [('al-pha'): 'one', beta: 'two', (' gamma'), 'three']))
+    }
 }
