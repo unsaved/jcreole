@@ -12,14 +12,16 @@ import javax.servlet.ServletException;
 import com.admc.util.IOUtil;
 
 public class CreoleToHtmlServlet extends HttpServlet {
-    static Pattern servletSubPathPattern = Pattern.compile("(/.+\\.)html");
+    private static Pattern
+            servletSubPathPattern = Pattern.compile("(/.+\\.)html");
+    private static final String DEFAULT_BP_RES_PATH = "boilerplate-inet.html";
 
     private String creoleSubdir = "WEB-INF/creole";
     private String rawBoilerPlate = null;
+    private String bpResPath = DEFAULT_BP_RES_PATH;
 
     public void init() throws ServletException {
         super.init();
-        /*  TODO:  Implement configurable Boilerplates
         if (bpResPath != null) {
             if (bpResPath.length() > 0 && bpResPath.charAt(0) == '/')
                 // Classloader lookups are ALWAYS relative to CLASSPATH roots,
@@ -31,10 +33,8 @@ public class CreoleToHtmlServlet extends HttpServlet {
                 throw new IOException("Boilerplate inaccessible: " + bpResPath);
             rawBoilerPlate = IOUtil.toString(iStream);
         } else if (bpFsPath != null) {
-            rawBoilerPlate =
-                    FileUtils.readFileToString(new File(bpFsPath), "UTF-8");
+            rawBoilerPlate = IOUtil.toString(new File(bpFsPath));
         }
-        */
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
