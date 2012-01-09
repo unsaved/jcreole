@@ -175,9 +175,6 @@ Can use multiple to create blank lines.\\\\Looks like that.
 
 All features listed in this section are available to all page authors.
 
-See the file ##additions.html## in the doc directory of JCreole distributions
-for more complete descriptions.
-
 === Automatic id's to use as Hyperlink Targets
 Take a look at the generated code and you will see id attributes written to all
 of your heading elements.
@@ -376,17 +373,16 @@ properties available, you can use Java system property ##user.name## in your
 ${...} will appear in your HTML output.
 * To change the behavior of the previous item to omit the reference if the
 referenced variable is unset, just prefix the variable name with -.
-For example, instead of using name ##user_name##, you would use ##-user_name##.
+For example, instead of writing ##${user_name}##, you would
+write ##$~{-user_name}##.
 The - has an effect only if the variable is not set.
 * To change the behavior described above to cause the translation to fail if the
 referenced variable is unset, just prefix the variable name with !.
-For example, instead of using name ##user_name##, you would use ##!user_name##.
+For example, instead of writing ##${user_name}##, you would
+write ##$~{!user_name}##.
 The ! has an effect only if the variable is not set.
 
 == JCreole Extensions via ~<<...>> Plugin Directives
-
-See the file ##extensions.html## in the doc directory of JCreole distributions
-for more complete descriptions.
 
 ** Use of Plugin Directives is restricted.**
 If you do not have the privilege needed to use a specific directive, you will
@@ -657,7 +653,7 @@ genetic inheritance details, you could name that entry something like
 compromise between conciseness and descriptiveness.
 
 //If you click on a footnote link (superscripted digit) and the footnote text
-is not displayed in a pop-up, then standalone mode reference doc.
+is not displayed in a pop-up, then you are viewing a standalone mode reference doc.
 In that case, your browser will scroll to the target location in the document.
 
 ==== Full Footnotes Sample
