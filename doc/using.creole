@@ -52,8 +52,8 @@ If your .creole files will be expanded to HTML elsewhere in addition to your
 If no System property 'this' exists, then the reference ##${this}## in your
 .creole will remain exactly like that in your HTML output.
 To change that unset-reference behavior, prefix the variable name with - (like
-"##-this##") to remove the unset-reference; and prefix the name with ! (like
-"##!this##") to cause JCreole to abort if the reference is unset.
+"##$~{-this}##") to remove the unset-reference; and prefix the name with ! (like
+"##$~{!this}##") to cause the translation to abort if the reference is unset.
 
 To integrate with your own product, see the JavaDocs which are distributed
 with both the source and binary distributions (or at
