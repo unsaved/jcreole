@@ -22,7 +22,7 @@ public class CreoleToHtmlServlet extends HttpServlet {
 
     public void init() throws ServletException {
         super.init();
-        if (bpResPath != null) {
+        try {
             if (bpResPath.length() > 0 && bpResPath.charAt(0) == '/')
                 // Classloader lookups are ALWAYS relative to CLASSPATH roots,
                 // and will abort if you specify a beginning "/".
@@ -32,8 +32,8 @@ public class CreoleToHtmlServlet extends HttpServlet {
             if (iStream == null)
                 throw new IOException("Boilerplate inaccessible: " + bpResPath);
             rawBoilerPlate = IOUtil.toString(iStream);
-        } else if (bpFsPath != null) {
-            rawBoilerPlate = IOUtil.toString(new File(bpFsPath));
+        } catch (IOException ioe) {
+            throw new ServletException("Failed to prepare boilerplate", ioe);
         }
     }
 
