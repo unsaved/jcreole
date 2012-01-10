@@ -21,6 +21,42 @@ All features listed in this section are available to all page authors.
 See the [[&http://wiki.wikicreole.org/Creole%201.0|Creole 1.0 Spec]] for more
 details about basic Creole directives and behavior.
 
+=== Tips
+
+==== Creole Authoring Tip
+There are many cases where Creole directives are triggered by
+non-alpha-numeric characters as the first character on a line.
+Therefore, if you do not intend to write a directive, you should either avoid
+or escape non-alpha-numeric characters as the first non-whitespace character
+on lines.
+There are several easy ways to accommodate this.
+* It's generally not a problem if a new sentence begins at the start of a new
+line, since sentences almost always begin with an alpha-numeric character.
+* If you use your text editor in a mode where long lines wrap just visually
+without adding any line delimiters, then your real Creole lines will always
+begin with new sentences.
+* Otherwise, one manual tactic is to manually break lines before regular words.
+* Another tactic is to escape the leading non-alpha-numeric character by
+prefixing it with the character "##~~##".
+
+==== Paragraph Authoring Tip
+One very general tip about nesting document elements with document authoring
+systems.
+Paragraphs can not nest other block elements.
+This makes sense if you understand the English meaning of the word "paragraph".
+//Paragraph// means a group of regular sentences, and if some text contains a
+list or a sample code block or anything else, it can not be a paragraph.
+Therefore, you should use a mechanism like sectioning to signify if other
+blocks are dependent upon a paragraph.
+Some document authoring systems (including plain HMTL) leave the author with
+the incorrect impression that their instructions to nest block elements under
+paragraphs are being honored, but really silently convert the elements to be
+peers.
+JCreole purposefully prohibits specifying blocks as children of paragraphs so
+that the .creole text always accurately reflects the structure of the (eventual)
+output document.
+
+
 === Plain text
 Plain text is grouped into (HTML) paragraphs.
 Separate paragraphs with blank lines in the wikitext.
@@ -393,19 +429,20 @@ involvement
 display of table-of-contents).
 
 === Pretty-printed Code
-======{{{<<prettyPrint>>}}} ~{{{\\...\\~}}}
-The ##{{{<<addClass>>}}} directive is an optional enhancement for
-##~{{{...~}}}## code blocks as described in the
-[[#jcsect_CodeBlocks]] section.
+======{{{<<prettyPrint>>}}}\\~{{{\\...\\~}}}
+The ##{{{<<addClass>>}}} directive is an optional enhancement for //nowiki//
+##~{{{...~}}}## code blocks as described in the [[#jcsect_CodeBlocks]] section.
 
-The code to be pretty-printed must be preceded with a line containing only
-"##{{{<<prettyPrint>> }}}}##".
+Since nowiki ##~{{{## must always be the only thing on a line, your code to be
+pretty-printed must be preceded by "##{{{<<prettyPrint>>}}}##" and then a line
+containing only "##{{{{{{}}}##".
 (Except that you may add CSS class specifiers right after ##prettyPrint##.
 See below about that).
 
 Sample creole:
 {{{
-<<prettyPrint linenums>> {{{
+<<prettyPrint linenums>>
+{{{
 class Voila {
 public:
     // Voila
@@ -418,7 +455,8 @@ public:
 
 Generates:
 
-<<prettyPrint linenums>> {{{
+<<prettyPrint linenums>>
+{{{
 class Voila {
 public:
     // Voila

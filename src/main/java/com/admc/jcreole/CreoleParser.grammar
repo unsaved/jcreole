@@ -551,7 +551,7 @@
     }
 :};
 
-%terminals ROOTLVL_PRE, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
+%terminals ROOTLVL_NOWIKI, NESTED_PRE, TEXT, HARDSPACE, END_PARA, HARDLINE, HOR;
 %terminals URL, IMAGE, LI, END_LI, FINAL_LI, END_ROW, FINAL_ROW, CELL, END_H;
 %terminals DT, END_DT, FINAL_DT, ENTRYDEF;
 %terminals HEADING, EM_TOGGLE, STRONG_TOGGLE, MONO_TOGGLE, STYLER;
@@ -559,15 +559,16 @@
 %terminals JCXSPAN, END_JCXSPAN, JCXBLOCK, END_JCXBLOCK;
 %terminals ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ROOTLVL_NEWLINE;
 %terminals ROOTLVL_STYLESHEET, NESTED_STYLESHEET;
-%terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH;
+%terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH, NESTED_NOWIKI;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
 %terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED, TAB;
 
-%typeof ROOTLVL_PRE, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
+%typeof ROOTLVL_NOWIKI, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
 %typeof MASTERDEFLIST, FOOTNOTES, FOOTREF, INDEXED, INDEX = "String";
+%typeof NESTED_NOWIKI = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof listnest, dl = "WashedSymbol";
 
@@ -622,7 +623,7 @@ masterblock = jcxblock
         ;
 
 // Blocks which may not contain any other block
-leafblock = ROOTLVL_PRE.text {:
+leafblock = ROOTLVL_NOWIKI.text {:
             int eotIndex = text.indexOf('\u0003');
             if (eotIndex < 0)
                 return new WashedSymbol(
@@ -637,7 +638,7 @@ leafblock = ROOTLVL_PRE.text {:
                     : (" " + text.substring(eotIndex + 1));
             return new WashedSymbol("<pre class=\"prettyprint" + addlClasses
                     + markBlock("pre", false, true) + "\">\n"
-                    + clean(body.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+                    + clean(body.replace("\n }}}", "\n}}}")) + "\n</pre>");
         :}
         | ROOTLVL_HTMLCOMMENT.text {:
             if (text.indexOf("--")> -1)
@@ -1230,6 +1231,23 @@ inline = NESTED_PRE.text {:
         | NESTED_RAWHTML.text {:
             require(JCreolePrivilege.RAWHTML, _symbol_text);
             return new WashedSymbol(text);
+        :}
+        | NESTED_NOWIKI.text {:
+            int eotIndex = text.indexOf('\u0003');
+            if (eotIndex < 0)
+                return new WashedSymbol(
+                    "<pre" + markBlock("pre", true, true) + ">\n"
+                    + clean(text.replace("\n }}}", "\n}}}")) + "\n</pre>\n");
+                // The replace here is for allowing ^}}} inside of pref block.
+                // Spec says to do this for all " }}}", but that is
+                // unnecessarily liberal since no escaping is needed except
+                // for "^ }}}".
+            String body = text.substring(0, eotIndex);
+            String addlClasses = (eotIndex > text.length() - 2) ? ""
+                    : (" " + text.substring(eotIndex + 1));
+            return new WashedSymbol("<pre class=\"prettyprint" + addlClasses
+                    + markBlock("pre", false, true) + "\">\n"
+                    + clean(body.replace("\n }}}", "\n}}}")) + "\n</pre>");
         :}
         | EMDASH {: return new WashedSymbol("&#x2014;"); :}
         | ENTRYDEF.text {:

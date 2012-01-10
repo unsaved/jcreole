@@ -1,5 +1,6 @@
 Pre
-<<prettyPrint>>   {{{
+<<prettyPrint  >>   
+{{{
 class Voila {
 public:
     // Voila
@@ -9,7 +10,8 @@ public:
 }
 }}}
 Mid
-<<prettyPrint linenums>>{{{
+   <<  prettyPrint linenums>>
+{{{
 class Voila {
 public:
     // Voila
@@ -19,3 +21,36 @@ public:
 }
 }}}
 Post
+
+* List item one
+* List item prefix <<  prettyPrint linenums>>
+{{{
+class Voila {
+public:
+    // Voila
+    static const string VOILA = "Voila";
+}
+}}}
+List item postfix
+* List item three
+
+* list item one
+* list item prefix <<  prettyPrint linenums>>
+{{{
+class Voila {
+public:
+    // Voila
+    static const string VOILA = "Voila";
+}
+}}}
+* list item three
+
+* list item one
+* list item prefix <<  prettyPrint linenums>>
+{{{
+class Voila {
+public:
+    // Voila
+    static const string VOILA = "Voila";
+}
+}}}

@@ -43,7 +43,7 @@ import com.admc.util.IOUtil;
 
 %{
     private static final Pattern BlockPrePattern =
-            Pattern.compile("(?s)\\Q{{{\\E\n(.*?)\n\\Q}}}\\E\n");
+            Pattern.compile("(?s)\\Q{{{\\E\n(.*?)\n\\Q}}}");
     private static final Pattern InlinePrePattern =
             Pattern.compile("(?s)\\Q{{{\\E(.*?)\\Q}}}");
     private static final Pattern ListLevelPattern =
@@ -57,8 +57,10 @@ import com.admc.util.IOUtil;
     private static final Pattern IndexSandwichPattern = Pattern.compile(
             "(?s)(<<\\s*\\(\\s*>>\\s*)(.*?\\S)\\s*<<\\s*\\)\\s*>>");
     private static final Pattern PrettyPattern =
-            Pattern.compile("(?s)<<prettyPrint(?: +([-\\w ]+))?>> *"
-                    + "\\Q{{{\\E\n(.*?)\n\\Q}}}\\E\n");
+            Pattern.compile(
+                    "(?s)(?:[ \t]*)?<<[ \t]*"
+                    + "prettyPrint(?:[ \t]+([-\\w \t]*))?>>[ \t]*"
+                    + "\\Q\n{{{\\E\n(.*?)\n\\Q}}}");
 
     private boolean needIndexCloser;
     private Token newToken(short id) {
@@ -154,6 +156,7 @@ import com.admc.util.IOUtil;
 
 S = [^ \t\f\n]
 s = [ \t\f\n]
+st = [ \t]
 //w = [a-zA-Z0-9_]
 wsdash = [- a-zA-Z0-9_]
 //wdash = [-a-zA-Z0-9_]
@@ -173,39 +176,39 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 
 // State changes from YYINITIAL.
 // URLs and a couple special cases are handled elsewhere.
-<YYINITIAL> ^[ \t]+ / "**" {
+<YYINITIAL> ^{st}+ / "**" {
     pushState();
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext());
 }
 // Gobble up leading whitespace:
-<YYINITIAL> ^[ \t]+ / "<<"{s}*"["{wsdash}*">>" { }
-<YYINITIAL> ^[ \t]*[#*]"]" {
+<YYINITIAL> ^{st}+ / "<<"{s}*"["{wsdash}*">>" { }
+<YYINITIAL> ^{st}*[#*]"]" {
     pushState();
     yybegin(LISTATE);
     return newToken(Terminals.TAB);
 }
-<YYINITIAL> ^[ \t]*[#]= {
+<YYINITIAL> ^{st}*[#]= {
     pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "#", -1);
 }
-<YYINITIAL> ^[ \t]*[*]= {
+<YYINITIAL> ^{st}*[*]= {
     pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", -1);
 }
-<YYINITIAL> ^[ \t]*; {
+<YYINITIAL> ^{st}*; {
     pushState();
     yybegin(DLSTATE);
     return newToken(Terminals.DT);
 }
-<YYINITIAL> ^[ \t]*[#] / [^#] {
+<YYINITIAL> ^{st}*[#] / [^#] {
     pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "#", 1);
 }
-<YYINITIAL> ^[ \t]*[*] / [^*] {
+<YYINITIAL> ^{st}*[*] / [^*] {
     pushState();
     yybegin(LISTATE);
     return newToken(Terminals.LI, "*", 1);
@@ -223,23 +226,23 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.JCXBLOCK,
             (classNames == null) ? null : classNames.replaceAll("\\s+", " "));
 }
-<YYINITIAL> ^[ \t]*=+ {
+<YYINITIAL> ^{st}*=+ {
     // No need to push or pop for HEADSTATE.  Will revert to YYINITIAL.
     // If you wnat a HEADING from inside a jcxBlock, exit the jcxBlock first.
     yypushback(yylength());
     yybegin(HEADSTATE);
 }
-<YYINITIAL> ^[ \t]*[|] {
+<YYINITIAL> ^{st}*[|] {
     yypushback(yylength());
     pushState();
     yybegin(TABLESTATE);
 }
-<YYINITIAL> ^[ \t]* "<<"{s}*[{(] {
+<YYINITIAL> ^{st}* "<<"{s}*[{(] {
     yypushback(yylength());
     pushState();
     yybegin(PSTATE);
 }
-<YYINITIAL> ^[ \t]* "<<"{s}*(footNote|indexed)[ \t] {
+<YYINITIAL> ^{st}* "<<"{s}*(footNote|indexed){st} {
     yypushback(yylength());
     pushState();
     yybegin(PSTATE);
@@ -306,7 +309,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yypushback(yylength());
     yybegin(PSTATE);
 }
-<YYINITIAL> "<<"{s}*addClass[ \t] {
+<YYINITIAL> "<<"{s}*addClass{st} {
     // Undesirable situation here.
     // We don't know whether the Styler directive at root level is intended for
     // a para, list, table, or jcxBlock.
@@ -326,8 +329,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     yybegin(popState());
     return newToken(Terminals.END_JCXBLOCK);
 }
-<LISTATE> ^[ \t]*(#|"*")"]" { return newToken(Terminals.TAB); }
-<LISTATE> ^[ \t]*((#+)|("*"+))=? {
+<LISTATE> ^{st}*(#|"*")"]" { return newToken(Terminals.TAB); }
+<LISTATE> ^{st}*((#+)|("*"+))=? {
     Matcher m = matcher(ListLevelPattern);
     if (m.groupCount() != 2)
         throw new RuntimeException(
@@ -338,84 +341,85 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             * ((m.group(2) != null && m.group(2).length() > 0) ? -1 : 1)
             );
 }
-<DLSTATE> ^[ \t]*; { return newToken(Terminals.DT); }
-<PSTATE> ^[ \t]*[#*] {
+<DLSTATE> ^{st}*; { return newToken(Terminals.DT); }
+// End PSTATE to make way for another element (another section does same).
+<PSTATE> ^{st}*[#*] {
     yypushback(yylength());
     yybegin(LISTATE);
     return newToken(Terminals.END_PARA);
 }
-<PSTATE> ^[ \t]*; {
+<PSTATE> ^{st}*; {
     yypushback(yylength());
     yybegin(DLSTATE);
     return newToken(Terminals.END_PARA);
 }
-<PSTATE> ^[ \t]*[|] {
+<PSTATE> ^{st}*[|] {
     yypushback(yylength());
     yybegin(TABLESTATE);
     return newToken(Terminals.END_PARA);
 }
-<PSTATE> ^([ \t]*\n)+ {
+<PSTATE> ^({st}*\n)+ {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
-<PSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
+<PSTATE> ^{st}*"<<"{s}*(toc|footNotes|masterDefList|index|prettyPrint)(">>"|({st}[^\n]*">>")) {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.END_PARA, "\n");
 }
 <TABLESTATE> "~"\n { return newToken(Terminals.TEXT, "\n"); } // Escape newline
-<TABLESTATE> ("|"[ \t]*) / \n { }  // Strip off optional trailing |.
-<TABLESTATE> \n / [ \t]*[^|] {
+<TABLESTATE> ("|"{st}*) / \n { }  // Strip off optional trailing |.
+<TABLESTATE> \n / {st}*[^|] {
     yybegin(popState());
     return newToken(Terminals.FINAL_ROW);
 }
-<TABLESTATE> \n / [ \t]*[|] {
+<TABLESTATE> \n / {st}*[|] {
     return newToken(Terminals.END_ROW, null, listLevel);
 }
-<LISTATE> \n / [ \t]*\n {
+<LISTATE> \n / {st}*\n {
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> \n / [ \t]*"|" {
+<LISTATE> \n / {st}*"|" {
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
+<LISTATE> ^{st}*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_LI);
 }
-<LISTATE> \n / [ \t]*[#*] {
+<LISTATE> \n / {st}*[#*] {
     return newToken(Terminals.END_LI, null, listLevel);
 }
-<DLSTATE> ^[ \t]*[#*] {
+<DLSTATE> ^{st}*[#*] {
     yypushback(yylength());
     yybegin(LISTATE);
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> \n / [ \t]*\n {
+<DLSTATE> \n / {st}*\n {
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> \n / [ \t]*"|" {
+<DLSTATE> \n / {st}*"|" {
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> ^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
+<DLSTATE> ^{st}*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] {
     yybegin(popState());
     yypushback(yylength());
     return newToken(Terminals.FINAL_DT);
 }
-<DLSTATE> \n / [ \t]*; {
+<DLSTATE> \n / {st}*; {
     return newToken(Terminals.END_DT);
 }
-<TABLESTATE> ^[ \t]*"|=" { return newToken(Terminals.CELL, null, 1); }
+<TABLESTATE> ^{st}*"|=" { return newToken(Terminals.CELL, null, 1); }
   // 1 is the SOH character code for "Start Of Header"
-<TABLESTATE> ^[ \t]*"|" { return newToken(Terminals.CELL); }
+<TABLESTATE> ^{st}*"|" { return newToken(Terminals.CELL); }
 
-<YYINITIAL> ^[ \t]*"<<"{s}*"!" ~ ">>" {
-    // HTML comments starting at ^[ \t] inside jcxBlocks handled by NESTED_...
+<YYINITIAL> ^{st}*"<<"{s}*"!" ~ ">>" {
+    // HTML comments starting at ^{st} inside jcxBlocks handled by NESTED_...
     int startIndex = yytext().indexOf('!');
     return newToken(Terminals.ROOTLVL_HTMLCOMMENT,
             yytext().substring(startIndex+1, yylength() - 2));
@@ -426,7 +430,7 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             yytext().substring(startIndex+1, yylength() - 2));
 }
 <YYINITIAL, JCXBLOCKSTATE>
-^[ \t]*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] ~ \n {
+^{st}*"<<"{s}*(toc|footNotes|masterDefList|index)[ \t>] ~ \n {
     Matcher m = matcher(OptParamPluginPattern, true);
     if (m.groupCount() != 2)
         throw new RuntimeException(
@@ -444,8 +448,8 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
             "Unexpected Plugin directive: " + m.group(1));
     return newToken(t, m.group(2));
 }
-<YYINITIAL> ^[ \t]*"<<"{s}*"~" ~ ">>" {
-    // Raw HTML starting at ^[ \t] inside jcxBlocks handled by NESTED_...
+<YYINITIAL> ^{st}*"<<"{s}*"~" ~ ">>" {
+    // Raw HTML starting at ^{st} inside jcxBlocks handled by NESTED_...
     int startIndex = yytext().indexOf('~');
     return newToken(Terminals.ROOTLVL_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
@@ -455,19 +459,50 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
     return newToken(Terminals.NESTED_RAWHTML,
             yytext().substring(startIndex+1, yylength() - 2));
 }
-<YYINITIAL> ^("{{{"\n) ~ (\n"}}}"\n) {
-    // Pres starting at ^[ \t] inside jcxBlocks handled by NESTED_...
-    return newToken(Terminals.ROOTLVL_PRE, matcher(BlockPrePattern).group(1));
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+^("{{{"\n) ~ (\n"}}}"\n) {
+    // Pres starting at ^{st} inside jcxBlocks handled by NESTED_...
+    yypushback(1);
+    return newToken((yystate() == YYINITIAL)
+            ? Terminals.ROOTLVL_NOWIKI : Terminals.NESTED_NOWIKI,
+            matcher(BlockPrePattern).group(1));
 }
-<YYINITIAL> ^("<<"prettyPrint">>"{s}*"{{{"\n) ~ (\n"}}}"\n) {
-    return newToken(Terminals.ROOTLVL_PRE,
+
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+^ ({st}* "<<"{st}*prettyPrint{st}*">>"{st}*\n"{{{"\n) ~ (\n"}}}"\n) {
+    yypushback(1);
+    return newToken((yystate() == YYINITIAL)
+            ? Terminals.ROOTLVL_NOWIKI : Terminals.NESTED_NOWIKI,
             matcher(PrettyPattern).group(2) + '\u0003');
 }
-<YYINITIAL> ^("<<"prettyPrint{s}{wsdash}+">>"{s}*"{{{"\n) ~ (\n"}}}"\n) {
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+^ ({st}* "<<"{st}*prettyPrint{st}{wsdash}+">>"{st}*\n"{{{"\n) ~ (\n"}}}"\n) {
+    yypushback(1);
     Matcher m = matcher(PrettyPattern);
-    return newToken(Terminals.ROOTLVL_PRE,
+    return newToken((yystate() == YYINITIAL)
+            ? Terminals.ROOTLVL_NOWIKI : Terminals.NESTED_NOWIKI,
             m.group(2) + '\u0003' + m.group(1));
 }
+// The next 2 productions are inefficiently coded duplicates of the previous 2.
+// Only need separate productions because JFlex's ^ operator (not the
+// character-class variant of ^) is very limited and can't be in conditionals
+// of any type.
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+("<<"{st}*prettyPrint{st}*">>"{st}*\n"{{{"\n) ~ (\n"}}}"\n) {
+    yypushback(1);
+    return newToken((yystate() == YYINITIAL)
+            ? Terminals.ROOTLVL_NOWIKI : Terminals.NESTED_NOWIKI,
+            matcher(PrettyPattern).group(2) + '\u0003');
+}
+<YYINITIAL, JCXBLOCKSTATE, LISTATE, TABLESTATE, DLSTATE>
+("<<"{st}*prettyPrint{st}{wsdash}+">>"{st}*\n"{{{"\n) ~ (\n"}}}"\n) {
+    yypushback(1);
+    Matcher m = matcher(PrettyPattern);
+    return newToken((yystate() == YYINITIAL)
+            ? Terminals.ROOTLVL_NOWIKI : Terminals.NESTED_NOWIKI,
+            m.group(2) + '\u0003' + m.group(1));
+}
+
 "{{{" ~ ("}"* "}}}") {
     if (yystate() == YYINITIAL) {
         pushState();
@@ -557,12 +592,8 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 "^^" { return newToken(Terminals.SUP_TOGGLE); }  // YYINITIAL handled already
 ,, { return newToken(Terminals.SUB_TOGGLE); }  // YYINITIAL handled already
 "**" { return newToken(Terminals.STRONG_TOGGLE); } // YYINITIAL handled already
-// End PSTATE to make way for another element:
+// End PSTATE to make way for another element (another section does same).
 <PSTATE> \n / ("{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.END_PARA);
-}
-<PSTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
     yybegin(popState());
     return newToken(Terminals.END_PARA);
 }
@@ -731,14 +762,6 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 <LISTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
 <LISTATE> \n { }  // Ignore if last char in file
 // End LISTATE to make way for another element:
-<LISTATE> \n / ("{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_LI);
-}
-<LISTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_LI);
-}
 <LISTATE> \n / [ \t]*----[ \t]*\n {
     yybegin(popState());
     return newToken(Terminals.FINAL_LI);
@@ -755,14 +778,6 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 <DLSTATE> \n / [^] { return newToken(Terminals.TEXT, yytext()); }
 <DLSTATE> \n { }  // Ignore if last char in file
 // End DLSTATE to make way for another element:
-<DLSTATE> \n / ("{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_DT);
-}
-<DLSTATE> \n / ("<<"prettyPrint{wsdash}*">>"{s}*"{{{" \n) {
-    yybegin(popState());
-    return newToken(Terminals.FINAL_DT);
-}
 <DLSTATE> \n / [ \t]*----[ \t]*\n {
     yybegin(popState());
     return newToken(Terminals.FINAL_DT);

@@ -1,6 +1,6 @@
 = Using JCreole
 
-<<toc>>
+<<toc /x____x>>
 
 
 You can try out JCreole without downloading it, at http://admc.com/jcreole.
@@ -20,12 +20,14 @@ file of Creole Wikitext is.  By default it will display the generated HTML
 The syntax message also shows you can directly tell the program to write an
 HTML file.  The most basic usage is like
 
-<<prettyPrint lang-sh>>{{{
+<<prettyPrint lang-sh>>
+{{{
     java path/to/jcreole-*.jar path/to/your/file.creole
 }}}
 on UNIX, or
 
-<<prettyPrint lang-sh>>{{{
+<<prettyPrint lang-sh>>
+{{{
     java path\to\jcreole-*.jar path/to/your/file.creole
 }}}
 on Windows.
@@ -34,12 +36,14 @@ If you want to generate just the HTML corresponding to the input Creole,
 without wrapping HTML to make it a complete HTML page, then add a "-" switch
 before the file name like
 
-<<prettyPrint lang-sh>>{{{
+<<prettyPrint lang-sh>>
+{{{
     java path/to/jcreole-*.jar - path/to/your/file.creole
 }}}
 on UNIX, or
 
-<<prettyPrint lang-sh>>{{{
+<<prettyPrint lang-sh>>
+{{{
     java path\to\jcreole-*.jar - path/to/your/file.creole
 }}}
 on Windows.
