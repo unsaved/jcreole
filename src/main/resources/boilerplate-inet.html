@@ -110,8 +110,16 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-
    * Build-time including JCreole's basic.css sample.
    * Including inline so that our styles will not cause a network dependency. */
    ${!buildInc|basicCss}
-  /*****  End of sample basic.css inclusion  ********************/
+   ${!buildInc|jcreoleCss}
+  /*****  End of provided .css inclusions  ********************/
 
+  /* Ref-guide-specific OVERRIDES */
+  div.jcx_toc { font-size:12px; }
+  h6 span.jcreole_hbody {
+      font-size:14px;
+      font-family:monospace;
+  }
+  div.jcreole div.clear { clear:both; }
   div.jcreole .yellow { background-color:yellow; }
 </style>
 <link rel="stylesheet" type="text/css" href="site.css" />

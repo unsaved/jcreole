@@ -305,6 +305,9 @@ internetRef.onlyIf {
     fOther = file('src/main/samples/basic.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/samples/jcreole.css')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
     return false
 }
 internetRef.description = 'Generate Standalone JCreole Reference doc'
@@ -327,6 +330,9 @@ standaloneRef.onlyIf {
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/samples/basic.css')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/samples/jcreole.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     return false
@@ -404,6 +410,7 @@ processResources {
     String prettifyCss = file('google-code-prettify-small/'
             + project.prettifyVer + '/prettify.css').getText('UTF-8')
     String basicCss = file('src/main/samples/basic.css').getText('UTF-8')
+    String jcreoleCss = file('src/main/samples/jcreole.css').getText('UTF-8')
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource
@@ -429,6 +436,7 @@ processResources {
                     ('ver|jcreole'): project.version,
                     ('buildInc|prettifyCss'): prettifyCss,
                     ('buildInc|basicCss'): basicCss,
+                    ('buildInc|jcreoleCss'): jcreoleCss,
                 ])
             })
         if (fcd.name == 'boilerplate-standalone.html')
@@ -445,6 +453,7 @@ processResources {
                 propFileLoader.expand(it, [
                     ('ver|jcreole'): project.version,
                     ('buildInc|basicCss'): basicCss,
+                    ('buildInc|jcreoleCss'): jcreoleCss,
                 ])
             })
     }
