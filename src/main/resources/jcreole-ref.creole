@@ -128,7 +128,7 @@ label text right after the URL,
 Looks [[http://wiki.wikicreole.org/Creole%201.0|like this]].
 
 Also see the Jcreole-specific [[#jcsect_PopupLinks]] and
-[[#jcsect_TargetedLinks]] enhancements to explicit hyperlinks.
+[[#jcsect_WindowTargetedLinks]] enhancements to explicit hyperlinks.
 
 Inter- and intra- wiki links with colons are supported by JCreole, but require
 application integration.
@@ -363,7 +363,7 @@ URL and specified label.
 message"|Click to see]]
 
 
-=== Targeted Links
+=== Window-targeted Links
 
 ======~[[&~http://wiki.wikicreole.org/Creole%201.0]]
 or\\
@@ -644,7 +644,7 @@ its position in the document body and put it into the footnotes listing instead.
 The paragraph may contain any regular paragraph markup, excepting
 footnote, master list, and index Directives.
 For reference or bibliography entries, you will often want to use
-[[#jcsect_ExplicitHyperlinks]] with & [[#jcsect_TargetedLinks]]
+[[#jcsect_ExplicitHyperlinks]] with & [[#jcsect_WindowTargetedLinks]]
 in the paragraph.
 
 Then finally, where you want the footnote entries to appear in the document,

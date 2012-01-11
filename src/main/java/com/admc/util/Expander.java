@@ -78,21 +78,23 @@ public class Expander {
     }
 
     /**
-     * Wrapper for putAll(String, Map), with no (null) namespace.
+     * Wrapper for put(String, String, String, boolean),
+     * with no (null) namespace and value expansion.
      *
-     * @see #putAll(String, Map)
+     * @see #put(String, String, String, boolean)
      */
-    public Map<String, String> putAll(Map<String, String> inMap) {
-        return putAll(null, inMap);
+    public String put(String newKey, String newVal) {
+        return put(null, newKey, newVal, true);
     }
 
     /**
-     * Wrapper for put(String, String, String), with no (null) namespace.
+     * Wrapper for put(String, String, String, boolean),
+     * with no (null) namespace.
      *
-     * @see #putAll(String, String, String)
+     * @see #put(String, String, String, boolean)
      */
-    public String put(String newKey, String newVal) {
-        return put(null, newKey, newVal);
+    public String put(String newKey, String newVal, boolean expandVal) {
+        return put(null, newKey, newVal, expandVal);
     }
 
     /**
@@ -105,7 +107,8 @@ public class Expander {
      * @param ns  Namespace prefixed (with prefixDelimiter) to key.
      * @return Actual key name added, without prefix (if any), if key changed.
      */
-    public String put(String ns, String newKey, String newVal) {
+    public String put(
+            String ns, String newKey, String newVal, boolean expandVal) {
         if (ns != null && anyIllegalCharPattern.matcher(ns).matches())
             throw new IllegalArgumentException(
                     "Specified namespache contains illegal character(s): "
@@ -119,21 +122,42 @@ public class Expander {
         } else {
             key = newKey;
         }
-        map.put(prefix + key, expand(newVal).toString());
+        map.put(prefix + key, expandVal ? expand(newVal).toString() : newVal);
         return retVal;
     }
 
     /**
-     * Exact same behavior as putAll(String, Map)
+     * Wrapper for putAll(String, Map, boolean),
+     * with no (null) namespace and value expansion.
      *
-     * @see #putALl(String, Map)
+     * @see #putAll(String, Map, boolean)
      */
-    public Map<String, String> putAll(String ns, Properties ps) {
+    public Map<String, String> putAll(Map<String, String> inMap) {
+        return putAll(null, inMap, true);
+    }
+
+    /**
+     * Wrapper for putAll(String, Map, boolean), with no (null) namespace.
+     *
+     * @see #putAll(String, Map, boolean)
+     */
+    public Map<String, String> putAll(
+            Map<String, String> inMap, boolean expandVals) {
+        return putAll(null, inMap, expandVals);
+    }
+
+    /**
+     * Exact same behavior as putAll(String, Map, boolean)
+     *
+     * @see #putAll(String, Map, boolean)
+     */
+    public Map<String, String> putAll(
+            String ns, Properties ps, boolean expandVals) {
         String changedKey;
         Map<String, String> renameMap = new HashMap<String, String>();
         for (Map.Entry entry : ps.entrySet()) {
-            changedKey = put(
-                    ns, entry.getKey().toString(), entry.getValue().toString());
+            changedKey = put(ns, entry.getKey().toString(),
+                    entry.getValue().toString(), expandVals);
             if (changedKey != null)
                 renameMap.put(entry.getKey().toString(), changedKey);
         }
@@ -150,17 +174,23 @@ public class Expander {
      * @param ns  Namespace prefixed (with prefixDelimiter) to key.
      * @return Map of keys that were renamed.
      */
-    public Map<String, String> putAll(String ns, Map<String, String> inMap) {
+    public Map<String, String> putAll(
+            String ns, Map<String, String> inMap, boolean expandVals) {
         String changedKey;
         Map<String, String> renameMap = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : inMap.entrySet()) {
-            changedKey = put(ns, entry.getKey(), entry.getValue());
+            changedKey = put(ns, entry.getKey(), entry.getValue(), expandVals);
             if (changedKey != null) renameMap.put(entry.getKey(), changedKey);
         }
         return renameMap;
     }
 
-    public CharSequence expandToString(CharSequence inString) {
+    /**
+     * Same exact contract as expand(CharSequence), but returns a String.
+     *
+     * @see #expand(CharSequence)
+     */
+    public String expandToString(CharSequence inString) {
         return expand(inString).toString();
     }
 

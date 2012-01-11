@@ -302,6 +302,9 @@ internetRef.onlyIf {
     fOther = file('src/main/resources/boilerplate-inet.html')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/samples/basic.css')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
     return false
 }
 internetRef.description = 'Generate Standalone JCreole Reference doc'
@@ -321,6 +324,9 @@ standaloneRef.onlyIf {
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/resources/boilerplate-standalone.html')
+    assert fOther.exists()
+    if (fOther.lastModified() > lastMod) return true
+    fOther = file('src/main/samples/basic.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     return false
@@ -397,6 +403,7 @@ import com.admc.gradle.JavaPropFile
 processResources {
     String prettifyCss = file('google-code-prettify-small/'
             + project.prettifyVer + '/prettify.css').getText('UTF-8')
+    String basicCss = file('src/main/samples/basic.css').getText('UTF-8')
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource
@@ -420,7 +427,24 @@ processResources {
                     ('ver|jqueryui'): project.jqueryUiVer,
                     ('ver|prettify'): project.prettifyVer,
                     ('ver|jcreole'): project.version,
-                    ('buildInc|prettifyCss'): prettifyCss
+                    ('buildInc|prettifyCss'): prettifyCss,
+                    ('buildInc|basicCss'): basicCss,
+                ])
+            })
+        if (fcd.name == 'boilerplate-standalone.html')
+            fcd.filter(ContentAsStringFilter, closure: {
+                // Making this setting immediately before the expand() call to
+                // eliminate dependencies on Gradle's complicated
+                // execution-time dependencies.
+                propFileLoader.unsatisfiedRefBehavior =
+                        JavaPropFile.Behavior.LITERAL
+                /* N.b. You will run into classpath problems for the setting
+                 * above if you nest this build file into another with
+                 * 'apply from'.  This is due to terrible project
+                 * hierarchy design in Gradle. */
+                propFileLoader.expand(it, [
+                    ('ver|jcreole'): project.version,
+                    ('buildInc|basicCss'): basicCss,
                 ])
             })
     }

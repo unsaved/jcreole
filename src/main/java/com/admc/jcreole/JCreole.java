@@ -180,7 +180,7 @@ public class JCreole {
                 ? (new JCreole()) : (new JCreole(rawBoilerPlate));
         Expander exp = new Expander();
         jCreole.setExpander(exp);
-        exp.putAll(null, System.getProperties());
+        exp.putAll(null, System.getProperties(), false);
         if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
             // This InterWikiMapper is just for prototyping.
             // Use wiki name of "nil" to force lookup failure for path.
@@ -224,9 +224,10 @@ public class JCreole {
     }
 
     public JCreole(String rawBoilerPlate) {
-        if (rawBoilerPlate.indexOf("${content}") < 0)
+        if (rawBoilerPlate.indexOf("${content}") < 0
+                && rawBoilerPlate.indexOf("${!content}") < 0)
             throw new IllegalArgumentException(
-                    "Boilerplate text does not contain '${content}'");
+                    "Boilerplate contains neither ${content} nor ${!content}");
         pageBoilerPlate = rawBoilerPlate.replace("\r", "");
     }
 
@@ -341,33 +342,30 @@ public class JCreole {
                 ? htmlFrag : htmlFrag.replace("\n", outputEol);
                 // Amazing that StringBuilder can't do a multi-replace like this
 
+        Expander bpExpander = new Expander();
         StringBuilder html = new StringBuilder(pageBoilerPlate);
-        int index = html.indexOf("${content}");
-        html.replace(index, index + "${content}".length(), htmlFrag);
-        index = html.indexOf("${headers}");
-        if (index > -1) {
+        if (html.indexOf("${headers}") > -1
+                || html.indexOf("${!headers}") > -1) {
             StringBuilder sb = new StringBuilder();
             int count = 0;
             for (String href : getCssHrefs())
                 sb.append(String.format("<link id=\"auto%02d\" class=\"auto\" "
                         + "rel=\"stylesheet\" "
                         + "type=\"text/css\" href=\"%s\" />\n", ++count, href));
-            html.replace(index, index + "${headers}".length(), sb.toString());
-        } else {
-            if (getCssHrefs().size() > 0)
-                throw new CreoleParseException(
+            bpExpander.put("headers", sb.toString(), false);
+        } else if (getCssHrefs().size() > 0) {
+            throw new CreoleParseException(
                     "Author-supplied style-sheets, but boilerplate has no "
                     + "'headers' insertion-point");
         }
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .format(new Date());
-        while ((index = html.indexOf("${timeStamp}")) > -1)
-            html.replace(index, index + "${timeStamp}".length(), timeStamp);
-        index = html.indexOf("${pageTitle}");
-        if (pageTitle != null && index > -1)
-            html.replace(index, index + "${pageTitle}".length(), pageTitle);
+        bpExpander.put("timeStamp",
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .format(new Date()), false);
+        bpExpander.put("content", htmlFrag, false);
+        if (pageTitle != null) bpExpander.put("pageTitle", pageTitle, false);
+        String htmlString = bpExpander.expand(html).toString();
         return (outputEol == null || outputEol.equals("\n"))
-                ? html.toString() : html.toString().replace("\n", outputEol);
+                ? htmlString : htmlString.replace("\n", outputEol);
                 // Amazing that StringBuilder can't do a multi-replace like this
     }
 
