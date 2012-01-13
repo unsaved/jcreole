@@ -19,6 +19,7 @@ package com.admc.jcreole;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.io.IOException;
@@ -79,6 +80,7 @@ public class JCreole {
     private CharSequence pageBoilerPlate;
     private String pageTitle;
     private Expander expander;
+    private List<String> cssHrefs;
 
     /**
      * Run this method with no parameters to see syntax requirements and the
@@ -433,11 +435,24 @@ public class JCreole {
     }
 
     /**
-     * Calls the corresponding method on the underlying Parser.
+     * Returns a new list consisting of explicitly set cssHrefs + cssHrefs of
+     * the underlying Parser.
      *
      * @see CreoleParser#getCssHrefs
      */
     public List<String> getCssHrefs() {
-        return parser.getCssHrefs();
+        List<String> outCssHrefs = (cssHrefs == null)
+                ? (new ArrayList()) : (new ArrayList(cssHrefs));
+        outCssHrefs.addAll(parser.getCssHrefs());
+        return outCssHrefs;
+    }
+
+    /**
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#getCssHrefs
+     */
+    public void addCssHrefs(List<String> newCssHrefs) {
+        cssHrefs = new ArrayList<String>(newCssHrefs);
     }
 }
