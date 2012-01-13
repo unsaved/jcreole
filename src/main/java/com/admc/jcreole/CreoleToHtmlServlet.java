@@ -3,20 +3,29 @@ package com.admc.jcreole;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import com.admc.util.IOUtil;
+import com.admc.util.Expander;
 
-public class CreoleToHtmlServlet extends HttpServlet {
-    private static Pattern servletFilePattern = Pattern.compile("(.+\\.)html");
+public class CreoleToHtmlServlet
+        extends HttpServlet implements InterWikiMapper {
+    private static Pattern servletFilePattern = Pattern.compile("(.+)\\.html");
+    private String contextPath;
+    private ServletContext application;
 
     private String creoleSubdir = "WEB-INF/creole";
     EnumSet<JCreolePrivilege> jcreolePrivs =
@@ -24,23 +33,8 @@ public class CreoleToHtmlServlet extends HttpServlet {
 
     public void init() throws ServletException {
         super.init();
-        /*
-         * TODO:  Process parameters, like for creoleSubdir.
-
-        try {
-            if (bpResPath.length() > 0 && bpResPath.charAt(0) == '/')
-                // Classloader lookups are ALWAYS relative to CLASSPATH roots,
-                // and will abort if you specify a beginning "/".
-                bpResPath = bpResPath.substring(1);
-            InputStream iStream = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(bpResPath);
-            if (iStream == null)
-                throw new IOException("Boilerplate inaccessible: " + bpResPath);
-            rawBoilerPlate = IOUtil.toString(iStream);
-        } catch (IOException ioe) {
-            throw new ServletException("Failed to prepare boilerplate", ioe);
-        }
-        */
+        application = getServletContext();
+        // TODO:  Process parameters, like for creoleSubdir.
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -49,7 +43,13 @@ public class CreoleToHtmlServlet extends HttpServlet {
         URL url;
         List<String> cssHrefs = new ArrayList<String>();
         File servletPathFile = new File(req.getServletPath());
-        String contextPath = getServletContext().getContextPath();
+        if (contextPath == null) {
+            contextPath = application.getContextPath();
+            iwUrls.put("home", contextPath);
+            String appName = application.getServletContextName();
+            iwLabels.put("home",
+                    ((appName == null) ? "Site" : appName) + " Home Page");
+        }
         InputStream bpStream = null;
         Matcher matcher = servletFilePattern.matcher(servletPathFile.getName());
         if (!matcher.matches())
@@ -58,10 +58,11 @@ public class CreoleToHtmlServlet extends HttpServlet {
                     + " only supports servlet paths ending with '.html':  "
                     + servletPathFile.getAbsolutePath());
         File crRootedDir = servletPathFile.getParentFile();
+        String pageBaseName = matcher.group(1);
         File creoleFile =
                 new File("/" + creoleSubdir + crRootedDir.getAbsolutePath(),
-                matcher.group(1) + "creole");
-        InputStream creoleStream = getServletContext()
+                pageBaseName + ".creole");
+        InputStream creoleStream = application
                 .getResourceAsStream(creoleFile.getAbsolutePath());
         if (creoleStream == null)
             throw new ServletException(
@@ -71,13 +72,13 @@ public class CreoleToHtmlServlet extends HttpServlet {
             creoleDir = new File(
                     "/" + creoleSubdir + crRootedDir.getAbsolutePath());
             if (bpStream == null) {
-                bpStream = getServletContext().getResourceAsStream(new File(
+                bpStream = application.getResourceAsStream(new File(
                         creoleDir, "boilerplate.html").getAbsolutePath());
             }
-            url = getServletContext().getResource(new File(
+            url = application.getResource(new File(
                     crRootedDir, "site.css").getAbsolutePath());
             if (url != null) cssHrefs.add(0,
-                    new File("/" + contextPath + crRootedDir, "site.css")
+                    new File(contextPath + crRootedDir, "site.css")
                     .getAbsolutePath());
             crRootedDir = crRootedDir.getParentFile();
         }
@@ -86,35 +87,25 @@ public class CreoleToHtmlServlet extends HttpServlet {
                     + "from creole dir or ancesotr dir");
         crRootedDir = servletPathFile.getParentFile();
         while (crRootedDir != null) {
-            url = getServletContext().getResource(new File(
+            url = application.getResource(new File(
                     crRootedDir, "jcreole.css").getAbsolutePath());
             if (url != null) cssHrefs.add(0,
-                    new File("/" + contextPath + crRootedDir, "jcreole.css")
+                    new File(contextPath + crRootedDir, "jcreole.css")
                     .getAbsolutePath());
             crRootedDir = crRootedDir.getParentFile();
         }
 
+        Expander creoleExpander = new Expander();
+        creoleExpander.put("isoDateTime",
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .format(new Date()), false);
+        creoleExpander.put("contextPath", contextPath, false);
+        creoleExpander.put("pageBaseName", pageBaseName, false);
         JCreole jCreole = new JCreole(IOUtil.toString(bpStream));
+        jCreole.getBpExpander().put("contextPath", contextPath, false);
         if (cssHrefs.size() > 0) jCreole.addCssHrefs(cssHrefs);
-
-        /*  TODO:  Support interWikiMappers
-        if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
-            // This InterWikiMapper is just for prototyping.
-            // Use wiki name of "nil" to force lookup failure for path.
-            // Use wiki page of "nil" to force lookup failure for label.
-            public String toPath(String wikiName, String wikiPage) {
-                if (wikiName != null && wikiName.equals("nil")) return null;
-                return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
-            }
-            public String toLabel(String wikiName, String wikiPage) {
-                if (wikiPage == null)
-                        throw new RuntimeException(
-                                "Null page name sent to InterWikiMapper");
-                if (wikiPage.equals("nil")) return null;
-                return "{LABEL for: " + wikiName + '|' + wikiPage + '}';
-            }
-        });
-        */
+        jCreole.setExpander(creoleExpander);
+        jCreole.setInterWikiMapper(this);
 
         jCreole.setPageTitle(req.getServletPath());
 
@@ -125,5 +116,28 @@ public class CreoleToHtmlServlet extends HttpServlet {
         resp.setBufferSize(1024);
         resp.setContentType("text/html");
         resp.getWriter().print(html);
+    }
+
+    // InterWikiMapper implementation follows
+    protected Map<String, String> iwUrls = new HashMap<String, String>();
+    protected Map<String, String> iwLabels = new HashMap<String, String>();
+
+    // TODO:  Add translations for all of the popular public Wikis
+    public String toPath(String wikiName, String wikiPage) {
+        if (wikiPage == null)
+            throw new RuntimeException(
+                    "wiki page name not given to InterWikiMapper");
+        if (wikiName == null) return iwUrls.get(wikiPage);
+        if (wikiName.equals("wikipedia"))
+            return "http://en.wikipedia.org/wiki/" + wikiPage;
+        return null;
+    }
+    public String toLabel(String wikiName, String wikiPage) {
+        if (wikiPage == null)
+            throw new RuntimeException(
+                    "wiki page name not given to InterWikiMapper");
+        if (wikiName == null) return iwLabels.get(wikiPage);
+        if (wikiName.equals("wikipedia")) return wikiPage + " @ Wikipedia";
+        return null;
     }
 }

@@ -99,30 +99,12 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-
 <script type="text/javascript"
   src="https://github.com/unsaved/jcreole/raw/master/google-code-prettify-small/${!ver|prettify}/prettify.js">
 </script>
+<link rel="stylesheet" type="text/css"
+href="${contextPath}/google-code-prettify-small/${!ver|prettify}/prettify.css" />
 <style>
-  /******************************************************************
-   * Build-time dynamically-including google-code-prettify, because absolute
-   * URLs not working to the .css file, for unknown reason.  */
-   ${!buildInc|prettifyCss}
-  /*****  End of google-code-prettify inclusion  ********************/
-
-  /******************************************************************
-   * Build-time including JCreole's site.css sample.
-   * Including inline so that our styles will not cause a network dependency. */
-   ${!buildInc|siteCss}
-   ${!buildInc|jcreoleCss}
-  /*****  End of provided .css inclusions  ********************/
-
-  /* Ref-guide-specific OVERRIDES */
-  div.jcx_toc { font-size:12px; }
-  h6 span.jcreole_hbody {
-      font-size:14px;
-      font-family:monospace;
-  }
-  div.jcreole div.clear { clear:both; }
-  div.jcreole .yellow { background-color:yellow; }
+  /* Style OVERRIDES */
+  /* Do we have anything general enough to override *.css files? */
 </style>
-<link rel="stylesheet" type="text/css" href="override.css" />
 ${headers}
 </head>
 <body>

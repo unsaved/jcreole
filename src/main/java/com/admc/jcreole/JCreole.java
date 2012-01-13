@@ -81,6 +81,16 @@ public class JCreole {
     private String pageTitle;
     private Expander expander;
     private List<String> cssHrefs;
+    private Expander bpExpander = new Expander();
+
+    /**
+     * Returns reference to the Boiler-plate Expander.
+     * Will have no effect if no boilerplate is used (e.g. if the postProcess
+     * method is not run).
+     */
+    public Expander getBpExpander() {
+        return bpExpander;
+    }
 
     /**
      * Run this method with no parameters to see syntax requirements and the
@@ -344,7 +354,6 @@ public class JCreole {
                 ? htmlFrag : htmlFrag.replace("\n", outputEol);
                 // Amazing that StringBuilder can't do a multi-replace like this
 
-        Expander bpExpander = new Expander();
         StringBuilder html = new StringBuilder(pageBoilerPlate);
         if (html.indexOf("${headers}") > -1
                 || html.indexOf("${!headers}") > -1) {

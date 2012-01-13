@@ -1,5 +1,7 @@
 SHORT TERM
 
+Test that servlet works with ContextPath of "" (aka. ROOT).
+
 Implement Servlet settings.
 
 Implement a Spring HttpRequestHandler.

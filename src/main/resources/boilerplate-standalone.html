@@ -27,9 +27,9 @@
 </script>
 <style>
   /******************************************************************
-   * Build-time including JCreole's basic.css sample.
+   * Build-time including JCreole's site.css sample.
    * Including inline so that our styles will not cause a network dependency. */
-   ${!buildInc|basicCss}
+   ${!buildInc|siteCss}
    ${!buildInc|jcreoleCss}
   /*****  End of provided .css inclusions  ********************/
 
@@ -42,7 +42,7 @@
   div.jcreole div.clear { clear:both; }
   div.jcreole .yellow { background-color:yellow; }
 </style>
-<link rel="stylesheet" type="text/css" href="site.css" />
+<link rel="stylesheet" type="text/css" href="override.css" />
 ${headers}
 </head>
 <body>

@@ -302,10 +302,10 @@ internetRef.onlyIf {
     fOther = file('src/main/resources/boilerplate-inet.html')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
-    fOther = file('src/main/samples/basic.css')
+    fOther = file('src/main/webapp/site.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
-    fOther = file('src/main/samples/jcreole.css')
+    fOther = file('src/main/webapp/jcreole.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     return false
@@ -329,10 +329,10 @@ standaloneRef.onlyIf {
     fOther = file('src/main/resources/boilerplate-standalone.html')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
-    fOther = file('src/main/samples/basic.css')
+    fOther = file('src/main/webapp/site.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
-    fOther = file('src/main/samples/jcreole.css')
+    fOther = file('src/main/webapp/jcreole.css')
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     return false
@@ -409,8 +409,8 @@ import com.admc.gradle.JavaPropFile
 processResources {
     String prettifyCss = file('google-code-prettify-small/'
             + project.prettifyVer + '/prettify.css').getText('UTF-8')
-    String basicCss = file('src/main/samples/basic.css').getText('UTF-8')
-    String jcreoleCss = file('src/main/samples/jcreole.css').getText('UTF-8')
+    String siteCss = file('src/main/webapp/site.css').getText('UTF-8')
+    String jcreoleCss = file('src/main/webapp/jcreole.css').getText('UTF-8')
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource
@@ -435,7 +435,7 @@ processResources {
                     ('ver|prettify'): project.prettifyVer,
                     ('ver|jcreole'): project.version,
                     ('buildInc|prettifyCss'): prettifyCss,
-                    ('buildInc|basicCss'): basicCss,
+                    ('buildInc|siteCss'): siteCss,
                     ('buildInc|jcreoleCss'): jcreoleCss,
                 ])
             })
@@ -452,12 +452,38 @@ processResources {
                  * hierarchy design in Gradle. */
                 propFileLoader.expand(it, [
                     ('ver|jcreole'): project.version,
-                    ('buildInc|basicCss'): basicCss,
+                    ('buildInc|siteCss'): siteCss,
                     ('buildInc|jcreoleCss'): jcreoleCss,
                 ])
             })
     }
 }
+task web(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/webstage'
+    exclude '**/.*/**'
+    eachFile { fcd ->
+        // Unlike Gradles plain {... } filter, our closure here will get
+        // executed just one time for each matching file.
+        if (fcd.name == 'boilerplate.html')
+            fcd.filter(ContentAsStringFilter, closure: {
+                propFileLoader.unsatisfiedRefBehavior =
+                        JavaPropFile.Behavior.LITERAL
+                propFileLoader.expand(it, [
+                    ('ver|jquery'): project.jqueryVer,
+                    ('ver|jqueryui'): project.jqueryUiVer,
+                    ('ver|prettify'): project.prettifyVer,
+                    ('ver|jcreole'): project.version,
+                ])
+            })
+    }
+    into('google-code-prettify-small') {
+        exclude '**/.*/**'
+        from 'google-code-prettify-small'
+        include (project.prettifyVer + '/**')
+    }
+}
+// TODO:  apply webapp plugin and configure the relevant task above
 
 apply plugin: 'maven'
 apply plugin: 'signing'
