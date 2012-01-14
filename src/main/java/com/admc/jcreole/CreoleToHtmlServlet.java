@@ -21,6 +21,12 @@ import javax.servlet.ServletException;
 import com.admc.util.IOUtil;
 import com.admc.util.Expander;
 
+/**
+ * The supplied 'index.creole' file documents usage of this class.
+ *
+ * That file will be presented (in HTML format) as the home page if you
+ * deploy the JCreole-provided war file.
+ */
 public class CreoleToHtmlServlet
         extends HttpServlet implements InterWikiMapper {
     private static Pattern servletFilePattern = Pattern.compile("(.+)\\.html");
@@ -34,7 +40,13 @@ public class CreoleToHtmlServlet
     public void init() throws ServletException {
         super.init();
         application = getServletContext();
-        // TODO:  Process parameters, like for creoleSubdir.
+        String creoleSubdirParam = application.getInitParameter("creoleSubdir");
+        if (creoleSubdirParam != null) creoleSubdir = creoleSubdirParam;
+        if (creoleSubdir == null || creoleSubdir.length() < 1
+                || creoleSubdir.charAt(0) == '/'
+                || creoleSubdir.charAt(0) == '\\')
+            throw new ServletException(
+                    "'creoleSubdir' is not a relative path: " + creoleSubdir);
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

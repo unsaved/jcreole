@@ -22,6 +22,32 @@
 
   <display-name>JCreole Document Server</display-name>
 
+  <!--   The value WEB-INF/creole is the default.
+         If you change it to the empty string, then your creole, boilerplate,
+         and referenced files (like *.css, *.jpg, etc.) can reside
+         side-by-side, with the undesirable consequence that various problems
+         could result in your boilerplate and creole source code being exposed
+         to end users.  WEB-INF/** resources are pretty safe from observation
+         if your administrator is competent.
+
+         It's usually better to change the runtime values of context params
+         using your app server rather than modifying an application.
+         Most app servers provide a management console or application to change
+         context params.  With Tomcat, you provide a 'context.xml' file with
+         an element like:  <Parameter name="creoleSubdir" value="sdir"/>
+  <context-param>
+    <description>Root directory for boilerplate and .creole files.
+      Must be a relative path, relative to the application home directory.
+    </description>
+    <param-name>
+      creoleSubdir
+    </param-name>
+    <param-value>
+       WEB-INF/creole
+    </param-value>
+  </context-param>
+  -->
+
   <servlet>
     <description>Creole-toHtml Servlet</description>
     <servlet-name>creoleToHtmlServlet</servlet-name>

@@ -1,12 +1,6 @@
 SHORT TERM
 
-Test that servlet works with ContextPath of "" (aka. ROOT).
-
-Implement Servlet settings.
-
 Implement a Spring HttpRequestHandler.
-
-Reverse engineer MediaWiki's dashed-border to their pretty-print blocks.
 
 Consider how to allow author to hyperlink a broader set of content than just a
 non-markup label.  May be able to do without too much difficulty with

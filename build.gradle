@@ -403,6 +403,7 @@ processResources {
             + project.prettifyVer + '/prettify.css').getText('UTF-8')
     String siteCss = file('src/main/webapp/site.css').getText('UTF-8')
     String jcreoleCss = file('src/main/webapp/jcreole.css').getText('UTF-8')
+println jcreoleCss
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource
@@ -684,6 +685,7 @@ task deployableWar (dependsOn: war) << {
 deployableWar.description =
         'Copies war to a file name suitable for direct deployment'
 
+/* This task needs to be updated to satisfy filtering
 task refreshContent (dependsOn: war) << {
     File dest = explodeDest()
     copy {
@@ -691,7 +693,8 @@ task refreshContent (dependsOn: war) << {
         //from 'build/tmp/renamed'
         from 'src/main/webapp'
         into dest
-        exclude '**/.*/**'
+        exclude '**X.*X**'
     }
 }
 refreshContent.description = 'Refresh webapp content on app server'
+*/
