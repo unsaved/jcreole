@@ -195,10 +195,18 @@ public class Expander {
     }
 
     /**
+     * Wrapper for expand(CharString, boolean) with ignoreBang false.
+     */
+    public StringBuilder expand(CharSequence inString) {
+        return expand(inString, false);
+    }
+
+    /**
      * @throws IllegalArgumentException if inString contains an unsatisfied
      *         ! reference (like ${!ref}).
      */
-    synchronized public StringBuilder expand(CharSequence inString) {
+    synchronized public StringBuilder expand(
+            CharSequence inString, boolean ignoreBang) {
         Set throwRefs = new HashSet<String>();
         Matcher matcher = refPattern.matcher(inString);
         int prevEnd = 0;
@@ -218,6 +226,7 @@ public class Expander {
             }
             switch (matcher.group(1).charAt(0)) {
               case '!':
+                if (ignoreBang) continue;
                 throwRefs.add(matcher.group(2));
                 break;
               case '-':

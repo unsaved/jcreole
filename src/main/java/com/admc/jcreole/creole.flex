@@ -115,7 +115,8 @@ import com.admc.util.IOUtil;
             boolean doClean, Expander expander) throws IOException {
         List<Integer> badIndexes = new ArrayList<Integer>();
         char c;
-        StringBuilder sb = (expander == null) ? inSb : expander.expand(inSb);
+        StringBuilder sb = (expander == null)
+                ? inSb : expander.expand(inSb, false);
         for (int i = sb.length() - 1; i >= 0; i--) {
             c = sb.charAt(i);
             switch (c) {

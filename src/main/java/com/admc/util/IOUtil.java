@@ -18,11 +18,13 @@
 package com.admc.util;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -103,5 +105,23 @@ public class IOUtil {
             reader = null;
         }
         return sb;
+    }
+
+    /**
+     * @param directory  Will throw an IllegalArgumentException if this is not
+     *        a real directory.
+     * @param filter  If null, then all files in the specified dir will be
+     *        included.
+     * @param listUp  Generate an entry for "..".
+     * @param nameTranslationMatchPat nameTranslation* params must both be null
+     *        or both be non-null.
+     * @param nameTranslationFormat nameTranslation* params must both be null
+     *        or both be non-null.
+     * @return HTML fragment that is a HTML table element.
+     */
+    public StringBuilder htmlIndexTable(
+            File directory, FileFilter filter, boolean listUp,
+            Pattern nameTranslationMatchPat, String nameTranslationFormat) {
+        return null;
     }
 }

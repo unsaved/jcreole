@@ -55,7 +55,7 @@ public class ExpanderTest {
 
     @org.junit.Test(expected=IllegalArgumentException.class)
     public void illegalNs() {
-        expander.putAll("abc-def", toMap("alpha", "one", "beta", "two"));
+        expander.putAll("abc-def", toMap("alpha", "one", "beta", "two"), true);
     }
 
     @org.junit.Test
@@ -76,7 +76,7 @@ public class ExpanderTest {
     @org.junit.Test
     public void sysProp() {
         System.setProperty("alpha.beta", "eins zwei");
-        expander.putAll("sys", System.getProperties());
+        expander.putAll("sys", System.getProperties(), true);
         assertEquals("preeins zweipost",
                 expander.expandToString("pre${!sys|alpha.beta}post"));
     }

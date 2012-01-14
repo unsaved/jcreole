@@ -107,19 +107,28 @@ public class CreoleToHtmlServlet
             crRootedDir = crRootedDir.getParentFile();
         }
 
-        Expander creoleExpander = new Expander();
-        creoleExpander.put("isoDateTime",
-                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .format(new Date()), false);
-        creoleExpander.put("contextPath", contextPath, false);
-        creoleExpander.put("pageBaseName", pageBaseName, false);
         JCreole jCreole = new JCreole(IOUtil.toString(bpStream));
-        jCreole.getBpExpander().put("contextPath", contextPath, false);
-        if (cssHrefs.size() > 0) jCreole.addCssHrefs(cssHrefs);
-        jCreole.setExpander(creoleExpander);
-        jCreole.setInterWikiMapper(this);
+        Expander htmlExpander = jCreole.getHtmlExpander();
+        Date now = new Date();
+        htmlExpander.put("isoDateTime",
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .format(now), false);
+        htmlExpander.put("isoDate",
+                new SimpleDateFormat("yyyy-MM-dd").format(now), false);
+        htmlExpander.put("contextPath", contextPath, false);
+        htmlExpander.put("pageBaseName", pageBaseName, false);
+        htmlExpander.put("pageTitle", req.getServletPath(), false);
+// TODO:  Implement index generation
 
-        jCreole.setPageTitle(req.getServletPath());
+// TODO:  Comment out this bock after test it.
+        // Set up Creole macros like this:
+        Expander creoleExpander = new Expander();
+        creoleExpander.put("testMacro", "\n\n<<prettyPrint>>\n{{{\n"
+                + "!/bin/bash -p\n\ncp /etc/inittab /tmp\n}}}");
+        jCreole.setCreoleExpander(creoleExpander);
+
+        if (cssHrefs.size() > 0) jCreole.addCssHrefs(cssHrefs);
+        jCreole.setInterWikiMapper(this);
 
         jCreole.setPrivileges(jcreolePrivs);
 

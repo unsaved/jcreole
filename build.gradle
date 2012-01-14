@@ -403,7 +403,6 @@ processResources {
             + project.prettifyVer + '/prettify.css').getText('UTF-8')
     String siteCss = file('src/main/webapp/site.css').getText('UTF-8')
     String jcreoleCss = file('src/main/webapp/jcreole.css').getText('UTF-8')
-println jcreoleCss
     exclude '**/.*/**'
     // The eachFile intermediary here is how you filter a subset of a
     // plugin-provided input file collection (in this case, the resource

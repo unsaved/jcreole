@@ -1,5 +1,13 @@
 SHORT TERM
 
+Test the test macro defined in *Servlet.java.
+
+Consider renaming *boilerplate* to *frame* or *format* or *pageFormat*.
+
+Allow / external creoleSubdir.  Perhaps rename to creoleRoot.
+
+Allow optional directory indexing.
+
 Implement a Spring HttpRequestHandler.
 
 Consider how to allow author to hyperlink a broader set of content than just a

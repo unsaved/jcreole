@@ -41,10 +41,35 @@ import com.admc.util.Expander;
  * Assembles HTML pages built around main content built from Creole wikitext.
  * </p><p>
  * Applications may use CreoleScanner and CreoleParser directly for more precise
- * control over how HTML pages are constructed.
- * One development strategy would be to start with a copy of the source code of
- * this class and modify it to fit with your application design and
- * technologies.
+ * control over how HTML pages are constructed, but be aware that the
+ * parser and scanner levels generate only HTML fragments.
+ * The easiest method of customizing behavior for an app would be to use the
+ * methods of this class (but not the main() method, which is intended for
+ * convience as opposed to flexibility).
+ * For heavier customization you could subclass this class, or start with a
+ * copy of the source code and modify it to fit with your application design
+ * and technologies.
+ * </p><p>
+ * This class manages 3 different Expanders.
+ * </p><ol>
+ * <li>framingExpander:  Merges the main page components boilerplate +
+ *     headers + content (by default via postProcess method)
+ *     to make a complete HTML page.
+ *     Expands a boilerplate.  Map values are HTML.
+ * <li>creoleExpander:  Expands creole text (before parsing).
+ *     Map values are Creole.  (Defaults to null).
+ * <li>htmlExpander:  Expands post-generated HTML page.  Map values are HTML.
+ *     Defaults to empty map unless you use the main method here, in which
+ *     case you get the several mappings listed in the JavaDoc for the main
+ *     method.
+ * </ol><p>
+ * As a consequence of what the expanders expand, if using default behavior,
+ * boilerplate text should !-reference 'headers' and 'content' but nothing else.
+ * (Unless you are pre-processing the boilerplate external to JCreole).
+ * Creole may !-reference anywhere, since the earlier passes are expanded with
+ * the ignoreBang option.  A Creole text !-reference means that they reference
+ * must be satisfied with either the creoleExpander or the htmlExpander and the
+ * Creole author doesn't need to be concerned with which of the two.
  * </p>
  *
  * @see CreoleScanner
@@ -78,18 +103,28 @@ public class JCreole {
 
     protected CreoleParser parser = new CreoleParser();
     private CharSequence pageBoilerPlate;
-    private String pageTitle;
-    private Expander expander;
+    private Expander creoleExpander;
+    private Expander htmlExpander = new Expander();
     private List<String> cssHrefs;
-    private Expander bpExpander = new Expander();
+    private Expander framingExpander = new Expander();
 
     /**
-     * Returns reference to the Boiler-plate Expander.
+     * Returns reference to the Framing Expander.
      * Will have no effect if no boilerplate is used (e.g. if the postProcess
      * method is not run).
      */
-    public Expander getBpExpander() {
-        return bpExpander;
+    public Expander getFramingExpander() {
+        return framingExpander;
+    }
+
+    /**
+     * Returns reference to the HTML Expander.
+     * By default the expander will have no mappings.
+     * It should never be null because if no HTML expansions are desired we
+     * will need to run expand() on the final HTML to enforce ! references.
+     */
+    public Expander getHtmlExpander() {
+        return htmlExpander;
     }
 
     /**
@@ -106,7 +141,17 @@ public class JCreole {
      * This method executes with all JCreole privileges.
      * Variable references like ${this} in the Creole text will be expanded to
      * the corresponding Java system property values.
-     * </p>
+     * </p> <p>
+     * This method sets up the following htmlExpander mappings (therefore you
+     * can reference these in both Creole and boilerplate text).<p>
+     * <ul>
+     *   <li>sys|*: mappings for Java system properties
+     *   <li>isoDateTime
+     *   <li>isoDate
+     *   <li>pageTitle: Value derived from the specified Creole file name.
+     *   <li>index: If creole file is specified by file system path, then
+     *       'index' will be set to a generated HTML table element.
+     * </ul>
      *
      * @throws IOException for any I/O problem that makes it impossible to
      *         satisfy the request.
@@ -190,9 +235,6 @@ public class JCreole {
         File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = (rawBoilerPlate == null)
                 ? (new JCreole()) : (new JCreole(rawBoilerPlate));
-        Expander exp = new Expander();
-        jCreole.setExpander(exp);
-        exp.putAll(null, System.getProperties(), false);
         if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
             // This InterWikiMapper is just for prototyping.
             // Use wiki name of "nil" to force lookup failure for path.
@@ -209,11 +251,20 @@ public class JCreole {
                 return "{LABEL for: " + wikiName + '|' + wikiPage + '}';
             }
         });
-        jCreole.setPageTitle((inFile == null)
+        jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
+        Expander exp = jCreole.getHtmlExpander();
+        Date now = new Date();
+        exp.putAll("sys|", System.getProperties(), false);
+        exp.put("isoDateTime",
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .format(now), false);
+        exp.put("isoDate",
+                new SimpleDateFormat("yyyy-MM-dd").format(now), false);
+        exp.put("pageTitle", (inFile == null)
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
                 : inFile.getName().replaceFirst("[.][^.]*$", ""));
-        jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
+log.warn("TODO:  Implement index generation");
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
                 : jCreole.parseCreole(IOUtil.toStringBuilder(creoleStream));
@@ -262,7 +313,7 @@ public class JCreole {
         if (sb == null || sb.length() < 1)
             throw new IllegalArgumentException("No input supplied");
         CreoleScanner scanner =
-                CreoleScanner.newCreoleScanner(sb, true, expander);
+                CreoleScanner.newCreoleScanner(sb, true, creoleExpander);
         // using a named instance so we can enhance this to set scanner
         // instance properties.
         Object retVal = null;
@@ -304,8 +355,8 @@ public class JCreole {
     public String parseCreole(File creoleFile) throws IOException {
         if (creoleFile == null || creoleFile.length() < 1)
             throw new IllegalArgumentException("No input supplied");
-        CreoleScanner scanner =
-                CreoleScanner.newCreoleScanner(creoleFile, false, expander);
+        CreoleScanner scanner = CreoleScanner.newCreoleScanner(
+                creoleFile, false, creoleExpander);
         // using a named instance so we can enhance this to set scanner
         // instance properties.
         Object retVal = null;
@@ -349,45 +400,42 @@ public class JCreole {
      */
     protected String postProcess(String htmlFrag, String outputEol)
             throws IOException {
-        if (pageBoilerPlate == null) return
-                (outputEol == null || outputEol.equals("\n"))
-                ? htmlFrag : htmlFrag.replace("\n", outputEol);
-                // Amazing that StringBuilder can't do a multi-replace like this
-
-        StringBuilder html = new StringBuilder(pageBoilerPlate);
-        if (html.indexOf("${headers}") > -1
-                || html.indexOf("${!headers}") > -1) {
-            StringBuilder sb = new StringBuilder();
-            int count = 0;
-            for (String href : getCssHrefs())
-                sb.append(String.format("<link id=\"auto%02d\" class=\"auto\" "
-                        + "rel=\"stylesheet\" "
-                        + "type=\"text/css\" href=\"%s\" />\n", ++count, href));
-            bpExpander.put("headers", sb.toString(), false);
-        } else if (getCssHrefs().size() > 0) {
-            throw new CreoleParseException(
-                    "Author-supplied style-sheets, but boilerplate has no "
-                    + "'headers' insertion-point");
+        String htmlString = null;
+        if (pageBoilerPlate == null) {
+            htmlString = htmlFrag;
+        } else {
+            StringBuilder html = new StringBuilder(pageBoilerPlate);
+            if (html.indexOf("${headers}") > -1
+                    || html.indexOf("${!headers}") > -1) {
+                StringBuilder sb = new StringBuilder();
+                int count = 0;
+                for (String href : getCssHrefs())
+                    sb.append(String.format("<link id=\"auto%02d\" class=\"auto\" "
+                            + "rel=\"stylesheet\" "
+                            + "type=\"text/css\" href=\"%s\" />\n", ++count, href));
+                framingExpander.put("headers", sb.toString(), false);
+            } else if (getCssHrefs().size() > 0) {
+                throw new CreoleParseException(
+                        "Author-supplied style-sheets, but boilerplate has no "
+                        + "'headers' insertion-point");
+            }
+            framingExpander.put("content", htmlFrag, false);
+            htmlString = framingExpander.expand(html).toString();
         }
-        bpExpander.put("timeStamp",
-                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .format(new Date()), false);
-        bpExpander.put("content", htmlFrag, false);
-        if (pageTitle != null) bpExpander.put("pageTitle", pageTitle, false);
-        String htmlString = bpExpander.expand(html).toString();
-        return (outputEol == null || outputEol.equals("\n"))
-                ? htmlString : htmlString.replace("\n", outputEol);
-                // Amazing that StringBuilder can't do a multi-replace like this
+        if (outputEol != null && !outputEol.equals("\n"))
+            htmlString = htmlString.replace("\n", outputEol);
+            // Amazing that StringBuilder can't do a multi-replace like this
+        return htmlExpander.expandToString(htmlString);
     }
 
     /**
-     * Will use the specified Expander when instantiating the scanner.
+     * Will use the specified creoleExpander when instantiating the scanner.
      *
      * @see CreoleScanner.newCreoleScanner(File, boolean, Expander);
      * @see CreoleScanner.newCreoleScanner(StringBuilder, boolean, Expander);
      */
-    public void setExpander(Expander expander) {
-        this.expander = expander;
+    public void setCreoleExpander(Expander creoleExpander) {
+        this.creoleExpander = creoleExpander;
     }
 
     /**
@@ -415,14 +463,6 @@ public class JCreole {
      */
     public EnumSet<JCreolePrivilege> getPrivileges() {
         return parser.getPrivileges();
-    }
-
-    /**
-     * Set what HTML page title will be displayed if your boilerplate makes
-     * use of ${pageTitle}.
-     */
-    public void setPageTitle(String pageTitle) {
-        this.pageTitle = pageTitle;
     }
 
     /**
