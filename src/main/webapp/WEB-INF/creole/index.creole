@@ -1,0 +1,125 @@
+=JCreole Document Server
+
+This is the place-holder home page for a JCreole Document Server web application.
+
+The application administrator should edit or replace this file
+("##index.creole##")
+with something appropriate for your intentions.
+In most cases, you will want to include links to other important pages on the
+site, or perhaps to each subdirectory.
+
+This file resides in the application's //creoleSubdir//, which defaults
+to ##WEB-INF/creole/index.creole##.
+
+//creoleSubdir// can be changed with a web app context parameter
+(web app context parameters may be changed in "##web.xml##" or by using
+container-specific facilities).
+Since ##creoleSubdir## is a relative path, it always indicates a location
+within the web application (see below about how to house your documents
+outside of the web application).
+
+==Setup
+
+Add your .creole document files, and //boilerplate// HTML files underneath
+##creoleSubdir##.  Modify or replace the provided ##boilerplate.html## as
+you wish.  You can also follow the example and put ##boilerplate.html" files
+into any or all subdirectories.
+Requests will always try to use ##boilerplate.html## from the subdirectory of
+the request path, then try parent directories recursively until a
+##boilerplate.html## is found.
+Use variable ##$~{contextPath}## as described below instead of relative URLs
+in ##boilerplate.html##, because relative paths will resolve relative to the
+requested URL directory instead of relative to the directory containing the
+loaded ##boilerplate.html## file.
+
+Add all content files other than ##*.creole## and ##boilerplate.html##
+directly under the web app home directory, in subdirectories corresponding
+to the directory of the referring ##*.creole## file.
+For example, if the user requests ##http:~//yourhost/docServer/alpha/beta.html##,
+then the Creole file ##WEB-INF/creole/alpha/beta.creole## will be read, and
+referenced images, CSS or other files will be loaded relative to directory
+##alpha##.
+
+Style sheets ##jcreole.css## and ##site.css## (in this order, so that
+##site.css## will have precedence) will automatically load into your pages.
+Though these files will be sought in parent directories too, it works
+differently than the ##boilerplate.html## algorihtm described above.
+Files ##jcreole.css## and ##site.css## are sought first in the application
+root directory, then in all subdirectories going to the requested  subdirectory.
+All of these CSS files are added, so that styles set in subdirectories will
+either add to or replace those set in superdirectories.
+
+
+Example showing file accesses for a request.
+
+Application installed with war name ##docServer.war## or manually exploded
+to directory of name ##docServer## (procedure depends on your application
+server).
+
+Exploded webapp installation directory:  ##/local/tomcat/webapps/docServer##
+
+Default creoleSubdir:  ##/local/tomat/webapps/docServer/WEB-INF/creole##
+
+Request URL:  ##http:~//yourhost/docServer/alpha/beta.html##
+
+Creole file loaded:  ##/local/tomcat/webapps/docServer/WEB-INF/creole/alpha/beta.creole##
+
+//Other// files referenced relatively from ##beta.creole## will load relative
+to: ##/local/tomcat/webapps/docServer/alpha##
+
+//Other// file references that start with / will resolve to URLs beginning
+with ##http:~//yourhost/##.
+To make references that resolve to URLs beginning with ##http:~//yourhost/##,
+use variable ##$~{contextPath}##,
+like:  ##<img src="$~{contextPath}/file.png">##
+
+Boilerplate loaded:  First of following which exists:
+{{{
+    /local/tomcat/webapps/docServer/WEB-INF/creole/alpha/boilerplate.html
+    /local/tomcat/webapps/docServer/WEB-INF/creole/boilerplate.html
+}}}
+
+CSS files loaded:    All of the following which exist, in this order:
+{{{
+    /local/tomcat/webapps/docServer/jcreole.html
+    /local/tomcat/webapps/docServer/alpha/jcreole.html
+    /local/tomcat/webapps/docServer/site.html
+    /local/tomcat/webapps/docServer/alpha/site.html
+}}}
+
+##External Docs
+More often than not, your documents should have a longer lifetime than any
+version of a web application.
+Therefore, it's often a good idea to locate your .creole document files
+in a location outside of the web applications.
+If you do this, then you can update the web application without effecting your
+documents.
+
+The procedure explained here only works on UNIX, since Windows doesn't have
+symbolic links.
+I haven't tried this with Mingw/Msys or Cygwin on Windows, and don't know if
+that would work.
+
+You need to enable content sym-linking in your application server.
+You will not want to do this for an app server shared by multiple independent
+parties, or if anybody with privileges to write to content directories can't
+be trusted not to link to inappropriate files/directories.
+
+Create your creole directory branch somewhere else.
+After you deploy your docServer web application, delete the
+subdirectory ##WEB-INF/creole## then create a sym-link to replace it, like
+<<prettyPrint>>
+{{{
+  cd path/to/docServer/WEB-INF
+  mv -v creole /doc/repository
+  ln -s /doc/repository  creole
+}}}
+
+===GOTCHA
+Be aware that the most popular means of undeploying web applications will
+follow your sym-link and destroy content outside of the web application area.
+What usually works is to manually or automatically remove the sym link before
+undeploying, but **definitely test this ahead of time**.
+I am not responsible if you make dangerous assumptions without testing them.
+If you aren't certain, then don't do anything without a full backup of your
+document repository.

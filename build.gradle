@@ -269,11 +269,8 @@ private void ref(String style) {
     }
     String outputDoc = 'build/distributions/jcreole-ref-' + style + '.html'
     javaexec {
-        String stageJarName = project.name + (
-                (project.version == 'unspecified')
-                ? '' : ('-' + project.version)) + '.jar'
         main = '-jar'
-        args = [ 'build/stage/' + stageJarName,
+        args = [ 'build/stage/' + jar.archiveName,
                 '-r',
                 'boilerplate-' + boilerQualifier + '.html',
                 '-o', 
@@ -292,8 +289,7 @@ internetRef.onlyIf {
     File f = file('build/distributions/jcreole-ref-i.html')
     if (!f.exists()) return true
     long lastMod = f.lastModified()
-    File fOther =
-            file('build/stage/' + project.name + '-' + project.version + '.jar')
+    File fOther = file('build/stage/' + jar.archiveName)
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/resources/jcreole-ref.creole')
@@ -319,8 +315,7 @@ standaloneRef.onlyIf {
     File f = file('build/distributions/jcreole-ref-s.html')
     if (!f.exists()) return true
     long lastMod = f.lastModified()
-    File fOther =
-            file('build/stage/' + project.name + '-' + project.version + '.jar')
+    File fOther = file('build/stage/' + jar.archiveName)
     assert fOther.exists()
     if (fOther.lastModified() > lastMod) return true
     fOther = file('src/main/resources/jcreole-ref.creole')
@@ -345,11 +340,8 @@ task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     if (!project.hasProperty('htmloutPath'))
         project.htmloutPath = 'build/tmp/generated.html'
     javaexec {
-        String stageJarName = project.name + (
-                (project.version == 'unspecified')
-                ? '' : ('-' + project.version)) + '.jar'
         main = '-jar'
-        args = [ 'build/stage/' + stageJarName,
+        args = [ 'build/stage/' + jar.archiveName,
                 '-o', 
                 project.htmloutPath,
                 project.creolepath
@@ -458,32 +450,6 @@ processResources {
             })
     }
 }
-task web(type: Copy) {
-    from 'src/main/webapp'
-    into 'build/webstage'
-    exclude '**/.*/**'
-    eachFile { fcd ->
-        // Unlike Gradles plain {... } filter, our closure here will get
-        // executed just one time for each matching file.
-        if (fcd.name == 'boilerplate.html')
-            fcd.filter(ContentAsStringFilter, closure: {
-                propFileLoader.unsatisfiedRefBehavior =
-                        JavaPropFile.Behavior.LITERAL
-                propFileLoader.expand(it, [
-                    ('ver|jquery'): project.jqueryVer,
-                    ('ver|jqueryui'): project.jqueryUiVer,
-                    ('ver|prettify'): project.prettifyVer,
-                    ('ver|jcreole'): project.version,
-                ])
-            })
-    }
-    into('google-code-prettify-small') {
-        exclude '**/.*/**'
-        from 'google-code-prettify-small'
-        include (project.prettifyVer + '/**')
-    }
-}
-// TODO:  apply webapp plugin and configure the relevant task above
 
 apply plugin: 'maven'
 apply plugin: 'signing'
@@ -597,3 +563,135 @@ uploadArchives { doFirst {
                     + project.property(it).class.name + '\n')
     }
 } }
+
+task war(dependsOn: jar, type: Jar) {
+    extension = 'war'
+    baseName = 'docServer'
+    exclude '**/.*/**'
+    from('src/main/webapp') {
+        eachFile { fcd ->
+            // Unlike Gradles plain {... } filter, our closure here will get
+            // executed just one time for each matching file.
+            if (fcd.name == 'boilerplate.html')
+                fcd.filter(ContentAsStringFilter, closure: {
+                    propFileLoader.unsatisfiedRefBehavior =
+                            JavaPropFile.Behavior.LITERAL
+                    propFileLoader.expand(it, [
+                        ('ver|jquery'): project.jqueryVer,
+                        ('ver|jqueryui'): project.jqueryUiVer,
+                        ('ver|prettify'): project.prettifyVer,
+                        ('ver|jcreole'): project.version,
+                    ])
+                })
+        }
+    }
+    into('google-code-prettify-small') {
+        exclude '**/.*/**'
+        from 'google-code-prettify-small'
+        include (project.prettifyVer + '/**')
+    }
+    into('WEB-INF') { from 'config'; excludes = ['**/.*/**', 'context.xml'] }
+    into('WEB-INF/lib') {
+        from configurations.compile
+        from jar.archivePath
+    }
+    //metaInf { from 'config/context.xml' }
+}
+
+//war.doFirst { GradleUtil.verifyResolve(configurations.runtime) }
+
+File explodeDest() {
+    if (!project.hasProperty('explode.suffix'))
+        project.setProperty('explode.suffix', '')
+    if (!project.hasProperty('deploy.dir')
+            && !project.hasProperty('deploy.explode.dir'))
+        throw new GradleException(
+                "You must set property 'deploy.explode.dir' or 'deploy.dir'")
+    return new File(project.hasProperty('deploy.explode.dir')
+            ? project.property('deploy.explode.dir')
+            : project.property('deploy.dir'),
+            war.baseName + project.property('explode.suffix'))
+}
+
+File warDest() {
+    if (!project.hasProperty('deploy.dir')) return null
+    return new File(project.property('deploy.dir'), war.baseName + '.war')
+}
+
+task deploy (dependsOn: war) << {
+    File dest = warDest()
+    if (dest == null)
+        throw new GradleException("You must set property 'deploy.dir'")
+    copy {
+        from war.archivePath
+        into dest.parentFile
+        rename { dest.name }
+    }
+}
+deploy.description = 'Deploy to app server in war format'
+
+task explode (dependsOn: war) << {
+    File dest = explodeDest()
+    copy {
+        from zipTree(war.archivePath)
+        into dest
+    }
+    new File(dest, 'WEB-INF/web.xml').setLastModified(new Date().time)
+}
+explode.description = 'Deploy to app server in exploded format'
+
+task undeploy << {
+    explodeDest().deleteDir()
+    File warDest = warDest()
+    if (warDest != null) warDest.delete()
+}
+undeploy.description = 'Undeploy'
+
+task aundeploy(dependsOn: undeploy) // Work-around for alpha sequence of deps.
+aundeploy.description =
+        'Undeploy.  Task renamed to work around Gradle sequencing bug'
+
+task reexplode(dependsOn: [aundeploy, explode])
+reexplode.description = 'Undeploy then explode'
+task redeploy(dependsOn: [aundeploy, deploy])
+redeploy.description = 'Undeploy then deploy'
+
+task deployableWar (dependsOn: war) << {
+    File shortWar = new File(libsDir, war.baseName + '.war')
+    if (!war.archivePath.canRead())
+        throw new GradleException(
+                'Somehow source war not available: ' + war.archivePath)
+    if (shortWar.canRead()
+            && war.archivePath.lastModified() > shortWar.lastModified())
+        if (!shortWar.delete())
+            throw new GradleException("Failed to delete '" + shortWar + "'")
+    if (shortWar.canRead()) return
+    try {
+        if (['ln', '-s', war.archivePath.absolutePath, shortWar.absolutePath]
+                .execute().waitFor())
+            throw new GradleException('ln failed: ' + 
+                    ['ln', '-s', war.archivePath.absolutePath,
+                    shortWar.absolutePath]
+                    .join(' '))
+    } catch (IOException ioe) {
+        copy {
+            from war.archivePath
+            into shortWar.parentFile
+            rename { shortWar.name }
+        }
+    }
+}
+deployableWar.description =
+        'Copies war to a file name suitable for direct deployment'
+
+task refreshContent (dependsOn: war) << {
+    File dest = explodeDest()
+    copy {
+        //from 'build/tmp/filtered-content'
+        //from 'build/tmp/renamed'
+        from 'src/main/webapp'
+        into dest
+        exclude '**/.*/**'
+    }
+}
+refreshContent.description = 'Refresh webapp content on app server'

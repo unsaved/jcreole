@@ -80,6 +80,17 @@ distribution.  The Ant file has lots of targets that should be very useful for
 integrators.  As every Ant user should know, run ##ant -p## from the main
 directory to list concise descriptions of the available targets.
 
+== Web Application
+The web application, docServer, //serves// .creole files that you supply.
+Rename the supplied ##*.war## file to ##x.war##, where "x" is what you want
+your application context root to be.
+Deploy the renamed war to your application server and access the home page.
+The home page explains where to add your .creole files to be servers, and
+how you modify or replace the supplied .css or boilerplate files.
+See the instructions in the ##web.xml## file about the settings you can change.
+You can change the settings by editing the web.xml file or by using runtime
+configuration facilities provided by your application server.
+
 
 == License
 
