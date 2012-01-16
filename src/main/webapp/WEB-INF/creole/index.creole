@@ -3,5 +3,3 @@
 ==Directory '${pageDirPath}'
 
 ${index}
-
-${-readmeContent}

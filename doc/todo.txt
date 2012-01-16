@@ -1,12 +1,8 @@
 SHORT TERM
 
-Test the test macro defined in *Servlet.java.
+Rename 'creoleDir' to 'creoleRoot'.
 
-Allow / external creoleSubdir.  Perhaps rename to creoleRoot.
-
-Allow optional directory indexing.
-Instead of re-inventing the wheel, start with copy of method 'renderHtml' (and
-other depended-upon methods) from Tomcat's DefaultServlet.java.
+Allow / external creoleDir.
 
 Implement a Spring HttpRequestHandler.
 

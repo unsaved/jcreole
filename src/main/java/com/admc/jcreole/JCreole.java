@@ -412,9 +412,11 @@ log.warn("TODO:  Implement index generation");
                 StringBuilder sb = new StringBuilder();
                 int count = 0;
                 for (String href : getCssHrefs())
-                    sb.append(String.format("<link id=\"auto%02d\" class=\"auto\" "
+                    sb.append(String.format(
+                            "<link id=\"auto%02d\" class=\"auto\" "
                             + "rel=\"stylesheet\" "
-                            + "type=\"text/css\" href=\"%s\" />\n", ++count, href));
+                            + "type=\"text/css\" href=\"%s\" />\n",
+                            ++count, href));
                 framingExpander.put("headers", sb.toString(), false);
             } else if (getCssHrefs().size() > 0) {
                 throw new CreoleParseException(
@@ -505,5 +507,13 @@ log.warn("TODO:  Implement index generation");
      */
     public void addCssHrefs(List<String> newCssHrefs) {
         cssHrefs = new ArrayList<String>(newCssHrefs);
+    }
+
+    /**
+     * Beware of this method.  It will wipe the provided htmlExpander!
+     * This method is useful for sharing an Expander created elsewhere.
+     */
+    public void setHtmlExpander(Expander htmlExpander) {
+        this.htmlExpander = htmlExpander;
     }
 }

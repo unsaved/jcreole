@@ -82,8 +82,8 @@ public class CreoleToHtmlServlet
             throws ServletException, IOException {
         File css;
         URL url;
+        StringBuilder readmeSb = null;
         File fsCreoleDir = null;
-        Expander creoleExpander = null;
         List<String> cssHrefs = new ArrayList<String>();
         File servletPathFile = new File(req.getServletPath());
         if (contextPath == null) {
@@ -122,7 +122,7 @@ public class CreoleToHtmlServlet
             InputStream readmeStream = application.getResourceAsStream(
                     new File(creoleFile.getParentFile(), "readme.creole")
                     .getAbsolutePath());
-            StringBuilder readmeSb = new StringBuilder("----\n");
+            readmeSb = new StringBuilder("----\n");
             if (readmeStream == null) {
                 readmeSb.append("{{{\n");
                 readmeStream = application.getResourceAsStream(
@@ -135,10 +135,7 @@ public class CreoleToHtmlServlet
             } else {
                 readmeSb.append(IOUtil.toStringBuilder(readmeStream));
             }
-            if (readmeStream != null) {
-                creoleExpander = new Expander();
-                creoleExpander.put("readmeContent", readmeSb.toString());
-            }
+            if (readmeStream == null) readmeSb = null;
         }
 
         boolean inAncestorDir = false;
@@ -186,6 +183,16 @@ public class CreoleToHtmlServlet
         htmlExpander.put("pageBaseName", pageBaseName, false);
         htmlExpander.put("pageDirPath", absUrlDirPath, false);
         htmlExpander.put("pageTitle", absUrlBasePath, false);
+        if (readmeSb == null) {
+            htmlExpander.put("readmeContent", "");
+        } else {
+            JCreole readmeJCreole = new JCreole();
+            readmeJCreole.setHtmlExpander(htmlExpander);
+            readmeJCreole.setInterWikiMapper(this);
+            readmeJCreole.setPrivileges(jcreolePrivs);
+            htmlExpander.put("readmeContent", readmeJCreole.postProcess(
+                    readmeJCreole.parseCreole(readmeSb), "\n"), false);
+        }
         if (fsCreoleDir != null) {
             FileComparator.SortBy sortBy = FileComparator.SortBy.NAME;
             boolean ascending = true;
@@ -210,17 +217,15 @@ public class CreoleToHtmlServlet
         }
 
         /* Set up Creole macros like this:
+        Expander creoleExpander = new Expander();
         creoleExpander.put("testMacro", "\n\n<<prettyPrint>>\n{{{\n"
                 + "!/bin/bash -p\n\ncp /etc/inittab /tmp\n}}}\n");
+        jCreole.setCreoleExpander(creoleExpander);
         */
-
-        if (creoleExpander != null) jCreole.setCreoleExpander(creoleExpander);
 
         if (cssHrefs.size() > 0) jCreole.addCssHrefs(cssHrefs);
         jCreole.setInterWikiMapper(this);
-
         jCreole.setPrivileges(jcreolePrivs);
-
         String html = jCreole.postProcess(
                 jCreole.parseCreole(IOUtil.toStringBuilder(creoleStream)), "\n");
         resp.setBufferSize(1024);

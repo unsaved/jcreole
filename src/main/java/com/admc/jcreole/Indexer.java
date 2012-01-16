@@ -75,7 +75,7 @@ public class Indexer {
 
         String name = displayName;
 
-        sb.append("<table class=\"jcreole_dirindex"\ width=\"100%\" "
+        sb.append("<table class=\"jcreole_dirindex\" width=\"100%\" "
                 + "cellspacing=\"0\" cellpadding=\"5\" align=\"center\">\r\n");
 
         // Render the column headings
@@ -109,12 +109,12 @@ public class Indexer {
         sb.append("</strong></font></td>\r\n");
         sb.append("</tr>");
 
-        boolean shade = false;
+        boolean shade = true;
 
         // DIR ENTRY:
         if (listUp) {
-            shade = !shade;
             sb.append("<tr");
+            sb.append(" bgcolor=\"#eeeeee\"");
             sb.append(">\r\n");
 
             sb.append("<td align=\"left\">&nbsp;&nbsp;\r\n");
