@@ -22,29 +22,41 @@
 
   <display-name>JCreole Document Server</display-name>
 
-  <!--   The value WEB-INF/creole is the default.
+
+  <!--
+         It's usually better to change the runtime values of context params
+         using your app server rather than modifying an application.
+         Most app servers provide a management console or application to change
+         context params.  With Tomcat, you provide a 'context.xml' file with
+         an element like:  <Parameter name="creoleDir" value="sdir"/>
+  -->
+
+  <!--   The value 'WEB-INF/creole' is the default.
          If you change it to the empty string, then your creole, boilerplate,
          and referenced files (like *.css, *.jpg, etc.) can reside
          side-by-side, with the undesirable consequence that various problems
          could result in your boilerplate and creole source code being exposed
          to end users.  WEB-INF/** resources are pretty safe from observation
          if your administrator is competent.
-
-         It's usually better to change the runtime values of context params
-         using your app server rather than modifying an application.
-         Most app servers provide a management console or application to change
-         context params.  With Tomcat, you provide a 'context.xml' file with
-         an element like:  <Parameter name="creoleSubdir" value="sdir"/>
+         Absolute values, /*, are absolute paths, and your Creole doc root
+         can reside outside of the web app.
+         Non-absolute paths are relative to the web-app root directory.
   <context-param>
     <description>Root directory for boilerplate and .creole files.
       Must be a relative path, relative to the application home directory.
     </description>
-    <param-name>
-      creoleSubdir
-    </param-name>
-    <param-value>
-       WEB-INF/creole
-    </param-value>
+    <param-name>creoleDir</param-name>
+    <param-value>WEB-INF/creole</param-value>
+  </context-param>
+  -->
+
+  <!--  Default value is 'true'.
+  <context-param>
+    <description>Set to false to show an index page only when 'index.creole'
+      is present in the target directory.
+    </description>
+    <param-name>autoIndexing</param-name>
+    <param-value>true</param-value>
   </context-param>
   -->
 

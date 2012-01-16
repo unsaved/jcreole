@@ -1,0 +1,19 @@
+/*
+ * h1 span.jcreole_hbody, h2 span.jcreole_hbody, h3 span.jcreole_hbody {
+    background-color:transparent; border:none;
+}
+
+H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;}
+
+H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;}
+
+H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;}
+*/
+
+table.jcreole_dirindex {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;}
+
+table.jcreole_dirindex B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;}
+table.jcreole_dirindex P {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}
+table.jcreole_dirindex A {color : black;}
+table.jcreole_dirindex A.name {color : black;}
+table.jcreole_dirindex HR {color : #525D76;}

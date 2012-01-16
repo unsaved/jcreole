@@ -81,6 +81,11 @@ public class JCreole {
     private static Log log = LogFactory.getLog(JCreole.class);
 
     private static final String DEFAULT_BP_RES_PATH = "boilerplate-inet.html";
+    
+    private static SimpleDateFormat isoDateTimeFormatter =
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    private static SimpleDateFormat isoDateFormatter =
+            new SimpleDateFormat("yyyy-MM-dd");
 
     public static final String SYNTAX_MSG =
         "java -jar .../jcreole-*.jar [-d] [-] [-r /classpath/boiler.html] "
@@ -255,11 +260,8 @@ public class JCreole {
         Expander exp = jCreole.getHtmlExpander();
         Date now = new Date();
         exp.putAll("sys|", System.getProperties(), false);
-        exp.put("isoDateTime",
-                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .format(now), false);
-        exp.put("isoDate",
-                new SimpleDateFormat("yyyy-MM-dd").format(now), false);
+        exp.put("isoDateTime", isoDateTimeFormatter.format(now), false);
+        exp.put("isoDate", isoDateFormatter.format(now), false);
         exp.put("pageTitle", (inFile == null)
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
