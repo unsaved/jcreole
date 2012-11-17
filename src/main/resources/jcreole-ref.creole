@@ -380,7 +380,7 @@ Usage of this feature requires a specific page author privilege.
 
 === Variable References
 
-======${variableName}
+======$~{variableName}
 Variable references are coded as above.
 What variables are available for expansion is entirely dependent upon how your
 application has integrated JCreole.
@@ -404,18 +404,18 @@ underscores.
 those other characters are converted to underscores.
 For example, since the command-line JCreole application makes Java system
 properties available, you can use Java system property ##user.name## in your
-.creole documents by coding ##${user_name}##.
+.creole documents by coding ##$~{user_name}##.
 * If the variable name is unset, then the text will remain unchanged and
-${...} will appear in your HTML output.
+$~{...} will appear in your HTML output.
 * To change the behavior of the previous item to omit the reference if the
 referenced variable is unset, just prefix the variable name with -.
-For example, instead of writing ##${user_name}##, you would
+For example, instead of writing ##$~{user_name}##, you would
 write ##$~{-user_name}##.
 The - has an effect only if the variable is not set.
 * To change the behavior described above to cause the translation to fail if the
 referenced variable is unset, just prefix the variable name with !.
-For example, instead of writing ##${user_name}##, you would
-write ##$~{!user_name}##.
+For example, instead of writing ##$~{user_name}##, you would
+write ##$~~{!user_name}##.
 The ! has an effect only if the variable is not set.
 
 == JCreole Extensions via ~<<...>> Plugin Directives
@@ -532,7 +532,7 @@ Just change the direction character to ##+## to add the class name to the
 //next// element which was closed.
 This works for all 4 element types.
 
-A few HTLM elements can not be targets of stylers (i.e., you can not add
+A few HTML elements can not be targets of stylers (i.e., you can not add
 classes to them using Stylers).
 Some elements are purposefully omitted because they make it more difficult to
 target more important elements nearby (e.g. spans added for internal formatting
@@ -580,7 +580,7 @@ one such setting for a page (and location of the directive doesn't matter).
 The [[#jcsect_ResettingEnumerations|enumFormatReset]] and
 [[#jcsect_TocTableOfContents|toc]] directives can be used to make
 location-specific adjustments to the global page enumFormat.
-To make it clear that a ##styleSheet## directive are in no way a //part// of
+To make it clear that a ##styleSheet## directive is in no way a //part// of
 any other element, it must be placed on a line by itself.
 
 See the [[#jcsect_EnumerationFormats]] section below about the
@@ -947,10 +947,12 @@ level indicated by the character's position, as follows.
 *=a:|a, b, c, d...
 *=0:|0, 1, 2, 3...
 *=1:|1, 2, 3, 4...
-*=_:|//no label// (differentiated from ##x## only for TOCs as explained next).
-*=x:|//no label// (differentiated from ##_## only for TOCs as explained next).
+*=_:|//no label// (differentiated from ##x## only for TOCs as explained
+[[#jcsect_InclusionCharacters]] section).
+*=x:|//no label// (differentiated from ##_## only for TOCs as explained in the
+[[#jcsect_InclusionCharacters]] section).
 
-It is intended to support additional formatting characters in the future
+We intend to add support for additional formatting characters in the future
 (especially ##I## and ##i## for upper-case and lower-case roman numerals).
 
 === Section-inclusion Strings
@@ -961,8 +963,8 @@ levels.
 A //section-inclusion string// is a 6-character string that specifies inclusion
 of a heading/section for each of the 6 supported  heading levels.
 For example, in the specification "##{{{x_0101}}}##", ##x## specifies inclusion
-for level 1 headings (//h1//'s), ##_## specifies inclusion for the level 2
-heading, etc.
+(or in this case exclusion) for level 1 headings (//h1//'s), ##_##
+specifies inclusion for the level 2 heading, etc.
 
 === Inclusion characters
 
