@@ -8,6 +8,8 @@ creoleExpander use $[...]
 
 htmlExpander use ${...}
 
+Upgrade Gradle to current version
+
 -------------------------------------------------------------------------------
 
 SHORT TERM
