@@ -50,8 +50,8 @@ import java.util.regex.Matcher;
  * expand method.  Therefore, they are dereferenced at setup time, not at
  * expand time.
  * Consequently, if you use putAll() call with intra-references, you must
- * ensure that you sue an order-preserving Map implementation, and that the
- * referents values are completely defined before the referers.
+ * ensure that you use an order-preserving Map implementation, and that the
+ * referents' values are completely defined before the referers.
  * Two other ways to satisfy this use-case are to use your own loop and call
  * put*() instead of putAll(); or to move referred-to definitions into an
  * additional map that is fed to putAll() before your main map.

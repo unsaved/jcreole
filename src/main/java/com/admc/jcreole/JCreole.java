@@ -144,8 +144,6 @@ public class JCreole {
      * instances).
      * </p> <p>
      * This method executes with all JCreole privileges.
-     * Variable references like ${this} in the Creole text will be expanded to
-     * the corresponding Java system property values.
      * </p> <p>
      * This method sets up the following htmlExpander mappings (therefore you
      * can reference these in both Creole and boilerplate text).<p>
@@ -259,7 +257,7 @@ public class JCreole {
         jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
         Expander exp = jCreole.getHtmlExpander();
         Date now = new Date();
-        exp.putAll("sys|", System.getProperties(), false);
+        exp.putAll("sys", System.getProperties(), false);
         exp.put("isoDateTime", isoDateTimeFormatter.format(now), false);
         exp.put("isoDate", isoDateFormatter.format(now), false);
         exp.put("pageTitle", (inFile == null)
