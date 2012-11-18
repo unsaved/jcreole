@@ -1,4 +1,24 @@
+IMMEDIATE
+
+UPDATE Expander to specify groupers $(...), ${...}, $[...]
+
+frameExpander use $(...) with pageHeading and pageContent
+
+creoleExpander use $[...]
+
+htmlExpander use ${...}
+
+-------------------------------------------------------------------------------
+
 SHORT TERM
+
+Allow escaping of ${..} (etc.) somehow.
+
+CHECK ${...} references in jcreole-ref.creole output!!!
+In particular the one with '~'.
+
+Consider implementing index page generation when running
+"java -jar..." on a directory.
 
 Rename 'creoleDir' to 'creoleRoot'.
 
