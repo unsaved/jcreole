@@ -58,11 +58,36 @@ import java.util.regex.Matcher;
  * </p>
  */
 public class Expander {
+    public enum PairedDelims {
+        /** NO IDEA WHY THIS DOES NOT WORK!!
+        CURLY('{', '}'), RECTANGULAR('[', ']'), ROUNDED('(', ')');
+        char lChar, rChar;
+        PairedDelims(char l, char r) {
+            lChar = l;
+            rChar = r;
+        }
+        final public Pattern refPattern = Pattern.compile(
+                "\\$\\" + lChar + "([-!])?([^" + rChar + '\\' + lChar
+                + "]+)\\" + rChar);
+        */
+        CURLY("\\$\\{([-!])?([^}\\{]+)\\}"),
+        RECTANGULAR("\\$\\[([-!])?([^]\\[]+)\\]"),
+        ROUNDED("\\$\\(([-!])?([^)\\(]+)\\)");
+
+        final public Pattern refPattern;
+        PairedDelims(String s) {
+            refPattern = Pattern.compile(s);
+        }
+    }
+
+    public Expander(PairedDelims pd) {
+        pairedDelims = pd;
+    }
+
+    private PairedDelims pairedDelims;
     private static Pattern
             anyIllegalCharPattern = Pattern.compile(".*[^.\\w].*");
     private static Pattern illegalCharPattern = Pattern.compile("[^.\\w]");
-    private static final Pattern refPattern =
-            Pattern.compile("\\$\\{([-!])?([^{}]+)\\}");
     private Map<String, String> map = new HashMap<String, String>();
     private char prefixDelimiter = '|';
 
@@ -208,7 +233,7 @@ public class Expander {
     synchronized public StringBuilder expand(
             CharSequence inString, boolean ignoreBang) {
         Set throwRefs = new HashSet<String>();
-        Matcher matcher = refPattern.matcher(inString);
+        Matcher matcher = pairedDelims.refPattern.matcher(inString);
         int prevEnd = 0;
         String val;
         StringBuilder sb = new StringBuilder();
@@ -244,6 +269,6 @@ public class Expander {
     }
 
     static public void main(String[] sa) {
-        System.out.println(new Expander().expand(sa[0]));
+        System.out.println(new Expander(PairedDelims.CURLY).expand(sa[0]));
     }
 }

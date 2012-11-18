@@ -27,7 +27,7 @@ import java.util.HashMap;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  */
 public class ExpanderTest {
-    private Expander expander = new Expander();
+    private Expander expander = new Expander(Expander.PairedDelims.CURLY);
 
     private static Map<String, String> toMap(String... sa) {
         Map<String, String> newMap = new HashMap<String, String>();

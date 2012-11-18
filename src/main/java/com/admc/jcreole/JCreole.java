@@ -109,9 +109,9 @@ public class JCreole {
     protected CreoleParser parser = new CreoleParser();
     private CharSequence pageBoilerPlate;
     private Expander creoleExpander;
-    private Expander htmlExpander = new Expander();
+    private Expander htmlExpander = new Expander(Expander.PairedDelims.CURLY);
     private List<String> cssHrefs;
-    private Expander framingExpander = new Expander();
+    private Expander framingExpander = new Expander(Expander.PairedDelims.CURLY);
 
     /**
      * Returns reference to the Framing Expander.
