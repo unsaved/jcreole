@@ -1,7 +1,5 @@
 IMMEDIATE
 
-Make unit test(s) of higher level JCreole method(s)
-
 frameExpander use $(...) with pageHeading and pageContent
 
 creoleExpander use $[...]
