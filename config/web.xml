@@ -28,7 +28,7 @@
          using your app server rather than modifying an application.
          Most app servers provide a management console or application to change
          context params.  With Tomcat, you provide a 'context.xml' file with
-         an element like:  <Parameter name="creoleDir" value="sdir"/>
+         an element like:  <Parameter name="creoleRoot" value="sdir"/>
   -->
 
   <!--   The value 'WEB-INF/creole' is the default.
@@ -45,7 +45,7 @@
     <description>Root directory for boilerplate and .creole files.
       Must be a relative path, relative to the application home directory.
     </description>
-    <param-name>creoleDir</param-name>
+    <param-name>creoleRoot</param-name>
     <param-value>WEB-INF/creole</param-value>
   </context-param>
   -->

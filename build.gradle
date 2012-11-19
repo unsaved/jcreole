@@ -570,7 +570,7 @@ task war(dependsOn: jar, type: Jar) {
     exclude '**/.*/**'
     from('src/main/webapp') {
         eachFile { fcd ->
-            // Unlike Gradles plain {... } filter, our closure here will get
+            // Unlike Gradle's plain {... } filter, our closure here will get
             // executed just one time for each matching file.
             if (fcd.name == 'boilerplate.html')
                 fcd.filter(ContentAsStringFilter, closure: {

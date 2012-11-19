@@ -33,7 +33,7 @@ public class CreoleToHtmlServlet
         extends HttpServlet implements InterWikiMapper {
     private static Pattern servletFilePattern = Pattern.compile("(.+)\\.html");
 
-    private String creoleDir = "WEB-INF/creole";
+    private String creoleRoot = "WEB-INF/creole";
     private boolean autoIndexing = true;
 
     private String contextPath;
@@ -67,13 +67,13 @@ public class CreoleToHtmlServlet
     public void init() throws ServletException {
         super.init();
         application = getServletContext();
-        String creoleDirParam = application.getInitParameter("creoleDir");
-        if (creoleDirParam != null) creoleDir = creoleDirParam;
-        if (creoleDir == null || creoleDir.length() < 1
-                || creoleDir.charAt(0) == '/'
-                || creoleDir.charAt(0) == '\\')
+        String creoleRootParam = application.getInitParameter("creoleRoot");
+        if (creoleRootParam != null) creoleRoot = creoleRootParam;
+        if (creoleRoot == null || creoleRoot.length() < 1
+                || creoleRoot.charAt(0) == '/'
+                || creoleRoot.charAt(0) == '\\')
             throw new ServletException(
-                    "'creoleDir' is not a relative path: " + creoleDirParam);
+                    "'creoleRoot' is not a relative path: " + creoleRootParam);
         String autoString = application.getInitParameter("autoIndexing");
         autoIndexing = autoString == null || Boolean.parseBoolean(autoString);
     }
@@ -83,7 +83,7 @@ public class CreoleToHtmlServlet
         File css;
         URL url;
         StringBuilder readmeSb = null;
-        File fsCreoleDir = null;
+        File fsCreoleRoot = null;
         List<String> cssHrefs = new ArrayList<String>();
         File servletPathFile = new File(req.getServletPath());
         if (contextPath == null) {
@@ -105,7 +105,7 @@ public class CreoleToHtmlServlet
         String absUrlDirPath = contextPath + crRootedDir.getAbsolutePath();
         String absUrlBasePath = absUrlDirPath + '/' + pageBaseName;
         File creoleFile =
-                new File("/" + creoleDir + crRootedDir.getAbsolutePath(),
+                new File("/" + creoleRoot + crRootedDir.getAbsolutePath(),
                 pageBaseName + ".creole");
         InputStream creoleStream = null;
         creoleStream =
@@ -116,7 +116,7 @@ public class CreoleToHtmlServlet
             if (fsDirPath == null)
                 throw new ServletException(
                     "You must disable indexing with non-explode app servers");
-            fsCreoleDir = new File(fsDirPath);
+            fsCreoleRoot = new File(fsDirPath);
         }
         if (pageBaseName.equals("index")) {
             InputStream readmeStream = application.getResourceAsStream(
@@ -140,11 +140,11 @@ public class CreoleToHtmlServlet
 
         boolean inAncestorDir = false;
         while (crRootedDir != null) {
-            File curCreoleDir = new File(
-                    "/" + creoleDir + crRootedDir.getAbsolutePath());
+            File curCreoleRoot = new File(
+                    "/" + creoleRoot + crRootedDir.getAbsolutePath());
             if (bpStream == null)
                 bpStream = application.getResourceAsStream(new File(
-                        curCreoleDir, "boilerplate.html").getAbsolutePath());
+                        curCreoleRoot, "boilerplate.html").getAbsolutePath());
             url = application.getResource(new File(
                     crRootedDir, "site.css").getAbsolutePath());
             if (url != null) cssHrefs.add(0,
@@ -153,7 +153,7 @@ public class CreoleToHtmlServlet
             if (creoleStream == null && inAncestorDir
                     && pageBaseName.equals("index") && autoIndexing)
                 creoleStream = application.getResourceAsStream(new File(
-                        curCreoleDir, "index.creole").getAbsolutePath());
+                        curCreoleRoot, "index.creole").getAbsolutePath());
             crRootedDir = crRootedDir.getParentFile();
             inAncestorDir = true;
         }
@@ -193,7 +193,7 @@ public class CreoleToHtmlServlet
             htmlExpander.put("readmeContent", readmeJCreole.postProcess(
                     readmeJCreole.parseCreole(readmeSb), "\n"), false);
         }
-        if (fsCreoleDir != null) {
+        if (fsCreoleRoot != null) {
             FileComparator.SortBy sortBy = FileComparator.SortBy.NAME;
             boolean ascending = true;
             String sortStr = req.getParameter("sort");
@@ -212,7 +212,7 @@ public class CreoleToHtmlServlet
                 }
             }
             htmlExpander.put("index", "\n"
-                    + indexer.generateTable(fsCreoleDir, absUrlDirPath, true,
+                    + indexer.generateTable(fsCreoleRoot, absUrlDirPath, true,
                     sortBy, ascending), false);
         }
 
