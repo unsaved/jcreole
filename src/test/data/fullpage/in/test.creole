@@ -1,2 +1,2 @@
-=A ${pagetitle}
-A paragraph
+=A ${pageTitle}
+A$[testMacro]paragraph

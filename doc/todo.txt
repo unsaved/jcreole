@@ -1,12 +1,10 @@
 IMMEDIATE
 
-frameExpander use $(...) with pageHeaders and pageContent
-
-creoleExpander use $[...]
-
-htmlExpander use ${...}
-
 Upgrade Gradle to current version
+
+Upgrade JQuery to current version
+
+Implement index page generation when running "java -jar..." on a directory.
 
 -------------------------------------------------------------------------------
 
@@ -16,9 +14,6 @@ Allow escaping of ${..} (etc.) somehow.
 
 CHECK ${...} references in jcreole-ref.creole output!!!
 In particular the one with '~'.
-
-Consider implementing index page generation when running
-"java -jar..." on a directory.
 
 Rename 'creoleDir' to 'creoleRoot'.
 

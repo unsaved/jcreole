@@ -37,7 +37,7 @@ public class FullPageTest {
         File expectFile = new File("src/test/data/fullpage/expect/page.html");
         (new File("build/test-results/fullpage")).mkdir();
         JCreole.main(new String[] {
-                "-o", outFile.getPath(), "-f", boilerplateFile.getPath(),
+                "-d", "-o", outFile.getPath(), "-f", boilerplateFile.getPath(),
                 inCreoleFile.getPath()});
         assertEquals("HTML output wrong",
                 IOUtil.toString(expectFile), IOUtil.toString(outFile));

@@ -217,7 +217,8 @@ public class CreoleToHtmlServlet
         }
 
         /* Set up Creole macros like this:
-        Expander creoleExpander = new Expander();
+        Expander creoleExpander =
+                new Expander(Expander.PairedDelims.RECTANGULAR);
         creoleExpander.put("testMacro", "\n\n<<prettyPrint>>\n{{{\n"
                 + "!/bin/bash -p\n\ncp /etc/inittab /tmp\n}}}\n");
         jCreole.setCreoleExpander(creoleExpander);

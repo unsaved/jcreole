@@ -90,7 +90,7 @@ public class JCreole {
 
     public static final String SYNTAX_MSG =
         "java -jar .../jcreole-*.jar [-d] [-] [-r /classpath/boiler.html] "
-        + "[-f /fs/boiler.html] [-o fspath/out.html] pathto/input.creole\n\n"
+        + "[-f fs/boiler.html] [-o fspath/out.html] pathto/input.creole\n\n"
         + "The -, -r, and -f options are mutually exclusive.\n"
         + "  NONE:    Default built-in boilerplate.\n"
         + "  -:       No boilerplate.  Output will be just a HTML fragment.\n"
@@ -104,7 +104,8 @@ public class JCreole {
         + "The input Creole file is sought first in the classpath "
         + "(relative to classpath\n"
         + "roots) then falls back to looking for a filesystem file.\n"
-        + "The -d option loads an IntraWiki-link debug mapper.\n"
+        + "The -d option loads an IntraWiki-link debug mapper and a sample\n"
+        + "creoleMapper from 'testMacro'.\n"
         + "Output is always written with UTF-8 encoding.";
 
     protected CreoleParser parser = new CreoleParser();
@@ -173,13 +174,13 @@ public class JCreole {
         String bpFsPath = null;
         String outPath = null;
         String inPath = null;
-        boolean debugMapper = false;
+        boolean debugs = false;
         boolean noBp = false;
         int param = -1;
         try {
             while (++param < sa.length) {
                 if (sa[param].equals("-d")) {
-                    debugMapper = true;
+                    debugs = true;
                     continue;
                 }
                 if (sa[param].equals("-r") && param + 1 < sa.length) {
@@ -240,22 +241,29 @@ public class JCreole {
         File inFile = (creoleStream == null) ? new File(inPath) : null;
         JCreole jCreole = (rawBoilerPlate == null)
                 ? (new JCreole()) : (new JCreole(rawBoilerPlate));
-        if (debugMapper) jCreole.setInterWikiMapper(new InterWikiMapper() {
-            // This InterWikiMapper is just for prototyping.
-            // Use wiki name of "nil" to force lookup failure for path.
-            // Use wiki page of "nil" to force lookup failure for label.
-            public String toPath(String wikiName, String wikiPage) {
-                if (wikiName != null && wikiName.equals("nil")) return null;
-                return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
-            }
-            public String toLabel(String wikiName, String wikiPage) {
-                if (wikiPage == null)
-                        throw new RuntimeException(
-                                "Null page name sent to InterWikiMapper");
-                if (wikiPage.equals("nil")) return null;
-                return "{LABEL for: " + wikiName + '|' + wikiPage + '}';
-            }
-        });
+        if (debugs) {
+            jCreole.setInterWikiMapper(new InterWikiMapper() {
+                // This InterWikiMapper is just for prototyping.
+                // Use wiki name of "nil" to force lookup failure for path.
+                // Use wiki page of "nil" to force lookup failure for label.
+                public String toPath(String wikiName, String wikiPage) {
+                    if (wikiName != null && wikiName.equals("nil")) return null;
+                    return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
+                }
+                public String toLabel(String wikiName, String wikiPage) {
+                    if (wikiPage == null)
+                            throw new RuntimeException(
+                                    "Null page name sent to InterWikiMapper");
+                    if (wikiPage.equals("nil")) return null;
+                    return "{LABEL for: " + wikiName + '|' + wikiPage + '}';
+                }
+            });
+            Expander creoleExpander =
+                    new Expander(Expander.PairedDelims.RECTANGULAR);
+            creoleExpander.put("testMacro", "\n\n<<prettyPrint>>\n{{{\n"
+                    + "!/bin/bash -p\n\ncp /etc/inittab /tmp\n}}}\n");
+            jCreole.setCreoleExpander(creoleExpander);
+        }
         jCreole.setPrivileges(EnumSet.allOf(JCreolePrivilege.class));
         Expander exp = jCreole.getHtmlExpander();
         Date now = new Date();
