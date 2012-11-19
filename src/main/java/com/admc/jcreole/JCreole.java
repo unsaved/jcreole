@@ -96,7 +96,7 @@ public class JCreole {
         + "  -r path: Load specified boilerplate file from Classpath.\n"
         + "  -f path: Load specified boilerplate file from file system.\n"
         + "If either -r or -f is specified, the specified boilerplate should "
-        + "include\n'${content}' at the point(s) where you want content "
+        + "include\n'$(content)' at the point(s) where you want content "
         + "generated from your Creole\ninserted.\n"
         + "If the outputfile already exists, it will be silently "
         + "overwritten.\n"
@@ -111,7 +111,8 @@ public class JCreole {
     private Expander creoleExpander;
     private Expander htmlExpander = new Expander(Expander.PairedDelims.CURLY);
     private List<String> cssHrefs;
-    private Expander framingExpander = new Expander(Expander.PairedDelims.CURLY);
+    private Expander framingExpander =
+            new Expander(Expander.PairedDelims.ROUNDED);
 
     /**
      * Returns reference to the Framing Expander.
@@ -287,10 +288,10 @@ log.warn("TODO:  Implement index generation");
     }
 
     public JCreole(String rawBoilerPlate) {
-        if (rawBoilerPlate.indexOf("${content}") < 0
-                && rawBoilerPlate.indexOf("${!content}") < 0)
+        if (rawBoilerPlate.indexOf("$(content)") < 0
+                && rawBoilerPlate.indexOf("$(!content)") < 0)
             throw new IllegalArgumentException(
-                    "Boilerplate contains neither ${content} nor ${!content}");
+                    "Boilerplate contains neither $(content) nor $(!content)");
         pageBoilerPlate = rawBoilerPlate.replace("\r", "");
     }
 
@@ -405,8 +406,8 @@ log.warn("TODO:  Implement index generation");
             htmlString = htmlFrag;
         } else {
             StringBuilder html = new StringBuilder(pageBoilerPlate);
-            if (html.indexOf("${headers}") > -1
-                    || html.indexOf("${!headers}") > -1) {
+            if (html.indexOf("$(headers)") > -1
+                    || html.indexOf("$(!headers)") > -1) {
                 StringBuilder sb = new StringBuilder();
                 int count = 0;
                 for (String href : getCssHrefs())

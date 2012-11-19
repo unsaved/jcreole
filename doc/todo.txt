@@ -1,6 +1,6 @@
 IMMEDIATE
 
-frameExpander use $(...) with pageHeading and pageContent
+frameExpander use $(...) with pageHeaders and pageContent
 
 creoleExpander use $[...]
 
