@@ -53,7 +53,7 @@ import com.admc.util.Expander;
  * This class manages 3 different Expanders.
  * </p><ol>
  * <li>framingExpander:  Merges the main page components boilerplate +
- *     headers + content (by default via postProcess method)
+ *     pageHeaders + pageContent (by default via postProcess method)
  *     to make a complete HTML page.
  *     Expands a boilerplate.  Map values are HTML.
  * <li>creoleExpander:  Expands creole text (before parsing).
@@ -64,7 +64,8 @@ import com.admc.util.Expander;
  *     method.
  * </ol><p>
  * As a consequence of what the expanders expand, if using default behavior,
- * boilerplate text should !-reference 'headers' and 'content' but nothing else.
+ * boilerplate text should !-reference 'pageHeaders' and 'pageContent' but
+ * nothing else.
  * (Unless you are pre-processing the boilerplate external to JCreole).
  * Creole may !-reference anywhere, since the earlier passes are expanded with
  * the ignoreBang option.  A Creole text !-reference means that they reference
@@ -96,7 +97,7 @@ public class JCreole {
         + "  -r path: Load specified boilerplate file from Classpath.\n"
         + "  -f path: Load specified boilerplate file from file system.\n"
         + "If either -r or -f is specified, the specified boilerplate should "
-        + "include\n'$(content)' at the point(s) where you want content "
+        + "include\n'$(pageContent)' at the point(s) where you want content "
         + "generated from your Creole\ninserted.\n"
         + "If the outputfile already exists, it will be silently "
         + "overwritten.\n"
@@ -288,10 +289,10 @@ log.warn("TODO:  Implement index generation");
     }
 
     public JCreole(String rawBoilerPlate) {
-        if (rawBoilerPlate.indexOf("$(content)") < 0
-                && rawBoilerPlate.indexOf("$(!content)") < 0)
-            throw new IllegalArgumentException(
-                    "Boilerplate contains neither $(content) nor $(!content)");
+        if (rawBoilerPlate.indexOf("$(pageContent)") < 0
+                && rawBoilerPlate.indexOf("$(!pageContent)") < 0)
+            throw new IllegalArgumentException("Boilerplate contains "
+                    + "neither $(pageContent) nor $(!pageContent)");
         pageBoilerPlate = rawBoilerPlate.replace("\r", "");
     }
 
@@ -406,8 +407,8 @@ log.warn("TODO:  Implement index generation");
             htmlString = htmlFrag;
         } else {
             StringBuilder html = new StringBuilder(pageBoilerPlate);
-            if (html.indexOf("$(headers)") > -1
-                    || html.indexOf("$(!headers)") > -1) {
+            if (html.indexOf("$(pageHeaders)") > -1
+                    || html.indexOf("$(!pageHeaders)") > -1) {
                 StringBuilder sb = new StringBuilder();
                 int count = 0;
                 for (String href : getCssHrefs())
@@ -416,13 +417,13 @@ log.warn("TODO:  Implement index generation");
                             + "rel=\"stylesheet\" "
                             + "type=\"text/css\" href=\"%s\" />\n",
                             ++count, href));
-                framingExpander.put("headers", sb.toString(), false);
+                framingExpander.put("pageHeaders", sb.toString(), false);
             } else if (getCssHrefs().size() > 0) {
                 throw new CreoleParseException(
                         "Author-supplied style-sheets, but boilerplate has no "
-                        + "'headers' insertion-point");
+                        + "'pageHeaders' insertion-point");
             }
-            framingExpander.put("content", htmlFrag, false);
+            framingExpander.put("pageContent", htmlFrag, false);
             htmlString = framingExpander.expand(html).toString();
         }
         if (outputEol != null && !outputEol.equals("\n"))
