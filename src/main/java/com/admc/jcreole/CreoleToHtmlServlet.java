@@ -214,6 +214,9 @@ public class CreoleToHtmlServlet
             htmlExpander.put("index", "\n"
                     + indexer.generateTable(fsCreoleRoot, absUrlDirPath, true,
                     sortBy, ascending), false);
+            // An alternative for using the Tomcat-like Indexer in a
+            // htmlExpander would be to write a Creole table to a
+            // creoleExpander.
         }
 
         /* Set up Creole macros like this:
