@@ -55,6 +55,9 @@ import java.util.regex.Matcher;
  * Two other ways to satisfy this use-case are to use your own loop and call
  * put*() instead of putAll(); or to move referred-to definitions into an
  * additional map that is fed to putAll() before your main map.
+ * <p> </p>
+ * The escape mechanism is \${, \$[, \$(.  All that will happen is the
+ * backslash there will be removed.
  * </p>
  */
 public class Expander {
@@ -70,13 +73,42 @@ public class Expander {
                 "\\$\\" + lChar + "([-!])?([^" + rChar + '\\' + lChar
                 + "]+)\\" + rChar);
         */
-        CURLY("\\$\\{([-!])?([^}\\{]+)\\}"),
-        RECTANGULAR("\\$\\[([-!])?([^]\\[]+)\\]"),
-        ROUNDED("\\$\\(([-!])?([^)\\(]+)\\)");
+        CURLY('{', "\\$\\{([-!])?([^}\\{]+)\\}"),
+        RECTANGULAR('[', "\\$\\[([-!])?([^]\\[]+)\\]"),
+        ROUNDED('(', "\\$\\(([-!])?([^)\\(]+)\\)");
 
         final public Pattern refPattern;
-        PairedDelims(String s) {
+        final String escapeFrom, escapeTo;
+        PairedDelims(char lChar, String s) {
             refPattern = Pattern.compile(s);
+            escapeFrom = "\\$" + lChar;
+            escapeTo = "$" + lChar;
+        }
+        public CharSequence preserveEscapes(CharSequence s) {
+            if (s instanceof String) {
+                if (((String) s).indexOf(escapeFrom) < 0) return s;
+                return ((String) s).replace(escapeFrom, "\u0002");
+            }
+            if (!(s instanceof StringBuilder))
+                throw new RuntimeException("CharSequence.preserveEscapes only "
+                        + "works with Strings and StringBuilders");
+            StringBuilder sb = (StringBuilder) s;
+            // N.b. we will modify the given StringBuilder and return it.
+            // If this causes any problem, then copy it here.
+            int lastI;
+            while (true) {
+                lastI = sb.lastIndexOf(escapeFrom);
+                if (lastI < -0) return sb;
+                sb.replace(lastI, lastI + 3, "\u0002");
+            }
+        }
+        public void escape(StringBuilder sb) {
+            int lastI;
+            while (true) {
+                lastI = sb.lastIndexOf("\u0002");
+                if (lastI < -0) return;
+                sb.replace(lastI, lastI + 1, escapeTo);
+            }
         }
     }
 
@@ -220,26 +252,19 @@ public class Expander {
     }
 
     /**
-     * Wrapper for expand(CharString, boolean) with ignoreBang false.
-     */
-    public StringBuilder expand(CharSequence inString) {
-        return expand(inString, false);
-    }
-
-    /**
      * @throws IllegalArgumentException if inString contains an unsatisfied
      *         ! reference (like ${!ref}).
      */
-    synchronized public StringBuilder expand(
-            CharSequence inString, boolean ignoreBang) {
+    synchronized public StringBuilder expand(CharSequence inString) {
         Set throwRefs = new HashSet<String>();
-        Matcher matcher = pairedDelims.refPattern.matcher(inString);
+        CharSequence seq = pairedDelims.preserveEscapes(inString);
+        Matcher matcher = pairedDelims.refPattern.matcher(seq);
         int prevEnd = 0;
         String val;
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             if (throwRefs.size() < 1)
-                sb.append(inString.subSequence(prevEnd, matcher.start()));
+                sb.append(seq.subSequence(prevEnd, matcher.start()));
             prevEnd = matcher.end();
             if (map.containsKey(matcher.group(2))) {
                 if (throwRefs.size() < 1) sb.append(map.get(matcher.group(2)));
@@ -251,7 +276,6 @@ public class Expander {
             }
             switch (matcher.group(1).charAt(0)) {
               case '!':
-                if (ignoreBang) continue;
                 throwRefs.add(matcher.group(2));
                 break;
               case '-':
@@ -264,11 +288,14 @@ public class Expander {
         if (throwRefs.size() > 0)
             throw new IllegalArgumentException(
                     "Unsatisfied ! reference(s): " + throwRefs);
-        sb.append(inString.subSequence(prevEnd, inString.length()));
+        sb.append(seq.subSequence(prevEnd, seq.length()));
+        pairedDelims.escape(sb);
         return sb;
     }
 
     static public void main(String[] sa) {
         System.out.println(new Expander(PairedDelims.CURLY).expand(sa[0]));
     }
+
+    public String toString() { return map.toString(); }
 }

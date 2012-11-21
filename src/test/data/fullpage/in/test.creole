@@ -1,2 +1,4 @@
 =A ${pageTitle}
 A$[testMacro]paragraph
+
+Three\$[testMacro]unexpanded\${pageTitle}variables

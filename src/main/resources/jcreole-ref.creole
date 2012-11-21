@@ -181,6 +181,12 @@ prevent changing your input to be //HTML safe// (such as translating "##>##" to
 To avoid this level of translation you would need to use the [[#jcsect_RawHtml]]
 directive.
 
+Variables like \${this}, $[this], and $(this) can be escaped like
+~\\${this}, \$[this], and \$(this).
+But if you know that your application does not define the referenced
+variable, then you don't need to do anything, because unless you prefix your
+variable name with ! or -, undefined variable references are left exactly as-is.
+
 === Code Blocks
 ======~{{{\\...\\~}}}
 This is a Creole-specified special case for the ~{{{...~}}} operator described
@@ -380,21 +386,33 @@ Usage of this feature requires a specific page author privilege.
 
 === Variable References
 
-======$~{variableName}
+======\${htmlVariableName}, $[creoleVariableName], $(frameVariableName)
 Variable references are coded as above.
 What variables are available for expansion is entirely dependent upon how your
 application has integrated JCreole.
 The command-line JCreole application (which is invoked most simply by using
-##java... -jar## commands) makes all Java system variables available in this
+##java... -jar## commands) makes all Java system properties available in this
 way.
 Just be aware that if you use ##java... -jar## then use that same .creole file
 with some web or other application, the same variables may not be available
 for expansion.
 
-Variable dereferencing happens very early, so the variable values may be Creole
-or extension directives.
-Applications may leverage this behavior to create custom JCreole macros for
-Creole authors.
+$[...] variables are only available to you if your application makes them
+available.
+They are dereference very early, and the variable values are
+Creole which will be translated to HTML.
+Some applications allow end-users to use $[...] references to use their
+predefined Creole macros.
+Some applications may allow privileged users to write their own Creole
+variable definitions (and therefore their own Creole macros).
+
+\${...} variables are dereferenced late, and the variable values are HTML.
+Most applications provide some of these variables for you to use, and some
+applications let you define your own.
+
+$(...) variables are only available to boilerplate authors.
+Most applications do not allow end users to edit boilerplates, so if you don't
+know what boilerplate is, just ignore this variable type.
 
 If you will use variable references, you should be aware of the rules for their
 usage.
@@ -403,19 +421,20 @@ underscores.
 * If the supplied variable names contains names (keys) with other characters,
 those other characters are converted to underscores.
 For example, since the command-line JCreole application makes Java system
-properties available, you can use Java system property ##user.name## in your
-.creole documents by coding ##$~{user_name}##.
+properties available with prefix "sys|", you can use Java system
+property ##user.name## in your .creole documents by
+coding ##\${sys|user.name}##.
 * If the variable name is unset, then the text will remain unchanged and
-$~{...} will appear in your HTML output.
+\${...} will appear in your HTML output.
 * To change the behavior of the previous item to omit the reference if the
 referenced variable is unset, just prefix the variable name with -.
-For example, instead of writing ##$~{user_name}##, you would
-write ##$~{-user_name}##.
+For example, instead of writing ##\${sys|user.name}##, you would
+write ##\${-sys|user.name}##.
 The - has an effect only if the variable is not set.
 * To change the behavior described above to cause the translation to fail if the
 referenced variable is unset, just prefix the variable name with !.
-For example, instead of writing ##$~{user_name}##, you would
-write ##$~~{!user_name}##.
+For example, instead of writing ##\${sys|user.name}##, you would
+write ##\${!sys|user.name}##.
 The ! has an effect only if the variable is not set.
 
 == JCreole Extensions via ~<<...>> Plugin Directives

@@ -155,8 +155,6 @@ public class JCreole {
      *   <li>isoDateTime
      *   <li>isoDate
      *   <li>pageTitle: Value derived from the specified Creole file name.
-     *   <li>index: If creole file is specified by file system path, then
-     *       'index' will be set to a generated HTML table element.
      * </ul>
      *
      * @throws IOException for any I/O problem that makes it impossible to
@@ -274,7 +272,6 @@ public class JCreole {
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
                 : inFile.getName().replaceFirst("[.][^.]*$", ""));
-log.warn("TODO:  Implement index generation");
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
                 : jCreole.parseCreole(IOUtil.toStringBuilder(creoleStream));

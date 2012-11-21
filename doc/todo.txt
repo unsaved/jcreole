@@ -1,21 +1,11 @@
-IMMEDIATE
+SHORT TERM
 
 Upgrade Gradle to current version
 
 Upgrade JQuery to current version
 
-Implement index page generation when running "java -jar..." on a directory.
-
--------------------------------------------------------------------------------
-
-SHORT TERM
-
-Allow escaping of ${..} (etc.) somehow.
-
 CHECK ${...} references in jcreole-ref.creole output!!!
 In particular the one with '~'.
-
-Rename 'creoleDir' to 'creoleRoot'.
 
 Allow / external creoleDir.
 
