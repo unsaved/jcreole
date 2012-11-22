@@ -4,9 +4,6 @@ Upgrade Gradle to current version
 
 Upgrade JQuery to current version
 
-CHECK ${...} references in jcreole-ref.creole output!!!
-In particular the one with '~'.
-
 Allow / external creoleDir.
 
 Implement a Spring HttpRequestHandler.
