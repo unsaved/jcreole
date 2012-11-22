@@ -2,3 +2,7 @@
 A$[testMacro]paragraph
 
 Three\$[testMacro]unexpanded\${pageTitle}variables
+
+Blackslash-escaped \${pageTitle}
+Blackslash-escaped \$[testMacro]
+Tilde-escaped $~[testMacro]
