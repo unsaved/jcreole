@@ -29,6 +29,11 @@
          Most app servers provide a management console or application to change
          context params.  With Tomcat, you provide a 'context.xml' file with
          an element like:  <Parameter name="creoleRoot" value="sdir"/>
+
+         N.b. only .creole files and boilerplate .html reside under the
+         Creole Root.  Other content, such as .css files, text files, images
+         (jpeg, etc.) should be deloyed to the standard web app area  (i.e.
+         .../appName/... excluding .../appName/WEB-INF, .../appName/META-INF).
   -->
 
   <!--   The value 'WEB-INF/creole' is the default.
