@@ -23,8 +23,9 @@ if (localGradleFile.isFile()) {
 }
 
 // Defaults that can be overridden with property files:
-sourceCompatibility = '1.5'
-targetCompatibility = sourceCompatibility
+compileJava.sourceCompatibility = '1.6'
+compileJava.targetCompatibility = compileJava.sourceCompatibility
+// compileJava.options.bootClasspath  Needs to be set in local properties file
 project.setProperty('org.name', System.properties['user.name'])
 project.setProperty('jar.title', 'Customization')
 jqueryVer = '1.7.1'
@@ -33,6 +34,10 @@ prettifyVer = '1'
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
+// Don't know why setting 'compileJava.options.bootClasspath' directly in
+// "local.properties" file doesn't work.
+compileJava.options.bootClasspath = bootClasspath
+if (hasProperty("xlint")) compileJava.options.compilerArgs << "-Xlint:$xlint"
 
 repositories { mavenCentral() }
 
