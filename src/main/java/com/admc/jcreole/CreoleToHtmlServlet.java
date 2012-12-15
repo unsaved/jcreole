@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileFilter;
 import java.net.URL;
 import javax.servlet.ServletContext;
@@ -34,6 +35,7 @@ public class CreoleToHtmlServlet
     private static Pattern servletFilePattern = Pattern.compile("(.+)\\.html");
 
     private String creoleRoot = "WEB-INF/creole";
+    private boolean isRootAbsolute;
     private boolean autoIndexing = true;
 
     private String contextPath;
@@ -69,11 +71,11 @@ public class CreoleToHtmlServlet
         application = getServletContext();
         String creoleRootParam = application.getInitParameter("creoleRoot");
         if (creoleRootParam != null) creoleRoot = creoleRootParam;
-        if (creoleRoot == null || creoleRoot.length() < 1
-                || creoleRoot.charAt(0) == '/'
-                || creoleRoot.charAt(0) == '\\')
+        if (creoleRoot == null || creoleRoot.length() < 1)
             throw new ServletException(
-                    "'creoleRoot' is not a relative path: " + creoleRootParam);
+                    "Invalid 'creoleRoot': " + creoleRootParam);
+        isRootAbsolute =
+                creoleRoot.charAt(0) == '/' || creoleRoot.charAt(0) == '\\';
         String autoString = application.getInitParameter("autoIndexing");
         autoIndexing = autoString == null || Boolean.parseBoolean(autoString);
     }
@@ -83,7 +85,7 @@ public class CreoleToHtmlServlet
         File css;
         URL url;
         StringBuilder readmeSb = null;
-        File fsCreoleRoot = null;
+        File fsDirFile = null;
         List<String> cssHrefs = new ArrayList<String>();
         File servletPathFile = new File(req.getServletPath());
         if (contextPath == null) {
@@ -101,33 +103,43 @@ public class CreoleToHtmlServlet
                     + " only supports servlet paths ending with '.html':  "
                     + servletPathFile.getAbsolutePath());
         File crRootedDir = servletPathFile.getParentFile();
+        // crRootedDir is the parent dir of the requested path.
         String pageBaseName = matcher.group(1);
         String absUrlDirPath = contextPath + crRootedDir.getAbsolutePath();
         String absUrlBasePath = absUrlDirPath + '/' + pageBaseName;
-        File creoleFile =
-                new File("/" + creoleRoot + crRootedDir.getAbsolutePath(),
+        File creoleFile = new File((isRootAbsolute ? "" : "/")
+                 + creoleRoot + crRootedDir.getAbsolutePath(),
                 pageBaseName + ".creole");
         InputStream creoleStream = null;
-        creoleStream =
-                application.getResourceAsStream(creoleFile.getAbsolutePath());
+        creoleStream = isRootAbsolute
+                ? new FileInputStream(creoleFile)
+                : application.getResourceAsStream(creoleFile.getAbsolutePath());
         if (indexer != null) {
-            String fsDirPath = application.getRealPath(
-                    creoleFile.getParentFile().getAbsolutePath());
-            if (fsDirPath == null)
-                throw new ServletException(
-                    "You must disable indexing with non-explode app servers");
-            fsCreoleRoot = new File(fsDirPath);
+            if (isRootAbsolute) {
+                fsDirFile = creoleFile.getParentFile();
+            } else {
+                String fsDirPath = application.getRealPath(
+                        creoleFile.getParentFile().getAbsolutePath());
+                if (fsDirPath == null)
+                    throw new ServletException(
+                        "With absolute 'creoleRoot' and indexing enabled, "
+                        + "only content-exploding app servers are supported");
+                fsDirFile = new File(fsDirPath);
+            }
         }
         if (pageBaseName.equals("index")) {
-            InputStream readmeStream = application.getResourceAsStream(
+            InputStream readmeStream = isRootAbsolute
+                    ? new FileInputStream(new File(
+                            creoleFile.getParentFile(), "readme.creole"))
+                    : application.getResourceAsStream(
                     new File(creoleFile.getParentFile(), "readme.creole")
                     .getAbsolutePath());
             readmeSb = new StringBuilder("----\n");
             if (readmeStream == null) {
                 readmeSb.append("{{{\n");
                 readmeStream = application.getResourceAsStream(
-                        new File(crRootedDir, "readme.txt")
-                        .getAbsolutePath());
+                          new File(crRootedDir, "readme.txt")
+                          .getAbsolutePath());
                 if (readmeStream != null) {
                     readmeSb.append(IOUtil.toStringBuilder(readmeStream));
                     readmeSb.append("\n}}}\n");
@@ -139,22 +151,31 @@ public class CreoleToHtmlServlet
         }
 
         boolean inAncestorDir = false;
-        while (crRootedDir != null) {
-            File curCreoleRoot = new File(
-                    "/" + creoleRoot + crRootedDir.getAbsolutePath());
+        File tmpDir;
+        tmpDir = crRootedDir;
+        while (tmpDir != null) {
+            // Search from crRootedDir to creoleRoot for auxilliary files
+            File curCreoleRoot = new File((isRootAbsolute ? "" : "/")
+                    + creoleRoot + tmpDir.getAbsolutePath());
             if (bpStream == null)
-                bpStream = application.getResourceAsStream(new File(
+                bpStream = isRootAbsolute
+                        ? new FileInputStream(
+                        new File(tmpDir, "boilerplate.html"))
+                        : application.getResourceAsStream(new File(
                         curCreoleRoot, "boilerplate.html").getAbsolutePath());
             url = application.getResource(new File(
-                    crRootedDir, "site.css").getAbsolutePath());
+                    tmpDir, "site.css").getAbsolutePath());
             if (url != null) cssHrefs.add(0,
-                    new File(contextPath + crRootedDir, "site.css")
+                    new File(contextPath + tmpDir, "site.css")
                     .getAbsolutePath());
             if (creoleStream == null && inAncestorDir
                     && pageBaseName.equals("index") && autoIndexing)
-                creoleStream = application.getResourceAsStream(new File(
+                creoleStream = isRootAbsolute
+                        ? new FileInputStream(
+                        new File(curCreoleRoot, "index.creole"))
+                        : application.getResourceAsStream(new File(
                         curCreoleRoot, "index.creole").getAbsolutePath());
-            crRootedDir = crRootedDir.getParentFile();
+            tmpDir = tmpDir.getParentFile();
             inAncestorDir = true;
         }
         if (creoleStream == null)
@@ -163,14 +184,14 @@ public class CreoleToHtmlServlet
         if (bpStream == null)
             throw new ServletException("Failed to access 'boilerplate.html' "
                     + "from creole dir or ancestor dir");
-        crRootedDir = servletPathFile.getParentFile();
-        while (crRootedDir != null) {
+        tmpDir = crRootedDir;
+        while (tmpDir != null) {
             url = application.getResource(new File(
-                    crRootedDir, "jcreole.css").getAbsolutePath());
+                    tmpDir, "jcreole.css").getAbsolutePath());
             if (url != null) cssHrefs.add(0,
-                    new File(contextPath + crRootedDir, "jcreole.css")
+                    new File(contextPath + tmpDir, "jcreole.css")
                     .getAbsolutePath());
-            crRootedDir = crRootedDir.getParentFile();
+            tmpDir = tmpDir.getParentFile();
         }
 
         JCreole jCreole = new JCreole(IOUtil.toString(bpStream));
@@ -193,7 +214,7 @@ public class CreoleToHtmlServlet
             htmlExpander.put("readmeContent", readmeJCreole.postProcess(
                     readmeJCreole.parseCreole(readmeSb), "\n"), false);
         }
-        if (fsCreoleRoot != null) {
+        if (fsDirFile != null) {
             FileComparator.SortBy sortBy = FileComparator.SortBy.NAME;
             boolean ascending = true;
             String sortStr = req.getParameter("sort");
@@ -212,7 +233,7 @@ public class CreoleToHtmlServlet
                 }
             }
             htmlExpander.put("index", "\n"
-                    + indexer.generateTable(fsCreoleRoot, absUrlDirPath, true,
+                    + indexer.generateTable(fsDirFile, absUrlDirPath, true,
                     sortBy, ascending), false);
             // An alternative for using the Tomcat-like Indexer in a
             // htmlExpander would be to write a Creole table to a
