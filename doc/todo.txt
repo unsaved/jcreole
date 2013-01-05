@@ -8,7 +8,8 @@ Implement a Spring HttpRequestHandler.
 
 Consider how to allow author to hyperlink a broader set of content than just a
 non-markup label.  May be able to do without too much difficulty with
-jcxSpans (or something similar) and jQuery.
+jcxSpans (or something similar) and maybe jQuery.
+Perhaps [...] or [[...]]] inside of jcxSpan or jcxBlock tags.
 
 -------------------------------------------------------------------------------
 
