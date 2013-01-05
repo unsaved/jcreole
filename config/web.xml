@@ -48,7 +48,8 @@
          Non-absolute paths are relative to the web-app root directory.
   <context-param>
     <description>Root directory for boilerplate and .creole files.
-      Must be a relative path, relative to the application home directory.
+      As of JCreole v. 1.2.0, this path may be relative or absolute.
+      If a relative path, then it is relative to the application home directory.
     </description>
     <param-name>creoleRoot</param-name>
     <param-value>WEB-INF/creole</param-value>
