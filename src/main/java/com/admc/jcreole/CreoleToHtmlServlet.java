@@ -68,8 +68,6 @@ public class CreoleToHtmlServlet
 
     public void init() throws ServletException {
         super.init();
-log("XXXXXXXXXXXXXXXXXXXXXX");
-System.err.println("YYYYYYYYYYYYYYYYYYYYYY");
         application = getServletContext();
         String creoleRootParam = application.getInitParameter("creoleRoot");
         if (creoleRootParam != null) creoleRoot = creoleRootParam;
@@ -81,7 +79,6 @@ System.err.println("YYYYYYYYYYYYYYYYYYYYYY");
         String autoString = application.getInitParameter("autoIndexing");
         autoIndexing = autoString == null || Boolean.parseBoolean(autoString);
         log("Using creoleRoot of '" + creoleRoot + "'");
-System.err.println("Using creoleRoot of '" + creoleRoot + "'");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -157,13 +154,11 @@ System.err.println("Using creoleRoot of '" + creoleRoot + "'");
         boolean inAncestorDir = false;
         File tmpDir;
         tmpDir = crRootedDir;
-System.err.println("ABS? " + isRootAbsolute);
         while (tmpDir != null) {
             // Search from crRootedDir to creoleRoot for auxilliary files
             File curDir = new File((isRootAbsolute ? "" : "/")
                     + creoleRoot + tmpDir.getAbsolutePath());
             File bpFile = new File(curDir, "boilerplate.html");
-System.err.println("BPFILE=(" + bpFile + ")");
             if (bpStream == null)
                 bpStream = isRootAbsolute
                         ? (bpFile.isFile() ? new FileInputStream(bpFile) : null)
