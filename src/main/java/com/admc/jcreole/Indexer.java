@@ -2,6 +2,7 @@ package com.admc.jcreole;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -82,9 +83,10 @@ public class Indexer {
         sb.append("<tr>\r\n");
         sb.append("<td align=\"left\"><font size=\"+1\"><strong>");
         sb.append("<a href=\"?sort=");
+        try {
         sb.append(URLEncoder.encode(
                 (sortBy == FileComparator.SortBy.NAME && ascendSort)
-                ? "-" : "+"));
+                ? "-" : "+", "UTF-8"));
         sb.append("NAME\">Nodename</a>");
         if (sortBy == FileComparator.SortBy.NAME)
             sb.append("<sup>").append(ascendSort ? '+' : '-').append("</sup>");
@@ -93,7 +95,7 @@ public class Indexer {
         sb.append("<a href=\"?sort=");
         sb.append(URLEncoder.encode(
                 (sortBy == FileComparator.SortBy.SIZE && ascendSort)
-                ? "-" : "+"));
+                ? "-" : "+", "UTF-8"));
         sb.append("SIZE\">Size</a>");
         if (sortBy == FileComparator.SortBy.SIZE)
             sb.append("<sup>").append(ascendSort ? '+' : '-').append("</sup>");
@@ -102,7 +104,10 @@ public class Indexer {
         sb.append("<a href=\"?sort=");
         sb.append(URLEncoder.encode(
                 (sortBy == FileComparator.SortBy.MODIFIED && ascendSort)
-                ? "-" : "+"));
+                ? "-" : "+", "UTF-8"));
+        } catch (UnsupportedEncodingException uee) {
+            throw new RuntimeException("Unable to encode to UTF-8");
+        }
         sb.append("MODIFIED\">Last Modified</a>");
         if (sortBy == FileComparator.SortBy.MODIFIED)
             sb.append("<sup>").append(ascendSort ? '+' : '-').append("</sup>");
