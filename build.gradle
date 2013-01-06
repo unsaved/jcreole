@@ -28,8 +28,8 @@ compileJava.targetCompatibility = compileJava.sourceCompatibility
 // compileJava.options.bootClasspath  Needs to be set in local properties file
 project.ext.set('org.name', System.properties['user.name'])
 project.ext.set('jar.title', 'Customization')
-project.ext.set('jqueryVer', '1.7.1')
-project.ext.set('jqueryUiVer', '1.8.16')
+project.ext.set('jqueryVer', '1.8.3')
+project.ext.set('jqueryUiVer', '1.9.2')
 project.ext.set('prettifyVer', '1')
 
 propFileLoader.typeCasting = true
@@ -56,7 +56,7 @@ configurations {
 
 project.ext.set('rtLibs', null)
 jar { doFirst {
-    project.rtLibs = []
+    project.ext.set('rtLibs', [])
     configurations.runtime.files.each { project.rtLibs << it.name }
     project.metaInf << files('doc/LICENSE.txt')
     jar {
@@ -251,8 +251,8 @@ target file exists:  $project.julCfgfile.absolutePath"""
 $julCfgfile"""
 }
 ensureLogCfgfile.onlyIf {
-    project.julCfgfile = new File(project.hasProperty('jul.cfgfile')
-            ? project.property('jul.cfgfile') : 'local-jul.properties')
+    project.ext.set('julCfgfile', new File(project.hasProperty('jul.cfgfile')
+            ? project.property('jul.cfgfile') : 'local-jul.properties'))
     !project.julCfgfile.exists()
 }
 
@@ -343,7 +343,7 @@ task html(dependsOn: ['stage', 'ensureLogCfgfile']) << {
     assert project.hasProperty('creolepath'):
         '''Property 'creolepath' is required by task 'html'.'''
     if (!project.hasProperty('htmloutPath'))
-        project.htmloutPath = 'build/tmp/generated.html'
+        project.ext.set('htmloutPath', 'build/tmp/generated.html')
     javaexec {
         main = '-jar'
         args = [ 'build/stage/' + jar.archiveName,
@@ -649,7 +649,7 @@ task war(dependsOn: jar, type: Jar) {
 
 File explodeDest() {
     if (!project.hasProperty('explode.suffix'))
-        project.setProperty('explode.suffix', '')
+        project.ext.set('explode.suffix', '')
     if (!project.hasProperty('deploy.dir')
             && !project.hasProperty('deploy.explode.dir'))
         throw new GradleException(

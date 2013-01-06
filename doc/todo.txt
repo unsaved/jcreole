@@ -1,9 +1,3 @@
-SHORT TERM
-
-Upgrade JQuery to current version
-
--------------------------------------------------------------------------------
-
 LONG TERM
 
 Support arbitrary href-linking.
