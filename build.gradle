@@ -26,11 +26,11 @@ if (localGradleFile.isFile()) {
 compileJava.sourceCompatibility = '1.6'
 compileJava.targetCompatibility = compileJava.sourceCompatibility
 // compileJava.options.bootClasspath  Needs to be set in local properties file
-project.setProperty('org.name', System.properties['user.name'])
-project.setProperty('jar.title', 'Customization')
-jqueryVer = '1.7.1'
-jqueryUiVer = '1.8.16'
-prettifyVer = '1'
+project.ext.set('org.name', System.properties['user.name'])
+project.ext.set('jar.title', 'Customization')
+project.ext.set('jqueryVer', '1.7.1')
+project.ext.set('jqueryUiVer', '1.8.16')
+project.ext.set('prettifyVer', '1')
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
@@ -54,7 +54,7 @@ configurations {
     baseconf
 }
 
-project.rtLibs = null
+project.ext.set('rtLibs', null)
 jar { doFirst {
     project.rtLibs = []
     configurations.runtime.files.each { project.rtLibs << it.name }

@@ -1,7 +1,5 @@
 SHORT TERM
 
-Upgrade Gradle to current version
-
 Upgrade JQuery to current version
 
 -------------------------------------------------------------------------------
