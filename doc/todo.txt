@@ -4,8 +4,6 @@ Upgrade Gradle to current version
 
 Upgrade JQuery to current version
 
-Implement a Spring HttpRequestHandler.
-
 -------------------------------------------------------------------------------
 
 LONG TERM

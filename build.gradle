@@ -569,6 +569,47 @@ uploadArchives { doFirst {
     }
 } }
 
+task springWar(dependsOn: jar, type: Jar) {
+    extension = 'war'
+    baseName = 'springDocServer'
+    exclude '**/.*/**'
+    from('src/main/webapp') {
+        eachFile { fcd ->
+            // Unlike Gradle's plain {... } filter, our closure here will get
+            // executed just one time for each matching file.
+            if (fcd.name == 'boilerplate.html')
+                fcd.filter(ContentAsStringFilter, closure: {
+                    propFileLoader.unsatisfiedRefBehavior =
+                            JavaPropFile.Behavior.LITERAL
+                    propFileLoader.expand(it, [
+                        ('ver|jquery'): project.jqueryVer,
+                        ('ver|jqueryui'): project.jqueryUiVer,
+                        ('ver|prettify'): project.prettifyVer,
+                        ('ver|jcreole'): project.version,
+                    ])
+                })
+        }
+    }
+    into('google-code-prettify-small') {
+        exclude '**/.*/**'
+        from 'google-code-prettify-small'
+        include (project.prettifyVer + '/**')
+    }
+    copy {
+        from 'config/spring-web.xml'
+        into 'build/tmp'
+        rename { 'web.xml' }
+    }
+    into('WEB-INF') { from 'config'; includes = ['applicationContext.xml'] }
+    into('WEB-INF') { from 'build/tmp'; includes = ['web.xml'] }
+    into('WEB-INF/lib') {
+        from configurations.compile
+        from configurations.spring_rt
+        from jar.archivePath
+    }
+    //metaInf { from 'config/context.xml' }
+}
+
 task war(dependsOn: jar, type: Jar) {
     extension = 'war'
     baseName = 'docServer'
@@ -595,7 +636,8 @@ task war(dependsOn: jar, type: Jar) {
         from 'google-code-prettify-small'
         include (project.prettifyVer + '/**')
     }
-    into('WEB-INF') { from 'config'; excludes = ['**/.*/**', 'context.xml'] }
+    into('WEB-INF') { from 'config'; excludes = [
+      '**/.*/**', 'context.xml', 'applicationContext.xml', 'spring-web.xml'] }
     into('WEB-INF/lib') {
         from configurations.compile
         from jar.archivePath

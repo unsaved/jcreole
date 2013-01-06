@@ -11,6 +11,9 @@
           transitive="false" extends="compile" />
     <conf name="buildOnly" description="Build-time-only dependencies"
           transitive="false"/>
+    <conf name="spring" description="Spring dependencies" transitive="false"/>
+    <conf name="spring_rt" description="Spring rt dependencies"
+          extends="spring" transitive="false"/>
   </configurations>
   <dependencies defaultconfmapping="*->default">
     <dependency org="commons-logging" name="commons-logging" rev="1.1.1"/>
@@ -23,5 +26,15 @@
 
     <dependency org="org.apache.tomcat" name="servlet-api"
                 rev="6.0.35" conf="buildOnly"/>
+    <dependency org="org.springframework" name="spring-web"
+                rev="3.2.0.RELEASE" conf="buildOnly, spring"/>
+    <dependency org="org.springframework" name="spring-beans"
+                rev="3.2.0.RELEASE" conf="buildOnly, spring"/>
+    <dependency org="org.springframework" name="spring-context"
+                rev="3.2.0.RELEASE" conf="spring_rt"/>
+    <dependency org="org.springframework" name="spring-core"
+                rev="3.2.0.RELEASE" conf="spring_rt"/>
+    <dependency org="org.springframework" name="spring-expression"
+                rev="3.2.0.RELEASE" conf="spring_rt"/>
   </dependencies>
 </ivy-module>
