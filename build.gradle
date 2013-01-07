@@ -168,7 +168,7 @@ compileJava.doFirst {
     setClasspath(compileJava.classpath.plus(configurations.buildOnly))
     assert compileJava.options.bootClasspath != null:
   """For portability, we require a JRE 6 rt lib.  Set in 'local.properties' like
-compileJava.options.bootClasspath =/local/jdk1.6.0_30/jre/lib/rt.jar"""
+compileJava.options.bootClasspath =/local/jdk1.6.0_30/jre/lib/rt.jar\n"""
     assert file(compileJava.options.bootClasspath).isFile():
             "compileJava.options.bootClasspath value not a file: " +
                 compileJava.options.bootClasspath
