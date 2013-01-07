@@ -103,7 +103,7 @@ import com.admc.util.IOUtil;
      * The doClean parameter says what to do about control characters other
      * than \r (silently filtered) and \n and tabs (allowed and retained).
      *
-     * @param sb StringBuilder containing any characters that we will filter
+     * @param inSb StringBuilder containing any characters that we will filter
      *           and/or validate.
      * @param doClean If true will silently remove illegal input characters.
      *                If false, will throw if encounter any illegal input char.

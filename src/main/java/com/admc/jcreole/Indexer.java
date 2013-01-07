@@ -53,7 +53,7 @@ public class Indexer {
     }
 
     /**
-     * @param nameTranslationMatchPat nameTranslation* params must both be null
+     * @param namePatternString name*Translation* params must both be null
      *        or both be non-null.
      */
     public void setNameTranslationMatchPat(String namePatternString) {
@@ -61,7 +61,7 @@ public class Indexer {
     }
 
     /**
-     * @param nameTranslationFormat nameTranslation* params must both be null
+     * @param nameFormatString name*Translation* params must both be null
      *        or both be non-null.
      */
     public void setNameTranslationFormat(String nameFormatString) {

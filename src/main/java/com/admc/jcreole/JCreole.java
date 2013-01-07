@@ -440,8 +440,8 @@ public class JCreole {
     /**
      * Will use the specified creoleExpander when instantiating the scanner.
      *
-     * @see CreoleScanner.newCreoleScanner(File, boolean, Expander);
-     * @see CreoleScanner.newCreoleScanner(StringBuilder, boolean, Expander);
+     * @see CreoleScanner#newCreoleScanner(File, boolean, Expander)
+     * @see CreoleScanner#newCreoleScanner(StringBuilder, boolean, Expander)
      */
     public void setCreoleExpander(Expander creoleExpander) {
         this.creoleExpander = creoleExpander;
