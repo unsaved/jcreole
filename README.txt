@@ -11,6 +11,11 @@ JCreole is a program that...
 Basic usage instructions are at
 http://admc.com/projectdocs/jcreole/using.html
 
+In order to maximize portability, we require Java 6 code, so in order to
+compile you will need a Java 6 JRE jar file.  When you attempt your first
+compilation, Gradle will tell you to write the file path for it in a properties
+file.  You only need the Java 6 JRE jar FILE.  Your main JDK can be later.
+
 
 Project Status
 

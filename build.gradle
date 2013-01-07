@@ -34,9 +34,6 @@ project.ext.set('prettifyVer', '1')
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
-// Don't know why setting 'compileJava.options.bootClasspath' directly in
-// "local.properties" file doesn't work.
-compileJava.options.bootClasspath = bootClasspath
 if (hasProperty("xlint")) compileJava.options.compilerArgs << "-Xlint:$xlint"
 
 repositories { mavenCentral() }
@@ -169,6 +166,12 @@ compileJava.dependsOn jflex
 // This parallels what built-in source set 'providedCompile' does for wars.
 compileJava.doFirst {
     setClasspath(compileJava.classpath.plus(configurations.buildOnly))
+    assert compileJava.options.bootClasspath != null:
+  """For portability, we require a JRE 6 rt lib.  Set in 'local.properties' like
+compileJava.options.bootClasspath =/local/jdk1.6.0_30/jre/lib/rt.jar"""
+    assert file(compileJava.options.bootClasspath).isFile():
+            "compileJava.options.bootClasspath value not a file: " +
+                compileJava.options.bootClasspath
 }
 
 sourceSets.main.java.srcDirs = [file('src/main/java'), file('build/derived-src')]
@@ -226,7 +229,8 @@ task srcZip(dependsOn: ['standaloneRef', 'internetRef', 'javadoc'], type: Zip) {
         include 'gradle/**'
         include 'gradlew'
         include 'gradlew.bat'
-        include 'ivyxml-support.gradle'
+        include 'google-code-prettify-small/**'
+        include 'config/**'
     }
 }
 srcZip.description = 'Build source distribution zip file'
@@ -502,7 +506,9 @@ uploadArchives {
 
     repositories.mavenDeployer {
         configuration = configurations.deployJars
-        beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+        beforeDeployment {
+            MavenDeployment deployment -> signing.signPom(deployment)
+        }
         if (project.hasProperty('mavenRepository.dest.url'))
             repository(url: project.property('mavenRepository.dest.url')) {
                 authentication(authMap)
