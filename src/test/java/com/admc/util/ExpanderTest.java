@@ -25,6 +25,7 @@ import java.util.HashMap;
  * A JUnit unit test.
  *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.2
  */
 public class ExpanderTest {
     private Expander expander = new Expander(Expander.PairedDelims.CURLY);

@@ -34,6 +34,10 @@ import com.admc.jcreole.SectionHeading;
 import com.admc.jcreole.Sections;
 import com.admc.jcreole.EntryType;
 
+/**
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.1
+ */
 public class MarkerMap extends HashMap<Integer, BufferMarker> {
     private static Log log = LogFactory.getLog(MarkerMap.class);
     private Sections sections;

@@ -29,6 +29,9 @@ import com.admc.util.FileComparator;
  *
  * That file will be presented (in HTML format) as the home page if you
  * deploy the JCreole-provided war file.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.2
  */
 public class CreoleToHtmlServlet
         extends HttpServlet implements InterWikiMapper {

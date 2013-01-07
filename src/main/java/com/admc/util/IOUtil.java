@@ -32,6 +32,9 @@ import org.apache.commons.logging.LogFactory;
  * StringBuilders.
  * It also uses UTF-8 encoding.  It neither honors the environment encoding
  * default not allows for configuring an alternative.
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.2
  */
 public class IOUtil {
     private static Log log = LogFactory.getLog(IOUtil.class);

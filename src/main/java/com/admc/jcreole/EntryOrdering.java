@@ -17,6 +17,10 @@
 
 package com.admc.jcreole;
 
+/**
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.1
+ */
 public enum EntryOrdering {
     NAME_BY_JAVA, NAME_BY_DICTIONARY, DEF_ORDER, REF_ORDER
 }

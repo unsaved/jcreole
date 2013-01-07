@@ -59,6 +59,9 @@ import java.util.regex.Matcher;
  * The escape mechanism is \${, \$[, \$(.  All that will happen is the
  * backslash there will be removed.
  * </p>
+ *
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.2
  */
 public class Expander {
     public enum PairedDelims {

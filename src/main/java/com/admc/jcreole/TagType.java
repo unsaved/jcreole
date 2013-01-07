@@ -15,6 +15,10 @@
  */
 
 
+/**
+ * @author Blaine Simpson (blaine dot simpson at admc dot com)
+ * @since 1.1.1
+ */
 package com.admc.jcreole;
 
 public enum TagType {
