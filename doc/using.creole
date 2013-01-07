@@ -1,12 +1,16 @@
 = Using JCreole
 
-<<toc /x____x>>
+<<toc>>
 
 
 You can try out JCreole without downloading it, at http://admc.com/jcreole.
 
 You can download JCreole at the project home at
 https://github.com/unsaved/jcreole.
+From here
+you can get the distribution zip to run JCreole from the command-line, or either
+of two provided web applications, or the complete source zip file, or pull from
+the source code repository.
 
 
 == Generating HTML from the Command-Line
@@ -58,8 +62,8 @@ If your .creole files will be expanded to HTML elsewhere in addition to your
 If no System property 'this' exists, then the reference ##${this}## in your
 .creole will remain exactly like that in your HTML output.
 To change that unset-reference behavior, prefix the variable name with - (like
-"##$~{-this}##") to remove the unset-reference; and prefix the name with ! (like
-"##$~{!this}##") to cause the translation to abort if the reference is unset.
+"##\${-this}##") to remove the unset-reference; and prefix the name with ! (like
+"##\${!this}##") to cause the translation to abort if the reference is unset.
 
 To integrate with your own product, see the JavaDocs which are distributed
 with both the source and binary distributions (or at
@@ -80,22 +84,45 @@ distribution.  The Ant file has lots of targets that should be very useful for
 integrators.  As every Ant user should know, run ##ant -p## from the main
 directory to list concise descriptions of the available targets.
 
-== Web Application
-The web application, docServer, //serves// .creole files that you supply.
-Rename the supplied ##*.war## file to ##x.war##, where "x" is what you want
-your application context root to be.
-Deploy the renamed war to your application server and access the home page.
-The home page explains where to add your .creole files to be servers, and
-how you modify or replace the supplied .css or boilerplate files.
-See the instructions in the ##web.xml## file about the settings you can change.
-You can change the settings by editing the web.xml file or by using runtime
-configuration facilities provided by your application server.
-
 
 == License
 
 JCreole is copyrighted with an Apache 2.0 license by Axis Data Management Corp.
 See the ##LICENSE.txt## file in the ##doc## directory of all distributions.
+
+
+== Serving Creole Documents
+
+It's extremely easy to set up your own Creole Document Server, if you have
+a JEE application server running that you can deploy a webapp to.
+
+To present .creole documents from a web server, deploy either the docServer or
+springDocServer war file and throw your .creole documents under the
+WEB-INF/creole subdirectory with the exploded contents, using subdirectories
+however you wish to.  Depending on how you deploy, you will usually want to
+rename the war file without the version since the webapp context root will
+normally default to the war file name base (e.g. you probably want name
+"docServer" from "docServer.war", not "docServer-1.2.3" from
+"docServer-1.2.3.war".  "docServer-*.war" uses traditional a traditional JEE
+servlet; "springDocServer-*.war" uses a Spring alternative.
+For springDocServer, you can wire in any other bean properties using Spring
+methods, perhaps using the "applicationContext.xml" file.
+
+Both alternatives work the same way and have the same features.
+You can put non-creole content directly in the main directory (using
+subdirectories as desired) and you can directly reference these resources
+from your .creole files, as if /x/y.jpg were in directory /WEB-INF/creole/x/
+alongside /WEB-INF/creole/x/t.creole.  You can obviously enhance either web
+app however you want to, or you could integrate its functionality into another
+web app to give Creole functionality.
+
+
+== Developers
+For low-level work, e.g. low-level integration into another application (new or 
+existing), to use the API or to use parts as a third party libary, to branch
+this project or customize it, you can either pull or branch the code from
+Github, or get and extract the source zip file.  Either way, to get started,
+once you have the code, just run "##gradlew##" from the base directory.
 
 
 == Documentation

@@ -14,10 +14,13 @@
  - See the License for the specific language governing permissions and
  - limitations under the License.
 
- N.b.!  Unlike the default boilerplate, this one is not standalone.
- You don't need to place any files with it (i.e. there are no relative file
- dependencies), but there are dependencies to files in public Internet
- repositories (at least ajax.agoogleapis.com).
+ - N.b.!  Unlike the default boilerplate, this one is not standalone.
+ - You don't need to place any files with it (i.e. there are no relative file
+ - dependencies), but there are dependencies to files in public Internet
+ - repositories (at least ajax.agoogleapis.com).
+
+ - Boilerplate authors:  Use ! only for build-time parameter references.
+ - Build will fail if you use ! for runtime variables.
 -->
 <html>
 <head>
@@ -25,21 +28,21 @@
 <meta name="Generator" content="JCreole">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+  src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js">
 </script>
 <script type="text/javascript">
   if ("undefined" == (typeof jQuery)) {
       alert("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'");
+          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'");
       throw Error("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'");
+          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'");
   }
 </script>
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
+  src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js">
 </script>
 <link rel="stylesheet" type="text/css"
-href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css">
+href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/ui-lightness/jquery-ui.css">
 <script type="text/javascript">
   localLinkRe = /#(.+)$/;
   footNoteClones = [];
@@ -102,146 +105,169 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/
    * URLs not working to the .css file, for unknown reason.  */
    .pln{color:#000}@media screen{.str{color:#080}.kwd{color:#008}.com{color:#800}.typ{color:#606}.lit{color:#066}.pun,.opn,.clo{color:#660}.tag{color:#008}.atn{color:#606}.atv{color:#080}.dec,.var{color:#606}.fun{color:red}}@media print,projection{.str{color:#060}.kwd{color:#006;font-weight:bold}.com{color:#600;font-style:italic}.typ{color:#404;font-weight:bold}.lit{color:#044}.pun,.opn,.clo{color:#440}.tag{color:#006;font-weight:bold}.atn{color:#404}.atv{color:#060}}pre.prettyprint{padding:2px;border:1px solid #888}ol.linenums{margin-top:0;margin-bottom:0}li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8{list-style-type:none}li.L1,li.L3,li.L5,li.L7,li.L9{background:#eee}
   /*****  End of google-code-prettify inclusion  ********************/
-  body,table { font-size:16px; font-family:serif; }
-  tr { vertical-align:top; }
-  table.jcreole_data, table.jcreole_data input, table.jcreole_data select,
-  table.jcreole_data button,
-  table.jcreole_data textarea, table.jcreole_data td, table.jcreole_data th,
-  input, select, textarea, button, u, del, tt, sup, sub, pre, code  {
-      font-size:13px; font-family:sans-serif;
-  }
-  button { padding: 0; }
-  body {
-      margin-left:auto;
-      margin-right:auto;
-      background-color:white;
-      padding:10px;
-      margin:0;
-  }
-  img,p,div,form,table,pre,code {
-      margin:0;
-      padding:0;
-      border:0;
-      list-style-type:none;
-      background-repeat:no-repeat;
-  }
-  ul { margin-left:14px; padding-left:0; margin-top:0; margin-bottom:0; }
-  table hr {
-      height:1px;
-      clear:both;
-      /* margin:none: 0;  DisplayTag site had value of "none", which is illegal */
-      width:100%;
-  }
-  p { margin-top: 8px; margin-bottom:8px; }
-  table.jcreole_data thead th { vertical-align:bottom; }
 
-  /* FOLLOWING PILFERED (but extensively modified) FROM DISPLAYTABLE */
+  /******************************************************************
+   * Build-time including JCreole's site.css sample.
+   * Including inline so that our styles will not cause a network dependency. */
+   body,table { font-size:16px; font-family:serif; }
+tr { vertical-align:top; }
+table.jcreole_data, table.jcreole_data input, table.jcreole_data select,
+table.jcreole_data button,
+table.jcreole_data textarea, table.jcreole_data td, table.jcreole_data th,
+input, select, textarea, button, u, del, tt, sup, sub, pre, code  {
+    font-size:13px; font-family:sans-serif;
+    /* I have another version with font-size:82% here.  Which is better? */
+}
+/*  Redundant?
+div input, div select, div textarea, div button, div u, div del, div tt, div sup, div sub, div pre, div code  {
+    font-size:100%; font-family:sans-serif;
+}
+*/
+button { padding: 0; }
+body {
+    margin-left:auto;
+    margin-right:auto;
+    background-color:white;
+    padding:10px;
+    margin:0;
+}
+img,p,div,form,table,pre,code {
+    margin:0;
+    padding:0;
+    border:0;
+    list-style-type:none;
+    background-repeat:no-repeat;
+}
+ul { margin-left:14px; padding-left:0; margin-top:0; margin-bottom:0; }
+table hr {
+    height:1px;
+    clear:both;
+    /* margin:none: 0;  DisplayTag site had value of "none", which is illegal */
+    width:100%;
+}
+p { margin-top: 8px; margin-bottom:8px; }
+table.jcreole_data thead th { vertical-align:bottom; }
 
-  table.jcreole_data { border: 1px solid #666; }
+/* FOLLOWING PILFERED (but extensively modified) FROM DISPLAYTABLE */
 
-  table thead th, table td {
-      padding: 2px 4px 2px 4px !important;
-  }
-  table.jcreole_data tbody td {
-      text-align: left;
-      vertical-align: top;
-  }
-  table.jcreole_data thead th {
-      text-align: center;
-      vertical-align: bottom;
-  }
+table.jcreole_data { border: 1px solid #666; }
 
-  /* Don't set tr border or padding values.  It is non-portable. */
+table thead th, table td {
+    padding: 2px 4px 2px 4px !important;
+}
+table.jcreole_data tbody td {
+    text-align: left;
+    vertical-align: top;
+}
+table.jcreole_data thead th {
+    text-align: center;
+    vertical-align: bottom;
+}
 
-  table.jcreole_data thead tr { background-color: #fc0; }
-  /* Don't set tr border or padding values.  It is non-portable. */
+/* Don't set tr border or padding values.  It is non-portable. */
 
-  table.jcreole_data thead th a, table.jcreole_data thead th a:visited {
-      color: black;
-  }
+table.jcreole_data thead tr { background-color: #fc0; }
+/* Don't set tr border or padding values.  It is non-portable. */
 
-  table.jcreole_data thead th a:hover {
-      text-decoration: underline;
-      color: black;
-  }
+table.jcreole_data thead th a, table.jcreole_data thead th a:visited {
+    color: black;
+}
 
-  table.jcreole_data tbody tr.jcreole_odd { background-color: #ededed }
-  /* Don't set tr border or padding values.  It is non-portable. */
+table.jcreole_data thead th a:hover {
+    text-decoration: underline;
+    color: black;
+}
 
-  table.jcreole_data tbody tr.jcreole_even { background-color: #fea }
-  /* Don't set tr border or padding values.  It is non-portable. */
+table.jcreole_data tbody tr.jcreole_odd { background-color: #ededed }
+/* Don't set tr border or padding values.  It is non-portable. */
 
-  .jcreole_orphanLink {
-      background-color:red;
-      color:black;
-      font-weight:bold;
-  }
+table.jcreole_data tbody tr.jcreole_even { background-color: #fea }
+/* Don't set tr border or padding values.  It is non-portable. */
 
-  div.jcreole_footer {
-      font-size: 12px;
-      font-family: sans-serif;
-      text-align:center;
-  }
+   .jcreole_orphanLink {
+    background-color:red;
+    color:black;
+    font-weight:bold;
+}
 
-  div.jcreole .yellow { background-color:yellow; }
+div.jcreole_footer {
+    font-size: 12px;
+    font-family: sans-serif;
+    text-align:center;
+}
 
-  div.jcx_toc { font-size:12px; }
-  div.jcx_toc span.jcx_enum { font-variant:normal; font-weight:bold; }
-  h1 span.jcx_enum, h2 span.jcx_enum, h3 span.jcx_enum,
-  h4 span.jcx_enum, h5 span.jcx_enum, h6 span.jcx_enum { font-family:serif; }
+div.jcx_toc span.jcx_enum {
+    font-size:90%;
+    font-variant:normal;
+    font-weight:bold:
+}
+h1 span.jcx_enum, h2 span.jcx_enum, h3 span.jcx_enum,
+h4 span.jcx_enum, h5 span.jcx_enum, h6 span.jcx_enum { font-family:serif; }
 
-  div.reftoc { float:right; margin-left:50px; font-variant:small-caps; }
+div.reftoc { float:right; margin-left:50px; font-variant:small-caps; }
 
-  div.jcreole div.clear { clear:both; }
+h6 { margin:0; }
+h6 span.jcreole_hbody { background-color:#DDDDDD; }
+h1 {
+    margin-top:0;
+    text-align:center;
+    background-color:#F8F8F8;
+    border:solid #DDDDDD 1px;
+    padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
+}
+h1 span.jcreole_hbody {
+    margin:0;
+    padding-top:0; padding-bottom:0; padding-left:0; padding-right:0;
+}
+h2 span.jcreole_hbody, h3 span.jcreole_hbody {
+    background-color:#F4F4F4;
+    border:solid #DDDDDD 2px;
+}
+h4 span.jcreole_hbody, h5 span.jcreole_hbody { background-color:#F4F4F4; }
+h2 span.jcreole_hbody, h3 span.jcreole_hbody,
+h4 span.jcreole_hbody, h5 span.jcreole_hbody, h6 span.jcreole_hbody {
+    margin:0;
+    padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
+}
 
-  h6 { margin:0; }
-  h6 span.jcreole_hbody {
-      font-family:monospace;
-      font-size:14px;
-      background-color:#DDDDDD;
-  }
-  h1 {
-      margin-top:0;
-      text-align:center;
-      background-color:#F8F8F8;
-      border:solid #DDDDDD 1px;
-      padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
-  }
-  h1 span.jcreole_hbody {
-      margin:0;
-      padding-top:0; padding-bottom:0; padding-left:0; padding-right:0;
-  }
-  h2 span.jcreole_hbody, h3 span.jcreole_hbody {
-      background-color:#F4F4F4;
-      border:solid #DDDDDD 2px;
-  }
-  h4 span.jcreole_hbody, h5 span.jcreole_hbody { background-color:#F4F4F4; }
-  h2 span.jcreole_hbody, h3 span.jcreole_hbody,
-  h4 span.jcreole_hbody, h5 span.jcreole_hbody, h6 span.jcreole_hbody {
-      margin:0;
-      padding-top:0; padding-bottom:0; padding-left:2px; padding-right:2px;
-  }
+span.jcx_enum { font-weight:bold; font-family:serif; }
+span.jcreole_strike { text-decoration: line-through; }
+span.jcreole_underline { text-decoration: underline; }
+span.jcreole_em { font-style: italic; }
+span.jcreole_strong { font-weight: bold; }
+span.jcreole_monospace { font-family: monospace; }
 
-  span.jcx_enum { font-weight:bold; font-family:serif; }
-  span.jcreole_strike { text-decoration: line-through; }
-  span.jcreole_underline { text-decoration: underline; }
-  span.jcreole_em { font-style: italic; }
-  span.jcreole_strong { font-weight: bold; }
-  span.jcreole_monospace { font-family: monospace; }
+/* Work-around for IEs idiotic default of static vertical scroll bar: */
+textarea { overflow: auto; }
 
-  span.jcreole_lh { font-weight:bolder; font-family:monospace; margin-right:10px; }
+span.jcreole_lh { font-weight:bolder; font-family:monospace; margin-right:10px; }
 
-  div.jcx_masterDef {
+div.jcx_masterDef {
     border: solid gray 2px;
     padding:0;
     display:inline-block;
-  }
-  dl { border-bottom: solid silver 1px; padding:4px; margin:1px; }
-  dt { font-weight: bolder; font-family:monospace; }
+}
+dl { border-bottom: solid silver 1px; padding:4px; margin:1px; }
+dt { font-weight: bolder; font-family:monospace; }
 
-  div.ui-tabs { font-size:16px; font-family:serif; }
+/* Due to complicated and non-portable inheritance font settings through
+ * ancestor block elements, setting an absolute size here instead of a % */
+div.ui-tabs { font-size:16px; font-family:serif; }
+
+pre.prettyprint { border:1px dashed blue; padding:5px; }
+
+  /*****  End of provided .css inclusions  ********************/
+
+  /* Ref-guide-specific OVERRIDES */
+  div.jcx_toc { font-size:12px; }
+  h6 span.jcreole_hbody {
+      font-size:14px;
+      font-family:monospace;
+  }
+  div.jcreole div.clear { clear:both; }
+  div.jcreole .yellow { background-color:yellow; }
 </style>
-<link rel="stylesheet" type="text/css" href="site.css" />
+<link rel="stylesheet" type="text/css" href="override.css" />
 
 </head>
 <body>
@@ -250,9 +276,13 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/
 
 <div class="jcx_toc">
 <ul class="jcx_toc">
-  <li><a href="#jcsect_GeneratingHtmlFromTheCommandLine">Generating HTML from the Command-Line</a></li>
-  <li><a href="#jcsect_License">License</a></li>
-  <li><a href="#jcsect_Documentation">Documentation</a></li>
+  <li><a href="#jcsect_UsingJcreole">Using JCreole</a><ul>
+    <li><a href="#jcsect_GeneratingHtmlFromTheCommandLine">Generating HTML from the Command-Line</a></li>
+    <li><a href="#jcsect_License">License</a></li>
+    <li><a href="#jcsect_ServingCreoleDocuments">Serving Creole Documents</a></li>
+    <li><a href="#jcsect_Developers">Developers</a></li>
+    <li><a href="#jcsect_Documentation">Documentation</a></li>
+  </ul></li>
 </ul>
 </div>
 
@@ -261,7 +291,11 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/
 <p>You can try out JCreole without downloading it, at <a href="http://admc.com/jcreole">http://admc.com/jcreole</a>.</p>
 
 <p>You can download JCreole at the project home at
-<a href="https://github.com/unsaved/jcreole">https://github.com/unsaved/jcreole</a>.</p>
+<a href="https://github.com/unsaved/jcreole">https://github.com/unsaved/jcreole</a>.
+From here
+you can get the distribution zip to run JCreole from the command-line, or either
+of two provided web applications, or the complete source zip file, or pull from
+the source code repository.</p>
 
 
 <h2 id="jcsect_GeneratingHtmlFromTheCommandLine"><span class="jcreole_hbody"> Generating HTML from the Command-Line</span></h2>
@@ -338,6 +372,40 @@ directory to list concise descriptions of the available targets.</p>
 See the <tt>LICENSE.txt</tt> file in the <tt>doc</tt> directory of all distributions.</p>
 
 
+<h2 id="jcsect_ServingCreoleDocuments"><span class="jcreole_hbody"> Serving Creole Documents</span></h2>
+
+<p>It's extremely easy to set up your own Creole Document Server, if you have
+a JEE application server running that you can deploy a webapp to.</p>
+
+<p>To present .creole documents from a web server, deploy either the docServer or
+springDocServer war file and throw your .creole documents under the
+WEB-INF/creole subdirectory with the exploded contents, using subdirectories
+however you wish to.  Depending on how you deploy, you will usually want to
+rename the war file without the version since the webapp context root will
+normally default to the war file name base (e.g. you probably want name
+&quot;docServer&quot; from &quot;docServer.war&quot;, not &quot;docServer-1.2.3&quot; from
+&quot;docServer-1.2.3.war&quot;.  &quot;docServer-*.war&quot; uses traditional a traditional JEE
+servlet; &quot;springDocServer-*.war&quot; uses a Spring alternative.
+For springDocServer, you can wire in any other bean properties using Spring
+methods, perhaps using the &quot;applicationContext.xml&quot; file.</p>
+
+<p>Both alternatives work the same way and have the same features.
+You can put non-creole content directly in the main directory (using
+subdirectories as desired) and you can directly reference these resources
+from your .creole files, as if /x/y.jpg were in directory /WEB-INF/creole/x/
+alongside /WEB-INF/creole/x/t.creole.  You can obviously enhance either web
+app however you want to, or you could integrate its functionality into another
+web app to give Creole functionality.</p>
+
+
+<h2 id="jcsect_Developers"><span class="jcreole_hbody"> Developers</span></h2>
+<p>For low-level work, e.g. low-level integration into another application (new or 
+existing), to use the API or to use parts as a third party libary, to branch
+this project or customize it, you can either pull or branch the code from
+Github, or get and extract the source zip file.  Either way, to get started,
+once you have the code, just run &quot;<tt>gradlew</tt>&quot; from the base directory.</p>
+
+
 <h2 id="jcsect_Documentation"><span class="jcreole_hbody"> Documentation</span></h2>
 
 <p>There are text documentation files in the doc subdirectory.</p>
@@ -366,7 +434,7 @@ comprehensive Creole tutorials.</p>
 </div>
 
 <hr>
-<div class="jcreole_footer">Generated by JCreole v. 1.1.3-SNAPSHOT @ 2012-01-10T18:51:49-0500.
+<div class="jcreole_footer">Generated by JCreole v. 1.2.0-SNAPSHOT @ 2013-01-07T11:53:13-0500.
 &nbsp; &nbsp; &nbsp; &nbsp;
 Apache 2 license &copy; 2011 by Axis Data Management Corp.</div>
 </body>

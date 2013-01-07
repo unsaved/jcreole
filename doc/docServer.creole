@@ -1,9 +1,10 @@
 =JCreole Document Server
 
-This is the place-holder home page for a JCreole Document Server web application.
+This is a place-holder .creole page for a JCreole Document Server web application.
+It applies to both the traditional Servlet version and the Spring version.
 
-The application administrator should edit or replace this file,
-("##index.creole##"), with something appropriate for your intentions.
+The application administrator should move/remove or edit this file,
+("##docServer.creole##"), with something appropriate for your intentions.
 In most cases, you will want to include links to other important pages on the
 site, or perhaps to each subdirectory.
 
@@ -13,9 +14,8 @@ to ##WEB-INF/creole##.
 //creoleSubdir// can be changed with a web app context parameter
 (web app context parameters may be changed in "##web.xml##" or by using
 container-specific facilities).
-Since ##creoleSubdir## is a relative path, it always indicates a location
-within the web application (see below about how to house your documents
-outside of the web application).
+if ##creoleSubdir## is a relative path, it is relative to the web application
+base directory.
 
 Web application developers should have no problem using the provided Servlet
 to add .creole-reading ability to their own web applications.
@@ -99,31 +99,6 @@ in a location outside of the web applications.
 If you do this, then you can update the web application without effecting your
 documents.
 
-The procedure explained here only works on UNIX, since Windows doesn't have
-symbolic links.
-I haven't tried this with Mingw/Msys or Cygwin on Windows, and don't know if
-that would work.
-
-You need to enable content sym-linking in your application server.
-You will not want to do this for an app server shared by multiple independent
-parties, or if anybody with privileges to write to content directories can't
-be trusted not to link to inappropriate files/directories.
-
-Create your creole directory branch somewhere else.
-After you deploy your docServer web application, delete the
-subdirectory ##WEB-INF/creole## then create a sym-link to replace it, like
-<<prettyPrint>>
-{{{
-  cd path/to/docServer/WEB-INF
-  mv -v creole /doc/repository
-  ln -s /doc/repository  creole
-}}}
-
-===GOTCHA
-Be aware that the most popular means of undeploying web applications will
-follow your sym-link and destroy content outside of the web application area.
-What usually works is to manually or automatically remove the sym link before
-undeploying, but **definitely test this ahead of time**.
-I am not responsible if you make dangerous assumptions without testing them.
-If you aren't certain, then don't do anything without a full backup of your
-document repository.
+Just specify an absolute ##creoleSubdir## (as described above) for a directory
+that is not under the web application base directory.  Before adding your own
+files, copy into this new directory the supplied files in ##WEB-INF/creole##.
