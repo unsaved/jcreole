@@ -8,6 +8,9 @@ JCreole is a program that...
     client/server, web app,...) to dynamically generate high quality HTML from
     creole text.
 
+Seems the Github no longer provides software download services.
+Please visit http://admc.com/projectdocs/jcreole/using.html for download links.
+
 Basic usage instructions are at
 http://admc.com/projectdocs/jcreole/using.html
 
