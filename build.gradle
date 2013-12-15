@@ -3,8 +3,8 @@ defaultTasks 'jar'
 buildscript {
     repositories { mavenCentral() }
     dependencies {
-        classpath 'com.admc:gradle-javaPropFile-plugin:latest.integration'
-        classpath 'com.admc:gradle-ivyxml-plugin:latest.integration'
+        classpath 'com.admc:gradle-javaPropFile-plugin:0.6.0'
+        classpath 'com.admc:gradle-ivyxml-plugin:0.3.3'
     }
 }
 
@@ -123,18 +123,18 @@ jflex << {
 jflex.description = '''Generate JFlex scanner 'CreoleScanner'.'''
 jflex.dependsOn << { GradleUtil.verifyResolve(configurations.jflex) }
 
-// This task only for SCM administrator.  Update version and execute this task.
-task updateWrapper(type: Wrapper) { doFirst {
+// This task only for SCM administrator.  Upgrade version and execute this task.
+task upgradeWrapper(type: Wrapper) { doFirst {
     assert project.hasProperty('newVersion') :
-        '''Property 'newVersion' is required for task 'updateWrapper'.'''
+        '''Property 'newVersion' is required for task 'upgradeWrapper'.'''
     assert project.newVersion == gradle.gradleVersion :
         "You invoked Gradle system with version $gradle.gradleVersion instead of desired version $project.newVersion"
 } }
-updateWrapper << {
+upgradeWrapper << {
     gradleVersion = project['newVersion']
     println 'WARNING:  Merge our customizations into the newly-generated wrapper scripts'
 }
-updateWrapper.description = 'Update Gradle version.  For SCM Administrators.'
+upgradeWrapper.description = 'Upgrade Gradle version.  For SCM Administrators.'
 
 task serialver(dependsOn: compileJava) << {
     assert project.hasProperty('className'):
