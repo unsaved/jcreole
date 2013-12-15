@@ -1,3 +1,20 @@
+Document the recent behavior change to <prettyPrint> {{{
+Exactly where can and can't you use these tokens?
+
+Add type support for JCreole ordered lists, per
+    http://www.w3schools.com/tags/att_ol_type.asp
+
+Update JCreole.java SYNTAX_MSG to
+    a. Specify exact filename of "built-in boilerplate", DEFAULT_BP_RES_PATH.
+    b. Display example of using the alternate one:  -r /boilerplate-standalone.html
+
+Inside of all *boiler*html files, write up top:
+    Ultimate source of content starting here is "realfilename.html".
+    Correct WEB-INF/creole/boilerplate.html amd boilerplate-inet.html
+      to say "the standalone boilerplate" instead of "the default boil..."
+
+
+
 LONG TERM
 
 Support arbitrary href-linking.
