@@ -1,5 +1,6 @@
 Document the recent behavior change to <prettyPrint> {{{
 Exactly where can and can't you use these tokens?
+    {{{...}}} serves two different but related purposes
 
 Add type support for JCreole ordered lists, per
     http://www.w3schools.com/tags/att_ol_type.asp
