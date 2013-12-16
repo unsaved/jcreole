@@ -1,0 +1,19 @@
+Compatibility-effecting Changes
+
+For version 1.2.0 escaping rules were made more general.
+See the Reference guide for full rules.  Abbreviated rules are:
+    ~ escapes the following character, with exceptions
+        {{{...}}} bodies (including closing "}}}") may not be escaped
+        <<...>> bodies (including closing ">>") may not be escaped
+        http[s] URLs are not treated as URLs if immediately proced with ~
+    {{{...}}} only cause pre-formatting if both the "{{{" and the "}}}" are only thing on their respective lines.  Otherwise it causes just regular character escaping.
+    <<prettyPrint...> is not allowed inside of paragraphs.
+    <<prettyPrint...> is allowed inside of lists.
+    $[x] vars escaped with \ or ~. ${x} vars escaped with \.
+
+For version 1.2.0 variable usage was generalized and improved.
+    $(x) variable substitution is done above the JCreole layer (Servlet or Java main layer, for example).
+    $[x] variables are de-referenced early and are substituted into Creole.
+    ${x} variables are de-referenced late and are substituted into HTML.
+
+Some API changes to JCreole methods to accommodate variable usage changes (see previous item).

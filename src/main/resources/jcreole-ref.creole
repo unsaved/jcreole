@@ -154,23 +154,23 @@ Looks like\\
 
 === Preventing markup interpretation
 ...by prefixing the special character(s) with ~~, or by enclosing the text with
-~{{{ and ~}}}.
-These tactics are called //escaping//, and the last method is called //Nowiki//.
-(Nowiki where ~{{{ and ~}}} are on separate lines with no blank space also
-cause the enclosed, escaped text to be wrapped in a HTML //pre// element).\\
+##~{{{## and ##~}}}##.
+These tactics are called //escaping//, and the latter method is called //Nowiki//.
+Nowiki where ##~{{{## and ##~}}}## are on separate lines with no blank space also
+cause the enclosed, escaped text to be wrapped in a HTML //pre// element.\\
 ======{{{Works like this with <<>> __ \\ Special characters}}}.
 
 ~~ normally escapes just the special markup character following it.
 The exceptions where ~~ escapes more than one following character are
 (1) immediately before an URL will prevent bare-URL linking; and
-(2) immediately before "{{{" will escape the entire "{{{".
+(2) immediately before "##~{{{##" will escape the entire "##~{{{##".
 
-It makes no sense to escape inside of ~<<plugins>> (including the comment
-plugins), or ~{{{...}}} literals, because those spans of text are already
+It makes no sense to escape inside of ##~<<plugins>>## (including the comment
+plugins), or ##~{{{...}}}## literals, because those spans of text are already
 escaped.
 It is not possible to escape the closing markers for these elements because, as
 I said, ~~ is not allowed in these situations.
-Therefore, ~>> in a plugin will //always// close the current plugin, and ~}}}
+Therefore, ~>> in a plugin tag will //always// close the current plugin, and ~}}}
 will always close the current Nowki.
 
 See the [[#jcsect_EmDash]] section about escaping hyphens.
@@ -182,20 +182,21 @@ To avoid this level of translation you would need to use the [[#jcsect_RawHtml]]
 directive.
 
 Creole variables like $[this], assuming they are enabled for your application,
-can be escaped with tilde or with tilde or backslash.
-Variables like \${this} and  can be escaped with backslash.
+can be escaped with tilde or with backslash.
+Variables like \${this} can be escaped with backslash.
 But if you know that your application does not define the referenced
 variable, then you don't need to do anything, because unless you prefix your
 variable name with ! or -, undefined variable references are left exactly as-is.
 ======With tildes like {{{$~[this].}}}
 ======With backslashes like {{{\}}}$~{this} and \$[this].
 
-=== Code Blocks
+=== Preformatting
 ======~{{{\\...\\~}}}
-This is a Creole-specified special case for the ~{{{...~}}} operator described
-in the previous item.
+Preformatting is extreme escaping.
+Whereas escaping will prevent the special meaning for the creole text, with preformatting your white-space and formatting will be preserved and JCreole won't attempt to format it.
+This is specified with a Creole-specified special case for the ~{{{...~}}} operator described in the previous item.
 When the ~{{{ and ~}}} are alone on their respective lines, the interceding
-text is displayed with the author-typed formatted (via HTML ##pre## tag).
+text is displayed with the author-typed formatting (via HTML ##pre## tag).
 Since ##pre## is usually styled with a monospaced font, it works great for
 code sample blocks.
 {{{
@@ -208,7 +209,7 @@ public:
 }
 }}}
 You could definitely user Stylers to indent or decorate the code block however
-you wish to, but jost authors will want their code sample code pretty-printed,
+you wish to, but most authors will want their code pretty-printed,
 so see the [[#jcsect_PrettyPrintedCode]] section.
 
 === Hard linebreaks
@@ -460,14 +461,19 @@ display of table-of-contents).
 
 === Pretty-printed Code
 ======{{{<<prettyPrint>>}}}\\~{{{\\...\\~}}}
-The ##{{{<<addClass>>}}} directive is an optional enhancement for //nowiki//
-##~{{{...~}}}## code blocks as described in the [[#jcsect_CodeBlocks]] section.
+The ##{{{<<addClass>>}}}## directive is an optional enhancement for //nowiki//
+##~{{{...~}}}## preformatted blocks as described in the [[#jcsect_Preformatting]] section.
+** The ##{{{<<prettyPrint>>}}}## directive may only be used on the line before a Preformatting opening ##~{{{##. **
 
 Since nowiki ##~{{{## must always be the only thing on a line, your code to be
 pretty-printed must be preceded by "##{{{<<prettyPrint>>}}}##" and then a line
 containing only "##{{{{{{}}}##".
 (Except that you may add CSS class specifiers right after ##prettyPrint##.
 See below about that).
+
+{{{<<prettyPrint>>}}} is not allowed inside paragraphs.
+If you start a line with it after a paragraph has begun, it will end the paragraph.
+{{{<<prettyPrint>>}}} is allowed inside of lists.
 
 Sample creole:
 {{{
