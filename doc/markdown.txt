@@ -1,0 +1,79 @@
+Contemplating supporting Markdown syntax
+
+http://daringfireball.net/projects/markdown/syntax#list
+Implementations
+    https://sourceforge.net/p/forge/documentation/markdown_syntax/
+    http://stackoverflow.com/editing-help
+    https://help.github.com/articles/markdown-basics + https://help.github.com/articles/github-flavored-markdown
+
+
+Operator to specify my customization values
+<!-- keyword: value -->  Like stackoverflow.com's syntax highlighting operation
+:::metadata   Like Sourceforge's code language specifier
+[[macroname attr1=val1 attr2=val2]]  Used generally on Sourceforge
+
+
+Perhaps biggest diff from Creole is that <html> is generally permitted.
+Markdown text is scanned for angle brackets of HTML tags, and they are not escaped.
+# not for lists nor for <tt>.
+
+There are conflicting differences between
+    https://help.github.com/articles/github-flavored-markdown
+and
+    http://stackoverflow.com/editing-help
+E.g. syntax highlighting
+    ```ruby
+    ...
+    ```
+vs.
+    <!-- language*: * -->
+
+Biggest diff for GFM format is that internal newlines are significant.
+For regular, end line with "  " to generate a <br />.
+
+Sourceforg eonly has [TOC] for the obivious purpose.
+
+Sourceforge only has [[include ref=SamplePage]]
+
+List
+    List operators must be followed by blank line.  This distinguishes from inlines.
+    Must be preceded by a blank line.  Says this, but untrue.  UNTRUE
+    Blank lines between items cause items to be <p>-wrapped.
+        (How many and where blank lines are required seems unspecified)
+    Follow-up paragraphs must begin with 4 spaces
+    To embed code or blockquotes, just add 4 spaces before your operator.
+    Ident "another" 4 spaces for nested list elements
+
+No way to do non-code pre-formatting.  :(
+Looks like Sourceforge Markdown does not assume code.  Need to check what HTML gets created.
+
+Code
+    Prefix every line by 4 spaces, which will be subtracted.
+    Markdown disabled in here.
+
+Blockquotes are just offset and marked.  No Markdown disabling.
+
+Paired operators must be closed and may not span block elements.
+
+An `inline code` span.  <code> similar to <tt> monospaced font, but also disables Markdown interpretation.
+
+Escaping generally \, but ` escaped with ``.
+Check how to escape HTML tags on the others.  Sourceforge requires you to enter character entity codes.
+
+URLs inside of <> to make explicit (for self-labeled).
+
+[implSpecificArtifactLinks]
+
+Tables.  Dashes and pipes and MUST FULLY UNDERSCORE HEADER LINE FIELDS.
+No initial pipe.
+Header line and underscore line required.
+
+Headers # style generally.  == and -- underscore for h1 and h2.
+
+--- or more for hr.  Must follow a blank line.
+
+[URL label](http://url "Tool tip text")
+The URL may just a case-insensitive reference defined elsewhere like:
+    [reference]: http://the.url "tool tip"
+Image same but preceded by ! Label is used for alt text.
+file: URLs don't work, but plain non-URL paths work right.
