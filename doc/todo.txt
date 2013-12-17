@@ -1,3 +1,5 @@
+Rename of fork this project to have a more generic Wikitext name, like JWikitext, to accommodate support of syntaxes other than Creole.
+
 Implement a manual testing switch for JCreole, where it reads in all lines of input and keeps attempting to parse it until it succeeds and then reports the input line number.
 
 Add type support for JCreole ordered lists, per
@@ -6,11 +8,6 @@ Add type support for JCreole ordered lists, per
 Update JCreole.java SYNTAX_MSG to
     a. Specify exact filename of "built-in boilerplate", DEFAULT_BP_RES_PATH.
     b. Display example of using the alternate one:  -r /boilerplate-standalone.html
-
-Inside of all *boiler*html files, write up top:
-    Ultimate source of content starting here is "realfilename.html".
-    Correct WEB-INF/creole/boilerplate.html amd boilerplate-inet.html
-      to say "the standalone boilerplate" instead of "the default boil..."
 
 
 
