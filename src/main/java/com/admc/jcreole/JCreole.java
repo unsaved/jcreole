@@ -96,9 +96,14 @@ public class JCreole {
         +    DEFAULT_BP_RES_PATH + "\").\n"
         + "  -:         No boilerplate.  Output will be just a HTML fragment.\n"
         + "  -r path:   Load specified boilerplate file from Classpath.\n"
+        + "             Example:  -r /boilerplate-standalone.html\n"
         + "  -f path:   Load specified boilerplate file from file system.\n"
         + "  -d option: Loads an IntraWiki-link debug mapper and a sample\n"
         + "             creoleMapper from 'testMacro'.\n"
+        + "  -t:        Troubleshoot failing Creole input.\n"
+        + "             This does not output HTML but reports on likely error "
+        +               "location.  Best effort that doesn't work with some "
+        +               "paired tags.\n"
         + "If either -r or -f is specified, the specified boilerplate should "
         + "include\n'$(pageContent)' at the point(s) where you want content "
         + "generated from your Creole\ninserted.\n"
@@ -174,12 +179,17 @@ public class JCreole {
         String outPath = null;
         String inPath = null;
         boolean debugs = false;
+        boolean troubleshoot = false;
         boolean noBp = false;
         int param = -1;
         try {
             while (++param < sa.length) {
                 if (sa[param].equals("-d")) {
                     debugs = true;
+                    continue;
+                }
+                if (sa[param].equals("-t")) {
+                    troubleshoot = true;
                     continue;
                 }
                 if (sa[param].equals("-r") && param + 1 < sa.length) {
@@ -273,6 +283,43 @@ public class JCreole {
                 ? creoleResPath.replaceFirst("[.][^.]*$", "")
                     .replaceFirst(".*[/\\\\.]", "")
                 : inFile.getName().replaceFirst("[.][^.]*$", ""));
+        if (troubleshoot) {
+            // We don't write any HMTL output here.
+            // Goal is just to output diagnostics.
+            StringBuilder builder = (creoleStream == null)
+                    ? IOUtil.toStringBuilder(inFile)
+                    : IOUtil.toStringBuilder(creoleStream);
+            int newlineCount = 0;
+            int lastOffset = -1;
+            int offset = builder.indexOf("\n");
+            for (; offset >= 0; offset = builder.indexOf("\n", offset + 1)) {
+                lastOffset = offset;
+                newlineCount++;
+            }
+            // Accommodate input files with no terminating newline:
+            if (builder.length() > lastOffset + 1) newlineCount++;
+            System.out.println("Input lines:  " + newlineCount);
+            Exception lastException = null;
+            while (true) {
+                try {
+                    jCreole.parseCreole(builder);
+                    break;
+                } catch (Exception e) {
+                    lastException = e;
+                }
+                if (builder.charAt(builder.length() - 1) == '\n')
+                    builder.setLength(builder.length() - 1);
+                offset = builder.lastIndexOf("\n");
+                if (offset < 1) break;
+                newlineCount--;
+                builder.setLength(builder.lastIndexOf("\n"));
+            }
+            System.out.println((lastException == null)
+                    ? "Input validates"
+                    : String.format("Error around input line %d:  %s",
+                              newlineCount, lastException.getMessage()));
+            return;
+        }
         String generatedHtml = (creoleStream == null)
                 ? jCreole.parseCreole(inFile)
                 : jCreole.parseCreole(IOUtil.toStringBuilder(creoleStream));
