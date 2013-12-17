@@ -92,10 +92,12 @@ public class JCreole {
         "java -jar .../jcreole-*.jar [-d] [-] [-r /classpath/boiler.html] "
         + "[-f fs/boiler.html] [-o fspath/out.html] pathto/input.creole\n\n"
         + "The -, -r, and -f options are mutually exclusive.\n"
-        + "  NONE:    Default built-in boilerplate.\n"
-        + "  -:       No boilerplate.  Output will be just a HTML fragment.\n"
-        + "  -r path: Load specified boilerplate file from Classpath.\n"
-        + "  -f path: Load specified boilerplate file from file system.\n"
+        + "  NONE:      Default built-in boilerplate.\n"
+        + "  -:         No boilerplate.  Output will be just a HTML fragment.\n"
+        + "  -r path:   Load specified boilerplate file from Classpath.\n"
+        + "  -f path:   Load specified boilerplate file from file system.\n"
+        + "  -d option: Loads an IntraWiki-link debug mapper and a sample\n"
+        + "             creoleMapper from 'testMacro'.\n"
         + "If either -r or -f is specified, the specified boilerplate should "
         + "include\n'$(pageContent)' at the point(s) where you want content "
         + "generated from your Creole\ninserted.\n"
@@ -104,8 +106,6 @@ public class JCreole {
         + "The input Creole file is sought first in the classpath "
         + "(relative to classpath\n"
         + "roots) then falls back to looking for a filesystem file.\n"
-        + "The -d option loads an IntraWiki-link debug mapper and a sample\n"
-        + "creoleMapper from 'testMacro'.\n"
         + "Output is always written with UTF-8 encoding.";
 
     protected CreoleParser parser = new CreoleParser();
