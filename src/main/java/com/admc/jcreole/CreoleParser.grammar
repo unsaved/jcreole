@@ -51,8 +51,8 @@
             "(?s)([-+=])(block|inline|jcxSpan|jcxBlock)\\s+(.*[-\\w])");
     public static final Pattern CssNamesPattern =
             Pattern.compile("[a-zA-Z_][-\\w]*(?:\\s+[a-zA-Z_][-\\w]*)*");
-    public static final Pattern EnumFormatPattern =
-            Pattern.compile("[_xaA01]{6}");
+    public static final Pattern EnumSymbolsPattern =
+            Pattern.compile("[_xaA01iI]{6}");
     public static final Pattern SlashDelimitedPattern =
             Pattern.compile("([^/]+)?(?:/\\s*(\\S+))?");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
@@ -62,44 +62,59 @@
      * Defaults to displaying no section enumeration labels (in body headings
      * or in TOCs) and skips heading levels 5 and 6 in TOCs.
      */
-    public static final String DEFAULT_ENUMERATION_FORMATS = "____xx";
+    public static final String DEFAULT_SECT_ENUM_SYMBOLS = "____xx";
     public static final EnumSet<JCreolePrivilege> DEFAULT_PLUGIN_PRIVILEGES =
         EnumSet.noneOf(JCreolePrivilege.class);
 
     private boolean wrote;  // Just used to write block-separating blank lines
-    private boolean authorSetEnumFormats;
+    private boolean authorSetSectSymbols;
     private boolean indexAdded, masterDefListAdded, footNotesAdded;
     private InterWikiMapper interWikiMapper;
-    private int lastMarkerId = 0;
-    private int ewinCount = 0;
-    private int tabCount = 0;
+    private int lastMarkerId;
+    private int ewinCount;
+    private int tabCount;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
     // hIds is only for checking ID uniqueness
     private Set<String> hIds = new HashSet<String>();
     private String sectIdPrefix = "jcsect_";
-    private String enumerationFormats = DEFAULT_ENUMERATION_FORMATS;
+    private String sectEnumSymbols = DEFAULT_SECT_ENUM_SYMBOLS;
+    private String listEnumSymbols;
     private Character formatResetChar;
     private EnumSet<JCreolePrivilege> jcreolePrivs = DEFAULT_PLUGIN_PRIVILEGES;
 
     /**
-     * Set enumeration formats to display section/heading enumerations in TOCs
+     * Legacy wrapper
+     */
+    public void setEnumerationFormats(String enumerationFormats) {
+        setEnumSymbols(enumerationFormats, true);
+    }
+
+    /**
+     * Set enumeration symbols to display insection/heading enumerations in TOCs
      * (if any) and in headings.
      * <p>
      * By default, no section/header enumerations are shown.
-     * Creole authors can alternatively use the &lt;&lt;enumFormats&gt;&gt;
+     * Creole authors can alternatively use the &lt;&lt;sectionEnumSymbols&gt;&gt;
+     * or &lt;&lt;listEnumSymbols&gt;&gt;
      * plugin directive to accomplish the same thing (assuming that they have
      * adequate privileges to do so).
      * </p>
+     *
+     * @param forSection.
+     *        If true apply to sections; if false apply to ordered lists.
      */
-    public void setEnumerationFormats(String enumerationFormats) {
-        if (enumerationFormats == null)
+    public void setEnumSymbols(String symbolString, boolean forSection) {
+        if (symbolString == null)
             throw new NullPointerException(
-                    "enumerationFormats may not be null");
-        if (!EnumFormatPattern.matcher(enumerationFormats).matches())
+                    "symbolString may not be null");
+        if (!EnumSymbolsPattern.matcher(symbolString).matches())
             throw new IllegalArgumentException(
-                    "Malformatted enumerationFormats: " + enumerationFormats);
-        this.enumerationFormats = enumerationFormats;
+                    "Malformatted symbolString: " + symbolString);
+        if (forSection)
+            this.sectEnumSymbols = symbolString;
+        else
+            this.listEnumSymbols = symbolString;
     }
 
     /**
@@ -285,6 +300,12 @@
                 sb.append(markClose(TagType.BLOCK)).append("</li>\n");
             } else if (liSymbol.getLevel() == curLevel + 1) {
                 char enumSymbol = liSymbol.getEnumSymbol();
+                if (enumSymbol == '\0' && listEnumSymbols != null) {
+                    char globalSymbol =
+                          listEnumSymbols.charAt(liSymbol.getLevel() - 1);
+                    if (globalSymbol != '_' && globalSymbol != 'x')
+                        enumSymbol = globalSymbol;
+                }
                 sb.append('<').append(tagName)
                         .append(markBlock(tagName, true, false));
                 if (enumSymbol != '\0')
@@ -565,6 +586,7 @@
 %terminals ROOTLVL_RAWHTML, NESTED_RAWHTML, TOC, EMDASH, NESTED_NOWIKI;
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
 %terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED, TAB;
+%terminals ROOTLVL_LISTFORMATS, NESTED_LISTFORMATS;
 
 %typeof ROOTLVL_NOWIKI, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
@@ -573,6 +595,7 @@
 %typeof MASTERDEFLIST, FOOTNOTES, FOOTREF, INDEXED, INDEX = "String";
 %typeof NESTED_NOWIKI = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
+%typeof ROOTLVL_LISTFORMATS, NESTED_LISTFORMATS = "String";
 %typeof listnest, dl = "WashedSymbol";
 
 %goal blocks;
@@ -583,7 +606,7 @@ blocks = topblock.b+ {:
             // Following sets formats for headers and default section labels in
             // TOCs, but has no effect on TOC inclusion.
             return new WashedSymbol(
-                    markers.apply(sb, enumerationFormats).toString());
+                    markers.apply(sb, sectEnumSymbols).toString());
         :}
         | {: return new WashedSymbol("");:};  // This allows for empty document
 
@@ -661,20 +684,29 @@ leafblock = ROOTLVL_NOWIKI.text {:
         :}
         | ROOTLVL_ENUMFORMATS.text {:
             require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
-            if (!EnumFormatPattern.matcher(text).matches())
+            if (!EnumSymbolsPattern.matcher(text).matches())
                 throw new CreoleParseException(
-                        "Malformatted enumFormats: " + text,
+                        "Malformatted sectionEnumSymbols: " + text,
                         (Token) _symbol_text);
-            if (authorSetEnumFormats)
+            if (authorSetSectSymbols)
                 throw new CreoleParseException(
-                        "Attempted to set enumFormats a second time.  "
+                        "Attempted to set sectionEnumSymbols a second time.  "
                         + "This is a global and location-independent setting, "
                         + "so remove the setting that you don't want.  "
-                        + "Use enumFormatReset directive if you want to change "
-                        + "formatting in a location-dependent way.",
+                        + "Use sectionEnumReset directive if you want to change "
+                        + "symbols in a location-dependent way.",
                         (Token) _symbol_text);
-            authorSetEnumFormats = true;
-            enumerationFormats = text;
+            authorSetSectSymbols = true;
+            sectEnumSymbols = text;
+            return DUMMY_WASHEDSYMBOL;
+        :}
+        | ROOTLVL_LISTFORMATS.text {:
+            require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
+            if (!EnumSymbolsPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted listEnumSymbols: " + text,
+                        (Token) _symbol_text);
+            listEnumSymbols = text;
             return DUMMY_WASHEDSYMBOL;
         :}
         | inline.f+ END_PARA.text {:
@@ -720,7 +752,7 @@ leafblock = ROOTLVL_NOWIKI.text {:
                         && !CssNamesPattern.matcher(classNames).matches())
                     throw new java.lang.Exception("bad CSS Name(s)");
                 if (sectInclusions != null
-                        && !EnumFormatPattern.matcher(sectInclusions).matches())
+                        && !EnumSymbolsPattern.matcher(sectInclusions).matches())
                     throw new java.lang.Exception(
                             "bad section-inclusion pattern");
             } catch (java.lang.Exception e) {
@@ -980,7 +1012,7 @@ hinline = inline.s {:
             require(JCreolePrivilege.ENUMFORMAT, _symbol_formatStr);
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
-                        "Malformatted format char in enumFormatReset "
+                        "Malformatted format char in sectoinEnumReset "
                         + "directive: " + formatStr,
                         (Token) _symbol_formatStr);
             formatResetChar = Character.valueOf(formatStr.charAt(0));
@@ -999,20 +1031,29 @@ inline = NESTED_PRE.text {:
         :}
         | NESTED_ENUMFORMATS.text {:
             require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
-            if (!EnumFormatPattern.matcher(text).matches())
+            if (!EnumSymbolsPattern.matcher(text).matches())
                 throw new CreoleParseException(
-                        "Malformatted enumFormats: " + text,
+                        "Malformatted sectionEnumSymbols: " + text,
                         (Token) _symbol_text);
-            if (authorSetEnumFormats)
+            if (authorSetSectSymbols)
                 throw new CreoleParseException(
-                        "Attempted to set enumFormats a second time.  "
+                        "Attempted to set sectionEnumSymbols a second time.  "
                         + "This is a global and location-independent setting, "
                         + "so remove the setting that you don't want.  "
-                        + "Use enumFormatReset directive if you want to change "
-                        + "formatting in a location-dependent way.",
+                        + "Use sectionEnumSymbols directive if you want to change "
+                        + "symbols in a location-dependent way.",
                         (Token) _symbol_text);
-            authorSetEnumFormats = true;
-            enumerationFormats = text;
+            authorSetSectSymbols = true;
+            sectEnumSymbols = text;
+            return DUMMY_WASHEDSYMBOL;
+        :}
+        | NESTED_LISTFORMATS.text {:
+            require(JCreolePrivilege.ENUMFORMAT, _symbol_text);
+            if (!EnumSymbolsPattern.matcher(text).matches())
+                throw new CreoleParseException(
+                        "Malformatted sectionEnumSymbols: " + text,
+                        (Token) _symbol_text);
+            listEnumSymbols = text;
             return DUMMY_WASHEDSYMBOL;
         :}
         | JCXSPAN.text {:

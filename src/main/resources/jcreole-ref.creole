@@ -8,7 +8,7 @@
   constrain privileges and decorate so as to match the embedding application.
 >>
 
-<<enumFormats x1a_xx>>
+<<sectionEnumSymbols x1a_xx>>
 
 = JCreole Author Reference
 
@@ -238,9 +238,9 @@ from external pages, to use in CSS selectors, or for any other purpose.
 === Automatic Link Labels
 ======{{{[[#jcsect_PlainText]]}}}
 If you don't supply a label, then labels are created automatically when you
-write links to header/sections in the same page (these will begin with #).
+write links to headings/sections in the same page (these will begin with #).
 (And also for inter-wiki links if your application supports that).
-Note that we prefix the header link names that we create with ##jcsect_##,
+Note that we prefix the heading link names that we create with ##jcsect_##,
 to prevent naming collisions with your own content or third party products.\\
 An auto-labeled link to the Plain text section looks like this:
 [[#jcsect_PlainText]].
@@ -319,7 +319,20 @@ would display an input line of "##{{{#=Like|this}}} as a list item with content
 #=Like|this
 
 === List Enumeration Symbols
-To change ordered list symbols from normal digits, you add an enumeration symbol specifier to the first list item of the list.
+To change ordered list symbols from normal digits, you set a general rule for what symbols to use for ordered list items at each nesting level and/or add an enumeration symbol specifier to the first list item of the list.
+Specifiers in lists override the document-level setting.
+
+==== Document List Enumeration Symbol Rules
+======{{{<<listEnumSymbols 1iAa__>>}}}
+By default, ordered lists will be enumerated with the default ordered list symbol set of the presentation layer (usually HTML).
+The command above says to enumerate top-level ({{{#}}}) list items like "1", "2',
+"3",... to enumerate second-level ({{{##}}}) list items like "i", "ii"..., etc.
+
+To make it clear that the ##listEnumSymbols## directive sets a state and is in no way a //part// of
+any other element, it must be placed on a line by itself, separated from other content.
+You can use multuple ##listEnumSymbol##s in a document, each one effecting list items from it's location down to the next ##listEnumSymbol##.
+
+==== List-specific Enumeration Symbols
 The specifier is one of 1 (default), a, A, i, I, followed immediatley by #.
 The specifier immediately follows the # character(s) at the beginning of the line.
 (If also specifying = to make this same item a headed list item too, then this enumeration specifier must immediately follow the = instead).
@@ -623,39 +636,39 @@ Comments written this way never make it to the HTML page.
 These comments can be seen by end-users who know how to view source HTML.
 
 === Section Enumeration
-======{{{<<enumFormats A1a1_x>>}}}
+======{{{<<sectionEnumSymbols A1a1_x>>}}}
 By default, no headings/sections in the generated page will be enumerated.
 The command above says to enumerate top-level (h1) headings like "A", "B',
-"C",... and to level the second-level (h2) headings like "1", "2"...
+"C",... and to enumerate the second-level (h2) headings like "1", "2"..., etc.
 This effects both headings in the main body and TOCs if you add any (see the
 [[#jcsect_TocTableOfContents]] directive below).
 
-You may only use one enumFormat directive on a single page, since there is only
+You may only use one ##sectionEnumSymbols## directive on a single page, since there is only
 one such setting for a page (and location of the directive doesn't matter).
-The [[#jcsect_ResettingEnumerations|enumFormatReset]] and
+The [[#jcsect_ResettingSectionEnumerations|sectionEnumReset]] and
 [[#jcsect_TocTableOfContents|toc]] directives can be used to make
-location-specific adjustments to the global page enumFormat.
-To make it clear that a ##styleSheet## directive is in no way a //part// of
-any other element, it must be placed on a line by itself.
+location-specific adjustments to the document-wide sectionEnumSymbols.
+To make it clear that a ##sectionEnumSymbols## directive is in no way a //part// of
+any other element, it must be placed on a line by itself, separated from other content.
 
-See the [[#jcsect_EnumerationFormats]] section below about the
-meaning of the characters in the //enumationFormats// string ("A1a1_x" above).
+See the [[#jcsect_EnumerationSymbolSpecificationStrings]] section below about the
+meaning of the characters in the //enumerationFormats// string ("A1a1_x" above).
 
-=== Resetting Enumerations
-======{{{<<enumFormatReset A>>}}}
+=== Resetting Section Enumerations
+======{{{<<sectionEnumReset A>>}}}
 Far easier to explain this with an example.
-Assume we start a page out with numerical ("1") enumeration formatting and this:
+Assume we start a page out with numerical ("1") enumeration symbols and this:
 {{{
     === First
     === Second
     === Third
-    === Fourth <<enumFormatReset A>>
+    === Fourth <<sectionEnumReset A>>
     === Fifth
 }}}
 The generated section enumerations will be "1", "2", "3", "A', "B".
-Note that the reset both changed the enumeration formatting and reset the
+Note that the reset both changed the enumeration symbols and reset the
 sequence counting.
-If you assign the same formatting that was already in use ("1" here), then the
+If you assign the same symbol that was already in use ("1" here), then the
 only effect will be to reset the counting sequence.
 
 ===TOC: Table of Contents
@@ -672,11 +685,11 @@ I.e. they have to be separated from other text with a blank line.
 These samples all generate a table of contents listing at the location where
 you code the directive--- just like the one
 [[#jcsect_JcreoleAuthorReference|at the top of this page]].
-The first two samples will include/exclude sections and enumerations formatting per the page settings.
+The first two samples will include/exclude sections and use enumerations symbols per the page settings.
 The last two samples specify section-inclusion explicitly.
 CSS classes must be specified in the TOC directive (as opposed to using Stylers) because Stylers can not effect TOCs (because the table of contents are generated by a pass after Stylers are applied).
 
-See the [[#jcsect_EnumerationFormats]] section below about the
+See the [[#jcsect_EnumerationSymbolSpecificationStrings]] section below about the
 meaning of the characters in the //section-inclusion string//
 ("{{{___xxx}}}" above).
 
@@ -902,7 +915,7 @@ And to show that multiple references to a shared entry work, here's a
 <<masterDefEntry Beasley, Pam>>Saleswoman.  Previously the office receptionist.
 
 
-==Styling <<enumFormatReset A>>
+==Styling <<sectionEnumReset A>>
 
 This section of the reference guide explains how to style text beyond the
 abilities of the basic text styling directives ([[#jcsect_StrongText]],
@@ -949,7 +962,7 @@ Present whether table generated by programmatic calls or by toc directive.
 Present unless your application generates the TOC table HTML itself.
 *=span.jcreole_nowiki|Inline ~{{{...~}}} Nowiki as described in the
 [[#jcsect_PreventingMarkupInterpretation]] section.
-*=span.jcx_enum|Section enumeration labels in body headers and in
+*=span.jcx_enum|Section enumeration labels in body headings and in
 table-of-contents (but the latter may be overridden with following class name).
 This does style the &sect; character as well as the varying string.
 If you want stylings to apply only to body heading tags, then narrow your
@@ -985,11 +998,10 @@ Javascript library.
 The [[&http://google-code-prettify.googlecode.com/svn/trunk/README.html|google-code-prettify web site]]
 is the definitive source for documentation about google-code-prettify CSS.
 
-==Enumeration Formats
+==Enumeration Symbol Specification Strings
 
-An //enumeration formatting string// is a 6-character string that specifies how
-to format header/section enumerations for each of the 6 supported heading
-levels.  For example, in the specification "##{{{A0a1__}}}##", ##A## specifies the
+An //enumeration symbols string// is a 6-character string that specifies what symbols to use to enumerate each of the six heading/section levels or ordered-list nesting levels.
+For example, in the ##sectionEnumFormat## specification "##{{{A0a1__}}}##", ##A## specifies the
 formatting for level 1 headings (//h1//'s), ##0## specifies the formatting for
 level 2 headings, etc.
 
@@ -1000,15 +1012,14 @@ level indicated by the character's position, as follows.
 
 *=A:|A, B, C, D...
 *=a:|a, b, c, d...
-*=0:|0, 1, 2, 3...
+*=0:|0, 1, 2, 3...  (at this time available only for headings/sections, not for ordered lists)
 *=1:|1, 2, 3, 4...
-*=_:|//no label// (differentiated from ##x## only for TOCs as explained
-[[#jcsect_InclusionCharacters]] section).
-*=x:|//no label// (differentiated from ##_## only for TOCs as explained in the
-[[#jcsect_InclusionCharacters]] section).
+*=i:|i, ii, iii, iv... (at this time available only for ordered lists, not for headings/sections)
+*=I:|I, II, III, IV... (at this time available only for ordered lists, not for headings/sections)
+*=_ or x:|//no label// for headings/sections; //default symbol// for ordered lists.  (There is no difference between ##_## and ##x## except for building TOCs for sections/headings as explained in the [[#jcsect_InclusionCharacters]] section).
 
-We intend to add support for additional formatting characters in the future
-(especially ##I## and ##i## for upper-case and lower-case roman numerals).
+We intend to add support for additional formatting symbols in the future
+(especially ##I## and ##i## for headings/sections.
 
 === Section-inclusion Strings
 
@@ -1039,5 +1050,5 @@ characters ##x## and ##_##.
 The only reason we support the alternative characters in place of ##_## is
 so you can make up one optimized enumeration-formatting + section-inclusion
 string that can fulfill both purposes.
-I.e. you could use the same exact string in both ##{{{<<enumFormats>>}}}## and
+I.e. you could use the same exact string in both ##{{{<<sectionEnumSymbols>>}}}## and
 ##{{{<<toc>>}}}## directives.

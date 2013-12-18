@@ -1,0 +1,50 @@
+<<listEnumSymbols iI_x_x>>
+#A#ordered item #1
+#ordered item #2
+##default nested item
+##and another
+###I#Roman numeraled item
+###  And another
+#### Pure default
+
+#A#ordered item #1
+  Multi-
+  line
+#ordered item #2
+multi
+##default nested item
+Multi
+##and another
+  Molto
+###I#Roman numeraled item
+  Roman second line
+###  And another
+  And a closer
+#### Pure default
+all done
+
+<<listEnumSymbols ia_x_x>>
+
+#A#ordered item #1
+#ordered item #2
+##default nested item
+##and another
+###I#Roman numeraled item
+###  And another
+#### Pure default
+
+#A#ordered item #1
+  Multi-
+  line
+#ordered item #2
+multi
+##default nested item
+Multi
+##and another
+  Molto
+###I#Roman numeraled item
+  Roman second line
+###  And another
+  And a closer
+#### Pure default
+all done

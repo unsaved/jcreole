@@ -690,6 +690,14 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*listEnumSymbols ~ ">>"[ \t]*\n {
+    return newToken(Terminals.ROOTLVL_LISTFORMATS,
+            matcher(ParamPluginPattern, true).group(2));
+}
+^[ \t]*"<<"[ \t]*listEnumSymbols ~ ">>"[ \t]*\n {
+    return newToken(Terminals.NESTED_LISTFORMATS,
+            matcher(ParamPluginPattern).group(2));
+}
 <PSTATE> "<<"[ \t]*footNoteEntry ~ ">>" {
     return newToken(Terminals.ENTRYDEF,
             matcher(ParamPluginPattern).group(2), 0);

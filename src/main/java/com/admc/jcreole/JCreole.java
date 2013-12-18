@@ -505,12 +505,21 @@ public class JCreole {
     }
 
     /**
-     * Calls the corresponding method on the underlying Parser.
-     *
-     * @see CreoleParser#setEnumerationFormats(String)
+     * Legacy wrapper
      */
     public void setEnumerationFormats(String enumerationFormats) {
-        parser.setEnumerationFormats(enumerationFormats);
+        parser.setEnumSymbols(enumerationFormats, true);
+    }
+
+    /**
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @param forSection.
+     *        If true apply to sections; if false apply to ordered lists.
+     * @see CreoleParser#setEnumSymbols(String, boolean)
+     */
+    public void setEnumSymbols(String symbolString, boolean forSection) {
+        parser.setEnumSymbols(symbolString, forSection);
     }
 
     /**

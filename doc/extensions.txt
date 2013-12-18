@@ -244,6 +244,17 @@ SECTION ENUMERATION
     first appendix will be labeled like a fancy version of "A  First Appendix".
 
 
+ORDERED-LIST ENUMERATION
+
+    <<listEnumSymbols 1iaA__>
+
+    ##A# Explicit symbol for this list
+
+    The document rule listEnumSymbols works very similarly to sectionEnumSymbols.
+    The specifier string uses the same format.
+    But listEnumSymbols are location specific and you can use more than one in a single doc.
+
+
 TABLE OF CONTENTS
 
     Insert a TOC list, with hyperlinks to all headings.
