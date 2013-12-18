@@ -4,3 +4,17 @@
 ##and another
 ###I#Roman numeraled item
 ###  And another
+
+#A#ordered item #1
+  Multi-
+  line
+#ordered item #2
+multi
+##default nested item
+Multi
+##and another
+  Molto
+###I#Roman numeraled item
+  Roman second line
+###  And another
+  And a closer

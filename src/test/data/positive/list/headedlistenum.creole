@@ -5,3 +5,20 @@
 #=Resetting
   ##=I#Nested|With Roman symbol
   ##=And|Another
+
+#=A#Headed|item
+  second
+third line
+#=Headingonly
+h-o second
+  ##=Nested|No symbol
+  nested line two
+  nested line 3
+  ##=another
+  another follow-line
+#=Resetting
+  ##=I#Nested|With Roman symbol
+  Roman following
+  ##=And|Another
+and another
+Roman following

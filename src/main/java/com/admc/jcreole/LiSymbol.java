@@ -33,7 +33,7 @@ class LiSymbol extends Token {
     private boolean headed;
     private char enumSymbol;
 
-    static Pattern EnumSymbolPattern = Pattern.compile("([1aAiI]#)(.*)");
+    static Pattern EnumSymbolPattern = Pattern.compile("(?s)([1aAiI]#)(.*)");
 
     public LiSymbol(Token sourceToken) {
         super(sourceToken.getId(), null,
