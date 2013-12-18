@@ -18,6 +18,8 @@
 package com.admc.jcreole;
 
 import beaver.Symbol;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Parser Token especially for List Items.
@@ -29,6 +31,9 @@ class LiSymbol extends Token {
     private char type;
     private String content;
     private boolean headed;
+    private char enumSymbol;
+
+    static Pattern EnumSymbolPattern = Pattern.compile("([1aAiI]#)(.*)");
 
     public LiSymbol(Token sourceToken) {
         super(sourceToken.getId(), null,
@@ -48,10 +53,20 @@ class LiSymbol extends Token {
                     "Illegal list level: " + getIntParam());
     }
 
-    public void setContent(String content) {
-        if (content.length() < 1)
+    public void setContent(final String content) {
+        Matcher matcher = EnumSymbolPattern.matcher(content);
+        if (matcher.matches()) {
+            enumSymbol = matcher.group(1).charAt(0);
+            this.content = matcher.group(2);
+        } else {
+            this.content = content;
+        }
+        if (this.content.length() < 1)
             throw new IllegalArgumentException("Empty list items prohibited");
-        this.content = content;
+    }
+
+    public char getEnumSymbol() {
+        return enumSymbol;
     }
 
     public char getType() {
@@ -68,10 +83,12 @@ class LiSymbol extends Token {
         // ih and id spans jcxSpan-addressable by writing markers here.
         int pipeOffset = content.indexOf('|');
         StringBuilder sb = new StringBuilder();
+        Matcher matcher = EnumSymbolPattern.matcher(content);
+        if (matcher.matches()) sb.append(matcher.group(1));
         if (pipeOffset != 0)
             sb.append("<span class=\"jcreole_lh\">")
-            .append((pipeOffset > 0)
-                    ? content.substring(0, pipeOffset) : content)
+            .append(content.substring(matcher.matches() ? 2 : 0,
+                    (pipeOffset > 0) ? pipeOffset : content.length()))
             .append("</span>");
         if (pipeOffset > -1 && pipeOffset != content.length() - 1)
             sb.append("<span class=\"jcreole_ld\">")

@@ -98,6 +98,8 @@ Consequently, you must //start// numbered lists with a line starting with just o
 ##And
 ##Like this
 
+See the [[#jcsect_HeadedListItems]] and [[#jcsect_ListEnumerationSymbols]] sections below about Jcreole enhancements.
+
 === Unordered list items
 ======*Like this
 Same as Numbered lists, but use ##*## characters instead of the # characters to
@@ -106,11 +108,16 @@ identify the rows and indicate levels.
 **And
 **Like this
 
-=== Headings
+See the [[#jcsect_HeadedListItems]] section below about a Jcreole list enhancement.
+
+
+=== Section Headings
 ====== =Like this
 Begin the line with from one to six ##=## characters.
 One ##=## sign means a top-level ("h1" in HTML) heading, and ##======## means a lowest-level heading.\\
 (The line above that says "Headings" serves as an example).
+
+See the [[#jcsect_SectionEnumeration]] and [[#jcsect_AutomaticIdSToUseAsHyperlinkTargets]] sections below about Jcreole enhancements.
 
 === Bare URLs
 ======~http://wiki.wikicreole.org/Creole%201.0
@@ -310,6 +317,18 @@ about the special usage of ##=## and ##|## here, so that another Creole engine
 would display an input line of "##{{{#=Like|this}}} as a list item with content
 "##=Like|this##", but JCreole will make it look...
 #=Like|this
+
+=== List Enumeration Symbols
+To change ordered list symbols from normal digits, you add an enumeration symbol specifier to the first list item of the list.
+The specifier is one of 1 (default), a, A, i, I, followed immediatley by #.
+The specifier immediately follows the # character(s) at the beginning of the line.
+(If also specifying = to make this same item a headed list item too, then this enumeration specifier must immediately follow the = instead).
+
+======#I# Start your list like this
+
+#I# A roman numeral-enumerated
+#   List
+#   Looks like this.
 
 === Tabs
 ======#]Like|this

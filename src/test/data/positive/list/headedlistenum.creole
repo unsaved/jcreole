@@ -1,0 +1,7 @@
+#=A#Headed|item
+#=Headingonly
+  ##=Nested|No symbol
+  ##=another
+#=Resetting
+  ##=I#Nested|With Roman symbol
+  ##=And|Another

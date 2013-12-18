@@ -1,8 +1,5 @@
 Rename of fork this project to have a more generic Wikitext name, like JWikitext, to accommodate support of syntaxes other than Creole.
 
-Add type support for JCreole ordered lists, per
-    http://www.w3schools.com/tags/att_ol_type.asp
-
 
 LONG TERM
 

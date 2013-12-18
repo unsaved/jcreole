@@ -284,9 +284,12 @@
                             "Illegal type transition", liSymbol);
                 sb.append(markClose(TagType.BLOCK)).append("</li>\n");
             } else if (liSymbol.getLevel() == curLevel + 1) {
+                char enumSymbol = liSymbol.getEnumSymbol();
                 sb.append('<').append(tagName)
-                        .append(markBlock(tagName, true, false))
-                        .append(">\n");
+                        .append(markBlock(tagName, true, false));
+                if (enumSymbol != '\0')
+                    sb.append(" type=\"").append(enumSymbol).append('"');
+                sb.append(">\n");
                 levelTypeMap.put(Integer.valueOf(liSymbol.getLevel()),
                         Character.valueOf(liSymbol.getType()));
             } else if (liSymbol.getLevel() < curLevel) {
