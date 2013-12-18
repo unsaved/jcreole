@@ -1,4 +1,4 @@
-<<sectionEnumSymbols A1a_0a>>
+<<enumFormats A1a_0a>>
 <<toc>>
 ----
 <<toc /__xxxx>>
@@ -8,7 +8,7 @@
 == This is a very very very long title That Has Length To it.
 == Another one interceded
 === Very nested
-=== and <<sectionEnumReset 0>>again
+=== and <<enumFormatReset 0>>again
 === and yet again
 == Returned
 === Other

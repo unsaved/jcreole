@@ -678,15 +678,15 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.NESTED_STYLESHEET,
             matcher(ParamPluginPattern, true).group(2));
 }
-<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*enumFormats ~ ">>"[ \t]*\n {
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*(enumFormats|sectionEnumSymbols) ~ ">>"[ \t]*\n {
     return newToken(Terminals.ROOTLVL_ENUMFORMATS,
             matcher(ParamPluginPattern, true).group(2));
 }
-^[ \t]*"<<"[ \t]*enumFormats ~ ">>"[ \t]*\n {
+^[ \t]*"<<"[ \t]*(enumFormats|sectionEnumSymbols) ~ ">>"[ \t]*\n {
     return newToken(Terminals.NESTED_ENUMFORMATS,
             matcher(ParamPluginPattern).group(2));
 }
-<HEADSTATE> "<<"[ \t]*enumFormatReset ~ ">>" {
+<HEADSTATE> "<<"[ \t]*(enumFormatReset|sectionEnumReset) ~ ">>" {
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));
 }

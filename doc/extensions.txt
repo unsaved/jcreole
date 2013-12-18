@@ -209,14 +209,14 @@ COMMENTS
 
 SECTION ENUMERATION
     
-    <<enumFormats A1a1_x>
+    <<sectionEnumSymbols A1a1_x>
 
     By default, sections enumerations are not shown in the page body headings
     nor in TOCs.  Use the directive above or the
     CreoleParser.setEnumerationFormats() method to enable display of
     header/section enumeration labels.
 
-    <<enumFormatReset  A>>   only inside Headings
+    <<sectionEnumReset  A>>   only inside Headings
 
     This command resets sequencing for the heading level of the current
     (containing) Heading.  The single character serves the same purpose as the
@@ -234,10 +234,10 @@ SECTION ENUMERATION
     (TODO:  Add I and i for upper-case and lower-case Roman numerals).
 
     Example:
-        <<enumFormats _1a1ax>>
+        <<sectionEnumSymbols _1a1ax>>
         == First section
         ...  Your main document body, including may sections
-        == <<enumFormatReset  A>> First Appendix
+        == <<sectionEnumReset  A>> First Appendix
     In this example, the main body will have section enumeration like
     "2.c.4.b" (author does not want to use h1).  But when the Appendix starts,
     enumeration will be reset and the enumeration format changed so that the
