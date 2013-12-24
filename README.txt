@@ -32,7 +32,10 @@ Project Status
 
         + Provide web applications docServer*.war and sprinDocServer*.war.
           to dynamically present .creole files that you plunk onto your
-          application server.
+          application server.  Just rename to desired web appplication name
+          (+ ".war") and deploy it.  Drill down into "docServer.creole" from
+          the home page to find out exactly where to place your *.creole
+          files, and how to customize the configuration if desired.
 
         + The classes CreoleToHtmlServlet and CreoleToHtmlHandler, used by
           the web applications of the previous item, can be used in your own
