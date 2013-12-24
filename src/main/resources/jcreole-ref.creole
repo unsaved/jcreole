@@ -494,7 +494,7 @@ display of table-of-contents).
 
 === Pretty-printed Code
 ======{{{<<prettyPrint>>}}}\\~{{{\\...\\~}}}
-The ##{{{<<addClass>>}}}## directive is an optional enhancement for //nowiki//
+The ##{{{<<prettyPrint>>}}}## directive is an optional enhancement for //nowiki//
 ##~{{{...~}}}## preformatted blocks as described in the [[#jcsect_Preformatting]] section.
 ** The ##{{{<<prettyPrint>>}}}## directive may only be used on the line before a Preformatting opening ##~{{{##. **
 
@@ -535,7 +535,7 @@ public:
 }
 }}}
 
-This feature does require simple server-side support.
+This feature does require simple http support.
 If the code above is not pretty-printed, then you are viewing the standalone
 mode reference doc.
 

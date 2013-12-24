@@ -99,15 +99,9 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-
   });
 </script>
 <script type="text/javascript"
-  src="https://github.com/unsaved/jcreole/raw/master/google-code-prettify-small/${!ver|prettify}/prettify.js">
+  src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js">
 </script>
 <style>
-  /******************************************************************
-   * Build-time dynamically-including google-code-prettify, because absolute
-   * URLs not working to the .css file, for unknown reason.  */
-   ${!buildInc|prettifyCss}
-  /*****  End of google-code-prettify inclusion  ********************/
-
   /******************************************************************
    * Build-time including JCreole's site.css sample.
    * Including inline so that our styles will not cause a network dependency. */

@@ -30,7 +30,6 @@ project.ext.set('org.name', System.properties['user.name'])
 project.ext.set('jar.title', 'Customization')
 project.ext.set('jqueryVer', '1.8.3')
 project.ext.set('jqueryUiVer', '1.9.2')
-project.ext.set('prettifyVer', '1')
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
@@ -229,7 +228,6 @@ task srcZip(dependsOn: ['standaloneRef', 'internetRef', 'javadoc'], type: Zip) {
         include 'gradle/**'
         include 'gradlew'
         include 'gradlew.bat'
-        include 'google-code-prettify-small/**'
         include 'config/**'
     }
 }
@@ -412,8 +410,6 @@ test.inputs.dir 'src/test/data'
 import com.admc.gradle.ContentAsStringFilter
 import com.admc.gradle.JavaPropFile
 processResources {
-    String prettifyCss = file('google-code-prettify-small/'
-            + project.prettifyVer + '/prettify.css').getText('UTF-8')
     String siteCss = file('src/main/webapp/site.css').getText('UTF-8')
     String jcreoleCss = file('src/main/webapp/jcreole.css').getText('UTF-8')
     exclude '**/.*/**'
@@ -437,9 +433,7 @@ processResources {
                 propFileLoader.expand(it, [
                     ('ver|jquery'): project.jqueryVer,
                     ('ver|jqueryui'): project.jqueryUiVer,
-                    ('ver|prettify'): project.prettifyVer,
                     ('ver|jcreole'): project.version,
-                    ('buildInc|prettifyCss'): prettifyCss,
                     ('buildInc|siteCss'): siteCss,
                     ('buildInc|jcreoleCss'): jcreoleCss,
                 ])
@@ -594,16 +588,10 @@ task springWar(dependsOn: jar, type: Jar) {
                     propFileLoader.expand(it, [
                         ('ver|jquery'): project.jqueryVer,
                         ('ver|jqueryui'): project.jqueryUiVer,
-                        ('ver|prettify'): project.prettifyVer,
                         ('ver|jcreole'): project.version,
                     ])
                 })
         }
-    }
-    into('google-code-prettify-small') {
-        exclude '**/.*/**'
-        from 'google-code-prettify-small'
-        include (project.prettifyVer + '/**')
     }
     copy {
         from 'config/spring-web.xml'
@@ -635,16 +623,10 @@ task war(dependsOn: jar, type: Jar) {
                     propFileLoader.expand(it, [
                         ('ver|jquery'): project.jqueryVer,
                         ('ver|jqueryui'): project.jqueryUiVer,
-                        ('ver|prettify'): project.prettifyVer,
                         ('ver|jcreole'): project.version,
                     ])
                 })
         }
-    }
-    into('google-code-prettify-small') {
-        exclude '**/.*/**'
-        from 'google-code-prettify-small'
-        include (project.prettifyVer + '/**')
     }
     into('WEB-INF') { from 'config'; excludes = [
       '**/.*/**', 'context.xml', 'applicationContext.xml', 'spring-web.xml'] }
