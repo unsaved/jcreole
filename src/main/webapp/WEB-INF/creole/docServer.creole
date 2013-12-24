@@ -4,9 +4,7 @@ This is a place-holder .creole page for a JCreole Document Server web applicatio
 It applies to both the traditional Servlet version and the Spring version.
 
 The application administrator should move/remove or edit this file,
-("##docServer.creole##"), with something appropriate for your intentions.
-In most cases, you will want to include links to other important pages on the
-site, or perhaps to each subdirectory.
+("##docServer.creole##").
 
 This file resides in the application's //creoleSubdir//, which defaults
 to ##WEB-INF/creole##.
@@ -14,7 +12,7 @@ to ##WEB-INF/creole##.
 //creoleSubdir// can be changed with a web app context parameter
 (web app context parameters may be changed in "##web.xml##" or by using
 container-specific facilities).
-if ##creoleSubdir## is a relative path, it is relative to the web application
+If ##creoleSubdir## is a relative path, it is relative to the web application
 base directory.
 
 Web application developers should have no problem using the provided Servlet
@@ -26,13 +24,13 @@ merge the settings from our ##web.xml## file into yours.
 
 Add your .creole document files, and //boilerplate// HTML files underneath
 ##creoleSubdir##.  Modify or replace the provided ##boilerplate.html## as
-you wish.  You can also follow the example and put ##boilerplate.html" files
+you wish.  You can also follow the example and put ##boilerplate.html## files
 into any or all subdirectories.
 Requests will always try to use ##boilerplate.html## from the subdirectory of
 the request path, then try parent directories recursively until a
 ##boilerplate.html## is found.
-Use variable ##$~{contextPath}## as described below instead of relative URLs
-in ##boilerplate.html##, because relative paths will resolve relative to the
+To reference relative resources inside of boilerplate files, use variable ##\${contextPath}## as described below instead of relative URLs,
+because relative paths will resolve relative to the
 requested URL directory instead of relative to the directory containing the
 loaded ##boilerplate.html## file.
 
@@ -42,7 +40,7 @@ to the directory of the referring ##*.creole## file.
 For example, if the user requests ##http:~//yourhost/docServer/alpha/beta.html##,
 then the Creole file ##WEB-INF/creole/alpha/beta.creole## will be read, and
 referenced images, CSS or other files will be loaded relative to directory
-##alpha##.
+##alpha## in the webapp root dir.
 
 Style sheets ##jcreole.css## and ##site.css## (in this order, so that
 ##site.css## will have precedence) will automatically load into your pages.
@@ -53,8 +51,25 @@ root directory, then in all subdirectories going to the requested  subdirectory.
 All of these CSS files are added, so that styles set in subdirectories will
 either add to or replace those set in superdirectories.
 
+=== Auto-Indexing
+The supplied ##index.creole## provides auto-indexing.
+If you leave this file in place, then accessing URLs of directories ending in slashses will list the directory's contents (the Creole files and subdirectory entries).
+You can put your own ##index.creole## file into any subdirectory of the //creoleSubdir// and it will override the provided auto-indexing index file from that location down.
+When directory URLs are requested (with trailing slash), the current directory and then ancestor directories are checked in order for an ##index.creole## file, in the same fashion as a search for a boilerplate file.
+##index.creole## files are processed like any other .creole file, of course, so the boilerplate will be applied to it according to the algorim previously described.
 
-Example showing file accesses for a request.
+Index files, either the provided ##index.creole## or your own, automatically displays the contents of //readme//files right under the directory listing.
+For the directory that is being listed, if a ##readme.creole## file resides in that directory then it is displayed.
+Otherwise, if a ##readme.txt## resides the the corresponding directory under the main webapp root dir, then it is displayed.
+To disable this feature, remove the \${readmeContent} reference in the ##boilerplate.html## file.
+
+Note the general requirement of this application, that for the ##index.creole## to be loaded when a directory URL is given, the URL must end with a forward slash.
+The provided auto-indexing ##index.creole## takes care of this if you use auto-indexing for site navigation.
+If you author your own cross-directory references, just remember to end destinaton directory URLs with slashes.
+Any URL that you copy from your browser will work, but if you write a directory URL from memory, remember the trailing slash.
+
+
+=== Example showing file accesses for a request.
 
 Application installed with war name ##docServer.war## or manually exploded
 to directory of name ##docServer## (procedure depends on your application
@@ -74,8 +89,8 @@ to: ##/local/tomcat/webapps/docServer/alpha##
 //Other// file references that start with / will resolve to URLs beginning
 with ##http:~//yourhost/##.
 To make references that resolve to URLs beginning with ##http:~//yourhost/##,
-use variable ##$~{contextPath}##,
-like:  ##<img src="$~{contextPath}/file.png">##
+use variable ##\${contextPath}##,
+like:  ##<img src="\${contextPath}/file.png">##
 
 Boilerplate loaded:  First of following which exists:
 {{{
@@ -91,7 +106,7 @@ CSS files loaded:    All of the following which exist, in this order:
     /local/tomcat/webapps/docServer/alpha/site.html
 }}}
 
-##External Docs
+==External Docs
 More often than not, your documents should have a longer lifetime than any
 version of a web application.
 Therefore, it's often a good idea to locate your .creole document files
@@ -102,3 +117,8 @@ documents.
 Just specify an absolute ##creoleSubdir## (as described above) for a directory
 that is not under the web application base directory.  Before adding your own
 files, copy into this new directory the supplied files in ##WEB-INF/creole##.
+
+If your creole files reference other local files (images, style sheets, text files, etc.), then you will have to use app server features if you want to serve them from an external location (for the same reasons as for locating *.creole files externally).
+A good design pattern is to use this JCreole webapp only to serve your creole documents.
+The creole documents reference images and other files that you serve from a separate web site on a co-located light-weight web server such as [[http://www.lighttpd.net|lighttpd]].
+Static web server content doesn't need to be bundled like web apps, and can be configuration managed in place with various technologies (WebDav, Git, etc.).

@@ -162,6 +162,7 @@ Looks like\\
 === Preventing markup interpretation
 ...by prefixing the special character(s) with ~~, or by enclosing the text with
 ##~{{{## and ##~}}}##.
+(Variable references like \${this} are not escaped with ~~.  See below about this.)
 These tactics are called //escaping//, and the latter method is called //Nowiki//.
 Nowiki where ##~{{{## and ##~}}}## are on separate lines with no blank space also
 cause the enclosed, escaped text to be wrapped in a HTML //pre// element.\\
@@ -191,6 +192,7 @@ directive.
 Creole variables like $[this], assuming they are enabled for your application,
 can be escaped with tilde or with backslash.
 Variables like \${this} can be escaped with backslash.
+~{{{...}}} will escape either.
 But if you know that your application does not define the referenced
 variable, then you don't need to do anything, because unless you prefix your
 variable name with ! or -, undefined variable references are left exactly as-is.
@@ -436,9 +438,8 @@ For example, if you use ##java... -jar## with a .creole file and then use
 that same .creole file with some web or other application, the same variables
 may not be available for expansion.
 
-$[...] variables are only available to you if your application makes them
-available.
-They are dereference very early, and the variable values are
+$[...] variables are only available to you if your application has enabled them.
+They are dereferenced very early, and the variable values are
 Creole which will be translated to HTML.
 Some applications allow end-users to use $[...] references to use
 application-predefined Creole macros.
@@ -449,7 +450,7 @@ variable definitions (and therefore their own Creole macros).
 Most applications provide some of these variables for you to use, and some
 applications let you define your own.
 
-$(...) variables are for use in boilerplates, and are not strictly a Creole
+$(...) variables are for use in boilerplates (non-Creole template text that wraps and formats your output), and are not strictly a Creole
 construct, so they are not described here.
 
 If you will use variable references, you should be aware of the rules for their
@@ -475,9 +476,9 @@ For example, instead of writing ##\${sys|user.name}##, you would
 write ##\${!sys|user.name}##.
 The ! has an effect only if the variable is not set.
 * If the JCreole output needs to contain text of the format \${this} or
-$[this], for example for EL or Javascript expressions, then
+$[this], for example to display EL or Javascript expressions, then
 prefix the $ with backslash like {{{\}}}${this}.
-(The square bracket type may also be escaped with tilde like $~~{this}).
+(The square bracket type may also be escaped with tilde like $~~[this]).
 (If you are sure that the referenced variables are not defined to JCreole,
 then you don't need to do anything other than to not use the - or ! options).
 
