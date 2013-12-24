@@ -42,7 +42,7 @@ public class Indexer {
     
     private static SimpleDateFormat isoDateTimeFormatter =
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-    private static Pattern tailStripperPattern = Pattern.compile("[^/]+$");
+    private static Pattern tailStripperPattern = Pattern.compile("[^/]+/?$");
 
     /**
      * @param filter  If null, then all files in the specified dir will be
