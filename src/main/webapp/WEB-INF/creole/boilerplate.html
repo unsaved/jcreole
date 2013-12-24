@@ -19,8 +19,8 @@
 
    N.b.!  Unlike the standalone boilerplate, this one is not standalone.
    You don't need to place any files with it (i.e. there are no relative file
-   dependencies), but there are dependencies to files in public Internet
-   repositories (at least ajax.agoogleapis.com).
+   dependencies), but there are dependencies to files in public Internet CDN
+   repositories.  CDNs are designed to provide maximum availability.
 
    Boilerplate authors:  Use ! only for build-time parameter references.
    Build will fail if you use ! for runtime variables.
@@ -31,21 +31,21 @@
 <meta name="Generator" content="JCreole">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jquery/${!ver|jquery}/jquery.min.js">
+  src="http://code.jquery.com/jquery-${!ver|jquery}.min.js">
 </script>
 <script type="text/javascript">
   if ("undefined" == (typeof jQuery)) {
       alert("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/${!ver|jquery}/jquery.min.js'");
+          + "'http://code.jquery.com/jquery-${!ver|jquery}.min.js'");
       throw Error("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/${!ver|jquery}/jquery.min.js'");
+          + "'http://code.jquery.com/jquery-${!ver|jquery}.min.js'");
   }
 </script>
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/jquery-ui.js">
+  src="http://code.jquery.com/ui/${!ver|jqueryui}/jquery-ui.min.js">
 </script>
 <link rel="stylesheet" type="text/css"
-href="https://ajax.googleapis.com/ajax/libs/jqueryui/${!ver|jqueryui}/themes/ui-lightness/jquery-ui.css">
+href="http://code.jquery.com/ui/${!ver|jqueryui}/themes/ui-lightness/jquery-ui.css">
 <script type="text/javascript">
   localLinkRe = /#(.+)$/;
   footNoteClones = [];
