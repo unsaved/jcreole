@@ -122,3 +122,4 @@ If your creole files reference other local files (images, style sheets, text fil
 A good design pattern is to use this JCreole webapp only to serve your creole documents.
 The creole documents reference images and other files that you serve from a separate web site on a co-located light-weight web server such as [[http://www.lighttpd.net|lighttpd]].
 Static web server content doesn't need to be bundled like web apps, and can be configuration managed in place with various technologies (WebDav, Git, etc.).
+Most production webapps run behind a httpd proxy or plugin, and that is ideal since it's designed for precisely what we are talking about here.
