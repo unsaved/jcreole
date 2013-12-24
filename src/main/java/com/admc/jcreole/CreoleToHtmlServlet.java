@@ -62,7 +62,7 @@ public class CreoleToHtmlServlet
                 return !n.equals("index.creole");
             }
         });
-        indexer.setNameTranslationMatchPat("(\\w+)\\Q.creole");
+        indexer.setNameTranslationMatchPat("(.+)\\Q.creole");
         indexer.setNameTranslationFormat("%1$s.html");
     }
 
