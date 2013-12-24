@@ -28,8 +28,8 @@ compileJava.targetCompatibility = compileJava.sourceCompatibility
 // compileJava.options.bootClasspath  Needs to be set in local properties file
 project.ext.set('org.name', System.properties['user.name'])
 project.ext.set('jar.title', 'Customization')
-project.ext.set('jqueryVer', '1.8.3')
-project.ext.set('jqueryUiVer', '1.9.2')
+project.ext.set('jqueryVer', '1.10.2')
+project.ext.set('jqueryUiVer', '1.10.3')
 
 propFileLoader.typeCasting = true
 propFileLoader.traditionalPropertiesInit()
