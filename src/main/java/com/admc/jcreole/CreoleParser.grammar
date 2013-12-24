@@ -101,7 +101,7 @@
      * adequate privileges to do so).
      * </p>
      *
-     * @param forSection.
+     * @param forSection
      *        If true apply to sections; if false apply to ordered lists.
      */
     public void setEnumSymbols(String symbolString, boolean forSection) {

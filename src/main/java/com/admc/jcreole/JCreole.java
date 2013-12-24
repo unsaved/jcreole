@@ -514,7 +514,7 @@ public class JCreole {
     /**
      * Calls the corresponding method on the underlying Parser.
      *
-     * @param forSection.
+     * @param forSection
      *        If true apply to sections; if false apply to ordered lists.
      * @see CreoleParser#setEnumSymbols(String, boolean)
      */
