@@ -354,7 +354,7 @@ public class JCreole {
      * Wikitext.
      * You don't need to worry about \r's in input, as they will automatically
      * be stripped if present.
-     * (The will, however, throw if binary characters are detected in input).
+     * (We will, however, throw if binary characters are detected in input).
      *
      * @throws CreoleParseException
      *         if can not generate output, or if the run generates 0 output.
@@ -430,12 +430,12 @@ public class JCreole {
     }
 
     /**
-     * Generates clean HTML with specified EOL type.
+     * Generates clean html-expanded HTML with specified EOL type.
      * If 'pageBoilerPlate' is set for this JCreole instance, then will return
-     * an eol-converted merge of the page boilerplate (with substitutions) with
+     * an html-expanded, eol-converted merge of the page boilerplate with
      * embedded HTML fragment.
      * Otherwise will just return the supplied fragment with the Eols converted
-     * as necessary.
+     * as necessary and html variable expansion.
      * <p>
      * Call like <PRE>
      *    postProcess(htmlFrag, System.getProperty("line.separator"));
@@ -443,9 +443,16 @@ public class JCreole {
      * </p> <p>
      * Input htmlFrag doesn't need to worry about line delimiters, because it
      * will be cleaned up as required.
+     * </p> <p>
+     * If you are using no boilerplate and want \n line delimiters in output,
+     * then it is more efficient to just call htmlExpand() instead of this
+     * method.
+     * </p> <p>
+     * This method implementation has dependencies on the provide
+     * boilerplate and is has protected visibility.
      * </p>
      *
-     * @param outputEol  Line delimiters for output.
+     * @param outputEol  Line delimiters for output.  Null to leave as \n's.
      * @throws if can not generate output, or if the run generates 0 output.
      *         If the problem is due to input formatting, in most cases you
      *         will get a CreoleParseException, which is a RuntimException, and
@@ -482,6 +489,10 @@ public class JCreole {
         if (outputEol != null && !outputEol.equals("\n"))
             htmlString = htmlString.replace("\n", outputEol);
             // Amazing that StringBuilder can't do a multi-replace like this
+        return htmlExpand(htmlString);
+    }
+
+    public String htmlExpand(String htmlString) {
         return htmlExpander.expandToString(htmlString);
     }
 
