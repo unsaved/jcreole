@@ -18,7 +18,7 @@ ivyxml.load()
 
 def localGradleFile = file('local.gradle')
 if (localGradleFile.isFile()) {
-    logger.info('''Executing optional build file 'localGradleFile'.''')
+    logger.info("Executing optional build file '$localGradleFile'.")
     apply from: localGradleFile
 }
 
