@@ -72,7 +72,7 @@ public class MarkerMap extends HashMap<Integer, BufferMarker> {
 
         this.enumerationFormats = enumerationFormats;
         setContexts();
-        List<BufferMarker> sortedMarkers = new ArrayList(values());
+        List<BufferMarker> sortedMarkers = new ArrayList<BufferMarker>(values());
         Collections.sort(sortedMarkers);
         // Can not run insert() until after the markers have been sorted.
         if (size() < 1) return buffer;

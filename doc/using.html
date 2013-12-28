@@ -14,13 +14,16 @@
  - See the License for the specific language governing permissions and
  - limitations under the License.
 
- - N.b.!  Unlike the default boilerplate, this one is not standalone.
- - You don't need to place any files with it (i.e. there are no relative file
- - dependencies), but there are dependencies to files in public Internet
- - repositories (at least ajax.agoogleapis.com).
 
- - Boilerplate authors:  Use ! only for build-time parameter references.
- - Build will fail if you use ! for runtime variables.
+   Ultimate source of content starting here is the file "boilerplate-inet.html".
+
+   N.b.!  Unlike the standalone boilerplate, this one is not standalone.
+   You don't need to place any files with it (i.e. there are no relative file
+   dependencies), but there are dependencies to files in public Internet CDN
+   repositories.  CDNs are designed to provide maximum availability.
+
+   Boilerplate authors:  Use ! only for build-time parameter references.
+   Build will fail if you use ! for runtime variables.
 -->
 <html>
 <head>
@@ -28,21 +31,21 @@
 <meta name="Generator" content="JCreole">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+  src="http://code.jquery.com/jquery-1.10.2.min.js">
 </script>
 <script type="text/javascript">
   if ("undefined" == (typeof jQuery)) {
       alert("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'");
+          + "'http://code.jquery.com/jquery-1.10.2.min.js'");
       throw Error("Failed to load jQuery library from '"
-          + "'https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'");
+          + "'http://code.jquery.com/jquery-1.10.2.min.js'");
   }
 </script>
 <script type="text/javascript"
-  src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js">
+  src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js">
 </script>
 <link rel="stylesheet" type="text/css"
-href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/ui-lightness/jquery-ui.css">
+href="http://code.jquery.com/ui/1.10.3/themes/ui-lightness/jquery-ui.css">
 <script type="text/javascript">
   localLinkRe = /#(.+)$/;
   footNoteClones = [];
@@ -93,19 +96,12 @@ href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/ui-lightness/j
                 .dialog({autoOpen: false});
       });
       $("div.jcreole_tabset").tabs();
-      prettyPrint()
   });
 </script>
 <script type="text/javascript"
-  src="https://github.com/unsaved/jcreole/raw/master/google-code-prettify-small/1/prettify.js">
+  src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js">
 </script>
 <style>
-  /******************************************************************
-   * Build-time dynamically-including google-code-prettify, because absolute
-   * URLs not working to the .css file, for unknown reason.  */
-   .pln{color:#000}@media screen{.str{color:#080}.kwd{color:#008}.com{color:#800}.typ{color:#606}.lit{color:#066}.pun,.opn,.clo{color:#660}.tag{color:#008}.atn{color:#606}.atv{color:#080}.dec,.var{color:#606}.fun{color:red}}@media print,projection{.str{color:#060}.kwd{color:#006;font-weight:bold}.com{color:#600;font-style:italic}.typ{color:#404;font-weight:bold}.lit{color:#044}.pun,.opn,.clo{color:#440}.tag{color:#006;font-weight:bold}.atn{color:#404}.atv{color:#060}}pre.prettyprint{padding:2px;border:1px solid #888}ol.linenums{margin-top:0;margin-bottom:0}li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8{list-style-type:none}li.L1,li.L3,li.L5,li.L7,li.L9{background:#eee}
-  /*****  End of google-code-prettify inclusion  ********************/
-
   /******************************************************************
    * Build-time including JCreole's site.css sample.
    * Including inline so that our styles will not cause a network dependency. */
@@ -276,14 +272,12 @@ pre.prettyprint { border:1px dashed blue; padding:5px; }
 
 <div class="jcx_toc">
 <ul class="jcx_toc">
-  <li><a href="#jcsect_UsingJcreole">Using JCreole</a><ul>
-    <li><a href="#jcsect_Downloads">Downloads</a></li>
-    <li><a href="#jcsect_GeneratingHtmlFromTheCommandLine">Generating HTML from the Command-Line</a></li>
-    <li><a href="#jcsect_License">License</a></li>
-    <li><a href="#jcsect_ServingCreoleDocuments">Serving Creole Documents</a></li>
-    <li><a href="#jcsect_Developers">Developers</a></li>
-    <li><a href="#jcsect_Documentation">Documentation</a></li>
-  </ul></li>
+  <li><a href="#jcsect_Downloads">Downloads</a></li>
+  <li><a href="#jcsect_GeneratingHtmlFromTheCommandLine">Generating HTML from the Command-Line</a></li>
+  <li><a href="#jcsect_License">License</a></li>
+  <li><a href="#jcsect_ServingCreoleDocuments">Serving Creole Documents</a></li>
+  <li><a href="#jcsect_Developers">Developers</a></li>
+  <li><a href="#jcsect_Documentation">Documentation</a></li>
 </ul>
 </div>
 
@@ -291,31 +285,28 @@ pre.prettyprint { border:1px dashed blue; padding:5px; }
 
 <p>You can try out JCreole without downloading it, at <a href="http://admc.com/jcreole">http://admc.com/jcreole</a>.</p>
 <h2 id="jcsect_Downloads"><span class="jcreole_hbody"> Downloads</span></h2>
+<p>Distributables at <strong><a href="http://pub.admc.com/jcreole/">http://pub.admc.com/jcreole/</a> </strong>.
+Get the file (of desired type) with the greatest version, unless you have some special compatibility or change control need.
+If we switch to a new download repository, we will redirect you from there.</p>
 <ul>
-  <li> Current production release:  <a href="jcreole-1.2.0.zip">jcreole-1.2.0.zip</a>.
-  Includes API library, dependency libraries.
-  Everything you need for command-line invocations too.</li>
-  <li> Repository.  View or pull the JCreole source code repository from
-  <a href="https://github.com/unsaved/jcreole">https://github.com/unsaved/jcreole</a>.</li>
-  <li> Developer's current production snapshot. <a href="jcreole-1.2.0-src.zip">jcreole-1.2.0-src.zip</a>.
+  <li> Production releases are in files like <tt>jcreole-&lt;VERSION&gt;.zip</tt>.
+  Includes API library, dependency libraries.  <strong>Everything you need for command-line invocations too.</strong></li>
+  <li> Developer's current production snapshot are in files like <tt>jcreole-&lt;VERSION&gt;-src.zip</tt>.
   You can build from this without dealing with any source code repositories.</li>
-  <li> Web Application <a href="docServer-1.2.0.war">docServer-1.2.0.war</a>.  Serves formatted Creole documents.</li>
-  <li> Web Application <a href="springDocServer-1.2.0.war">springDocServer-1.2.0.war</a>.
+  <li> Web Application in files like <tt>docServer-&lt;VERSION&gt;.war.  Serves formatted Creole documents.</tt></li>
+  <li> Web Application in files like <tt>springDocServer-&lt;VERSION&gt;.war</tt>.
   Same as previous, but uses spring.
   Ready for you to wire in your own behavior, or to merge into your own Spring
   application (web or otherwise).</li>
-  <li> API (library) and API spec available on Maven under
-  <a href="http://repo1.maven.org/maven2/com/admc/jcreole/">http://repo1.maven.org/maven2/com/admc/jcreole/</a>.
-  Current production subsdirectory is 1.2.0.
-  Main library is the file jcreole-*.jar.
-  API docs are in the file jcreole-*-javadoc.jar.
-  Most developers will pull the library using Ivy, Maven, Grape, etc.</li>
+  <li> Repository.  View or pull the JCreole source code repository from
+  <a href="https://github.com/unsaved/jcreole">https://github.com/unsaved/jcreole</a>.</li>
+  <li> API (library) and API spec available
+  at <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.admc%22%20AND%20a%3A%22jcreole%22">Maven Central</a>.
+  Main library is the file <tt>jcreole-&lt;VERSION&gt;.jar</tt>.
+  API docs are in the file <tt>jcreole-&lt;VERSION&gt;-javadoc.jar</tt>.
+  Most developers will pull the library from Maven using Ivy, Maven, Grape, etc.</li>
 </ul>
 
-<p>From here
-you can get the distribution zip to run JCreole from the command-line, or either
-of two provided web applications, or the complete source zip file, or pull from
-the source code repository.</p>
 
 
 <h2 id="jcsect_GeneratingHtmlFromTheCommandLine"><span class="jcreole_hbody"> Generating HTML from the Command-Line</span></h2>
@@ -368,7 +359,7 @@ To change that unset-reference behavior, prefix the variable name with - (like
 
 <p>To integrate with your own product, see the JavaDocs which are distributed
 with both the source and binary distributions (or at
-<a href="http://admc.com/jcreole/apidocs/">http://admc.com/jcreole/apidocs/</a> ).  If you don't plan on extending the language
+<a href="http://admc.com/jcreole/javadoc/index.html">http://admc.com/jcreole/javadoc/index.html</a> ).  If you don't plan on extending the language
 itself, then stick with the binary distribution and work from the API spec,
 except to definitely look at the source code for method
 com.admc.jcreole.JCreole.main().
@@ -454,7 +445,7 @@ comprehensive Creole tutorials.</p>
 </div>
 
 <hr>
-<div class="jcreole_footer">Generated by JCreole v. 1.2.0-SNAPSHOT @ 2013-01-07T20:03:37-0500.
+<div class="jcreole_footer">Generated by JCreole v. 1.3.1-SNAPSHOT @ 2013-12-28T13:19:10-0500.
 &nbsp; &nbsp; &nbsp; &nbsp;
 Apache 2 license &copy; 2011 by Axis Data Management Corp.</div>
 </body>

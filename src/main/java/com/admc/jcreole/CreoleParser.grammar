@@ -428,6 +428,7 @@
 
     private static final String INDENT_STRING = "  ";
 
+    @SuppressWarnings("unchecked")
     public WashedSymbol buildTreeSymbol(List<Symbol> symList) {
         //  PHASE 1:  Prepate cell data
         String[][] cells = new String[symList.size()][];

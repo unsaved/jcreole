@@ -1,34 +1,31 @@
 = Using JCreole
 
-<<toc>>
+<<toc /x____x>>
 
 
 You can try out JCreole without downloading it, at http://admc.com/jcreole.
 
 == Downloads
-* Current production release:  [[jcreole-1.2.0.zip]].
-  Includes API library, dependency libraries.
-  Everything you need for command-line invocations too.
-* Repository.  View or pull the JCreole source code repository from
-  https://github.com/unsaved/jcreole.
-* Developer's current production snapshot. [[jcreole-1.2.0-src.zip]].
+Distributables at **http://pub.admc.com/jcreole/ **.
+Get the file (of desired type) with the greatest version, unless you have some special compatibility or change control need.
+If we switch to a new download repository, we will redirect you from there.
+* Production releases are in files like ##jcreole-<VERSION>.zip##.
+  Includes API library, dependency libraries.  **Everything you need for command-line invocations too.**
+* Developer's current production snapshot are in files like ##jcreole-<VERSION>-src.zip##.
   You can build from this without dealing with any source code repositories.
-* Web Application [[docServer-1.2.0.war]].  Serves formatted Creole documents.
-* Web Application [[springDocServer-1.2.0.war]].
+* Web Application in files like ##docServer-<VERSION>.war.  Serves formatted Creole documents.
+* Web Application in files like ##springDocServer-<VERSION>.war##.
   Same as previous, but uses spring.
   Ready for you to wire in your own behavior, or to merge into your own Spring
   application (web or otherwise).
-* API (library) and API spec available on Maven under
-  http://repo1.maven.org/maven2/com/admc/jcreole/.
-  Current production subsdirectory is 1.2.0.
-  Main library is the file jcreole-*.jar.
-  API docs are in the file jcreole-*-javadoc.jar.
-  Most developers will pull the library using Ivy, Maven, Grape, etc.
+* Repository.  View or pull the JCreole source code repository from
+  https://github.com/unsaved/jcreole.
+* API (library) and API spec available
+  at [[http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.admc%22%20AND%20a%3A%22jcreole%22|Maven Central]].
+  Main library is the file ##jcreole-<VERSION>.jar##.
+  API docs are in the file ##jcreole-<VERSION>-javadoc.jar##.
+  Most developers will pull the library from Maven using Ivy, Maven, Grape, etc.
 
-From here
-you can get the distribution zip to run JCreole from the command-line, or either
-of two provided web applications, or the complete source zip file, or pull from
-the source code repository.
 
 
 == Generating HTML from the Command-Line
@@ -85,7 +82,7 @@ To change that unset-reference behavior, prefix the variable name with - (like
 
 To integrate with your own product, see the JavaDocs which are distributed
 with both the source and binary distributions (or at
-http://admc.com/jcreole/apidocs/ ).  If you don't plan on extending the language
+http://admc.com/jcreole/javadoc/index.html ).  If you don't plan on extending the language
 itself, then stick with the binary distribution and work from the API spec,
 except to definitely look at the source code for method
 com.admc.jcreole.JCreole.main().

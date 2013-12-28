@@ -259,7 +259,7 @@ public class Expander {
      *         ! reference (like ${!ref}).
      */
     synchronized public StringBuilder expand(CharSequence inString) {
-        Set throwRefs = new HashSet<String>();
+        Set<String> throwRefs = new HashSet<String>();
         CharSequence seq = pairedDelims.preserveEscapes(inString);
         Matcher matcher = pairedDelims.refPattern.matcher(seq);
         int prevEnd = 0;

@@ -448,8 +448,8 @@ public class JCreole {
      * then it is more efficient to just call htmlExpand() instead of this
      * method.
      * </p> <p>
-     * This method implementation has dependencies on the provide
-     * boilerplate and is has protected visibility.
+     * This method implementation has dependencies on the provide boilerplates
+     * or others that follow its conventions.
      * </p>
      *
      * @param outputEol  Line delimiters for output.  Null to leave as \n's.
@@ -460,7 +460,7 @@ public class JCreole {
      *         data (though they will be offset for \r's in the provided
      *         Creole source, if any).
      */
-    protected String postProcess(String htmlFrag, String outputEol)
+    public String postProcess(String htmlFrag, String outputEol)
             throws IOException {
         String htmlString = null;
         if (pageBoilerPlate == null) {
@@ -568,7 +568,7 @@ public class JCreole {
      */
     public List<String> getCssHrefs() {
         List<String> outCssHrefs = (cssHrefs == null)
-                ? (new ArrayList()) : (new ArrayList(cssHrefs));
+                ? (new ArrayList<String>()) : (new ArrayList<String>(cssHrefs));
         outCssHrefs.addAll(parser.getCssHrefs());
         return outCssHrefs;
     }
