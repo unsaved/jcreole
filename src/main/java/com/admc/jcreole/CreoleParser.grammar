@@ -1013,7 +1013,7 @@ hinline = inline.s {:
             require(JCreolePrivilege.ENUMFORMAT, _symbol_formatStr);
             if (formatStr.length() != 1)
                 throw new CreoleParseException(
-                        "Malformatted format char in sectoinEnumReset "
+                        "Malformatted format char in sectionEnumReset "
                         + "directive: " + formatStr,
                         (Token) _symbol_formatStr);
             formatResetChar = Character.valueOf(formatStr.charAt(0));
