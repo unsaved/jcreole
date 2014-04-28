@@ -647,7 +647,6 @@ directive must be placed on a line by itself.
 === Default Link Target Window
 ======{{{<<defaultLinkTargetWindow _blank>>}}}
 Without this option, links in your document will open in this window (target value ##_self##) by default.
-Individual links may be always be changed with the [[#jcsect_NewWindowTargetedLinks]] and [[#jcsect_SameWindowTargetedLinks]] directives.
 If you specify no window name, "##_blank##" will be used, resulting in a new window (or tab) for each link clicked).
 
 A HTML ##base## element will be inserted into the HTML pages's head section.
@@ -657,9 +656,11 @@ page.
 If you have permission to use this directive, then that should all be taken
 care of.
 
-To make it clear that the ##defaultLinkTargetWIndow## directive is in no way a //part// of
-any other element (like a paragraph, list, or table), the ##defaultLinkTargetWindow##
-directive must be placed on a line by itself.
+You may only use one ##defaultLinkTargetWindow## directive on a single page, since there is only
+one such setting for a page (and location of the directive doesn't matter).
+Individual links may be always be changed with the [[#jcsect_NewWindowTargetedLinks]] and [[#jcsect_SameWindowTargetedLinks]] directives.
+To make it clear that a ##defaultLinkTargetWindow## directive is in no way a //part// of
+any other element, it must be placed on a line by itself, separated from other content.
 
 === Author comments
 ======{{{<<#author comments>>}}}
