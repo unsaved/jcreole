@@ -426,7 +426,7 @@ Usage of this feature requires a specific page author privilege.
 
 === Same-Window-targeted Links
 
-Since the default behavior of links is to open the link in the current browser window, it only makes sense to use this directive if your document uses the [[#jcsect_DefaultLinkTargetWindow]] directive.
+Since the default behavior of links is to open the link in the current browser window, it only makes sense to use this directive for mailto links (if for some reason you do not want the mail handler to open in a new window) or if your document uses the [[#jcsect_DefaultLinkTargetWindow]] directive.
 
 N.b. you must use ##{{{[[...]]}}}##.  _ prefix does not work with bare links.
 
@@ -651,9 +651,14 @@ directive must be placed on a line by itself.
 === Default Link Target Window
 ======{{{<<defaultLinkTargetWindow _blank>>}}}
 Without this option, links in your document will open in this window (target value ##_self##) by default.
-If you specify no window name, "##_blank##" will be used, resulting in a new window (or tab) for each link clicked).
+If you specify no window name, "##_blank##" will be used, resulting in a new window (or tab) for each link clicked.
 
-A HTML ##base## element will be inserted into the HTML pages's head section.
+This option has no effect on intra-page links (# links to other locations within the same page).
+These links always default to the same (##_self##) window unless you override individual links with [[#jcsect_NewWindowTargetedLinks]] & prefixes.
+This option has no effect on mailto links.
+These links always default to a new (##_blank##) window unless you override individual links with [[#jcsect_SameWindowTargetedLinks]] _ prefixes.
+
+For HTML, this directive is implemented by inserting a HTML ##base## element into the HTML pages's head section.
 
 This plugin requires application integration to insert into the framing HTML
 page.

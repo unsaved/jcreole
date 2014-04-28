@@ -55,8 +55,9 @@
             Pattern.compile("[_xaA01iI]{6}");
     public static final Pattern SlashDelimitedPattern =
             Pattern.compile("([^/]+)?(?:/\\s*(\\S+))?");
-    public static final Pattern UrlPattern =
-            Pattern.compile("[a-z]+:.+");
+    public static final Pattern UrlPattern = Pattern.compile("[a-z]+:.+");
+    public static final Pattern RecipientPattern =
+            Pattern.compile("mailto:([^?]+).*");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
     private static final WashedSymbol DUMMY_WASHEDSYMBOL
             = new WashedSymbol(null);
@@ -1206,9 +1207,21 @@ inline = NESTED_PRE.text {:
                     markers.put(Integer.valueOf(lastMarkerId), m);
                     url = m.getMarkerString();
                 } else {
+                    if (urlText.length() > 1 && urlText.charAt(0) == '#'
+                      && winTarget == null) winTarget = "_self";
                     url = clean(urlText);
                 }
             } else {  // URL starts with a protocol
+                if (urlText.startsWith("mailto:")) {
+                    if (winTarget == null) winTarget = "_blank";
+                    if (inLbl == null) {
+                        Matcher rMatcher = RecipientPattern.matcher(urlText);
+                        if (!rMatcher.matches())
+                            throw new CreoleParseException(
+                                    "Mailformatted mailto URL");
+                        inLbl = rMatcher.group(1);
+                    }
+                }
                 url = clean(urlText);
             }
             String label = null;
@@ -1223,9 +1236,13 @@ inline = NESTED_PRE.text {:
                     markers.put(Integer.valueOf(lastMarkerId), m);
                     label = m.getMarkerString();
                 } else {
-                    label = (labelFromMap == null)
-                          ? clean(lText)
-                          : labelFromMap;
+                    if (labelFromMap == null && lText.length() > 1
+                      && lText.charAt(0) == '#')
+                        label = clean(lText.substring(1));
+                    else
+                        label = (labelFromMap == null)
+                              ? clean(lText)
+                              : labelFromMap;
                 }
             } else {
                 // If label is set, then we just can not do anything

@@ -155,6 +155,7 @@ import com.admc.util.IOUtil;
 %states PSTATE, LISTATE, ESCURL, TABLESTATE, HEADSTATE, JCXBLOCKSTATE, DLSTATE, DEATH
 
 S = [^ \t\f\n]
+NOTILDE = [^ \t\f\n~]
 s = [ \t\f\n]
 st = [ \t]
 //w = [a-zA-Z0-9_]
@@ -571,13 +572,13 @@ NONPUNC = [^ \t\f\n,.?!:;\"']  // Allowed last character of URLs.  Also non-WS.
 // URL is internal to a word.
 // Whenever a bare URL occurs in a position where it wouldn't be linked, the
 // user must escape the "//" with ~, or the parser will abort.
-<YYINITIAL> [0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {
+<YYINITIAL> [0-9a-zA-Z] / (https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {
     pushState();
     urlDeferringState = PSTATE;
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
 }
-[0-9a-zA-Z] / (https|http|ftp):"/"{S}*{NONPUNC} {  // YYINITIAL handled already
+[0-9a-zA-Z] / (https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {  // YYINITIAL handled already
     urlDeferringState = yystate();
     yybegin(ESCURL);
     return newToken(Terminals.TEXT, yytext());
@@ -612,19 +613,19 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
 \\\\ { return newToken(Terminals.HARDLINE); }
 // I am violating Creole rules here and will not honor any markup inside the
 // URL that we are linking.  I see no benefit to ever doing that.
-<YYINITIAL> "~" (https|http|ftp):"/"{S}*{NONPUNC} {
+<YYINITIAL> "~" (https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {
     pushState();
     yybegin(PSTATE);
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
-"~" (https|http|ftp):"/"{S}*{NONPUNC} {
+"~" (https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {
     return newToken(Terminals.TEXT, yytext().substring(1));
 }
 <JCXBLOCKSTATE, PSTATE, LISTATE, TABLESTATE, HEADSTATE, DLSTATE>
-(https|http|ftp):"/"{S}*{NONPUNC} {
+(https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {
     return newToken(Terminals.URL, yytext());
 }
-<YYINITIAL> ^ (https|http|ftp):"/"{S}*{NONPUNC} {
+<YYINITIAL> ^ (https|http|ftp|mailto):{NOTILDE}{S}*{NONPUNC} {
     pushState();
     yypushback(yylength());
     yybegin(PSTATE);

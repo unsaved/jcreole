@@ -1,0 +1,5 @@
+mailto:blaine@admc.com
+
+Pre mailto:blaine@admc.com?subject=important post
+
+Explicit[[mailto:blaine@admc.com?subject=important subject]]post
