@@ -1,0 +1,13 @@
+http://bare.com/path?key=val
+
+[[http://dflt.com/path?key=val]]
+
+[[http://dflt.com/path?key=val|labeled]]
+
+[[&http://blank.com/path?key=val]]
+
+[[&http://blank.com/path?key=val|labeled]]
+
+[[_http://self.com/path?key=val]]
+
+[[_http://self.com/path?key=val|labeled]]

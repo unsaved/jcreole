@@ -22,3 +22,6 @@ For version 1.3.0
     Directive "enumFormat" was changed to "sectionEnumSymbols"
     Directive "enumFormatReset" was changed to "sectionEnumReset"
 "sectionEnumSymbols" and "sectionEnumReset" are still honored but deprecated, and documents will use only the new names.
+
+For version 1.3.3
+    Tables are now always written with all distinctive cells.  Colspan HTML attributes are never written any more (because our usage of colspans was effected rather arbitrarily by whether spanned columns were at end of row).

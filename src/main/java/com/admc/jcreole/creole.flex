@@ -686,6 +686,20 @@ __ { return newToken(Terminals.UNDER_TOGGLE); }  // YYINITIAL handled already
     return newToken(Terminals.NESTED_ENUMFORMATS,
             matcher(ParamPluginPattern).group(2));
 }
+<JCXBLOCKSTATE, YYINITIAL> ^[ \t]*"<<"[ \t]*defaultLinkTargetWindow ~ ">>"[ \t]*\n {
+    Matcher m = matcher(OptParamPluginPattern, true);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "JCX Matcher captured " + m.groupCount() + " groups");
+    return newToken(Terminals.ROOTLVL_DFLTTARGETWIN, m.group(2));
+}
+^[ \t]*"<<"[ \t]*defaultLinkTargetWindow ~ ">>"[ \t]*\n {
+    Matcher m = matcher(OptParamPluginPattern, true);
+    if (m.groupCount() != 2)
+        throw new RuntimeException(
+                "JCX Matcher captured " + m.groupCount() + " groups");
+    return newToken(Terminals.ROOTLVL_DFLTTARGETWIN, m.group(2));
+}
 <HEADSTATE> "<<"[ \t]*(enumFormatReset|sectionEnumReset) ~ ">>" {
     return newToken(Terminals.ENUMFORMATRESET,
             matcher(ParamPluginPattern).group(2));

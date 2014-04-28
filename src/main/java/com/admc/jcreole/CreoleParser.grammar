@@ -83,6 +83,7 @@
     private String listEnumSymbols;
     private Character formatResetChar;
     private EnumSet<JCreolePrivilege> jcreolePrivs = DEFAULT_PLUGIN_PRIVILEGES;
+    private String defaultTargetWin;
 
     /**
      * Legacy wrapper
@@ -176,6 +177,11 @@
     public List<String> getCssHrefs() {
         return cssHrefs;
     }
+
+    /**
+     * Get link base link target window to be loaded into the HTML page header.
+     */
+    public String getDefaultTargetWindow() { return defaultTargetWin; }
 
     /**
      * Assign a mapper from wiki page names to actual paths or URLs to the
@@ -585,13 +591,14 @@
 %terminals ROOTLVL_ENUMFORMATS, NESTED_ENUMFORMATS, ENUMFORMATRESET;
 %terminals FOOTNOTES, MASTERDEFLIST, FOOTREF, INDEX, INDEXED, TAB;
 %terminals ROOTLVL_LISTFORMATS, NESTED_LISTFORMATS;
+%terminals ROOTLVL_DFLTTARGETWIN, NESTED_DFLTTARGETWIN;
 
 %typeof ROOTLVL_NOWIKI, NESTED_PRE, TEXT, URL, IMAGE, STYLER = "String";
 %typeof ROOTLVL_HTMLCOMMENT, NESTED_HTMLCOMMENT, ENUMFORMATRESET = "String";
 %typeof ROOTLVL_RAWHTML, NESTED_RAWHTML, ROOTLVL_STYLESHEET, TOC = "String";
 %typeof NESTED_STYLESHEET, NESTED_ENUMFORMATS, ENTRYDEF = "String";
 %typeof MASTERDEFLIST, FOOTNOTES, FOOTREF, INDEXED, INDEX = "String";
-%typeof NESTED_NOWIKI = "String";
+%typeof NESTED_NOWIKI, ROOTLVL_DFLTTARGETWIN, NESTED_DFLTTARGETWIN = "String";
 %typeof JCXSPAN, JCXBLOCK, ROOTLVL_ENUMFORMATS, jcxblockStart = "String";
 %typeof ROOTLVL_LISTFORMATS, NESTED_LISTFORMATS = "String";
 %typeof listnest, dl = "WashedSymbol";
@@ -696,6 +703,20 @@ leafblock = ROOTLVL_NOWIKI.text {:
                         (Token) _symbol_text);
             authorSetSectSymbols = true;
             sectEnumSymbols = text;
+            return DUMMY_WASHEDSYMBOL;
+        :}
+        | ROOTLVL_DFLTTARGETWIN.text {:
+            require(JCreolePrivilege.WINDOWTARGETING, _symbol_text);
+            // Don't know naming requirements for window target names.
+            if (defaultTargetWin != null)
+                throw new CreoleParseException(
+                        "Attempted to set defaultLinkTargetWindow a second time.  "
+                        + "This is a global and location-independent setting, "
+                        + "so remove the setting that you don't want.  "
+                        + "Use & or _ directives if you want to change "
+                        + "link target windows in a location-dependent way.",
+                        (Token) _symbol_text);
+            defaultTargetWin = (text == null) ? "_blank" : text;
             return DUMMY_WASHEDSYMBOL;
         :}
         | ROOTLVL_LISTFORMATS.text {:
@@ -1045,6 +1066,20 @@ inline = NESTED_PRE.text {:
                         (Token) _symbol_text);
             authorSetSectSymbols = true;
             sectEnumSymbols = text;
+            return DUMMY_WASHEDSYMBOL;
+        :}
+        | NESTED_DFLTTARGETWIN.text {:
+            require(JCreolePrivilege.WINDOWTARGETING, _symbol_text);
+            // Don't know naming requirements for window target names.
+            if (defaultTargetWin != null)
+                throw new CreoleParseException(
+                        "Attempted to set defaultLinkTargetWindow a second time.  "
+                        + "This is a global and location-independent setting, "
+                        + "so remove the setting that you don't want.  "
+                        + "Use & or _ directives if you want to change "
+                        + "link target windows in a location-dependent way.",
+                        (Token) _symbol_text);
+            defaultTargetWin = (text == null) ? "_blank" : text;
             return DUMMY_WASHEDSYMBOL;
         :}
         | NESTED_LISTFORMATS.text {:

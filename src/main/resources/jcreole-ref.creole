@@ -417,6 +417,8 @@ display to a new (//_blank//) browser window (or tab, depending on your web brow
 settings).
 I.e. the new web page will open elsewhere and not replace the current page.
 
+N.b. you must use ##{{{[[...]]}}}##.  & prefix does not work with bare links.
+
 Usage of this feature requires a specific page author privilege.
 
 [[&http://en.wikipedia.org/wiki/Creole_(markup)|Click to see]]
@@ -425,6 +427,8 @@ Usage of this feature requires a specific page author privilege.
 === Same-Window-targeted Links
 
 Since the default behavior of links is to open the link in the current browser window, it only makes sense to use this directive if your document uses the [[#jcsect_DefaultLinkTargetWindow]] directive.
+
+N.b. you must use ##{{{[[...]]}}}##.  _ prefix does not work with bare links.
 
 ======~[[_~http://en.wikipedia.org/wiki/Creole_(markup)]]
 or\\

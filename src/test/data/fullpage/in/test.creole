@@ -1,3 +1,4 @@
+<<defaultLinkTargetWindow>>
 =A ${pageTitle}
 A$[testMacro]paragraph
 

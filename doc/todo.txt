@@ -1,9 +1,13 @@
-Rename of fork this project to have a more generic Wikitext name, like JWikitext, to accommodate support of syntaxes other than Creole.
+Refactor <<...>> directive parsing to support arguments as name='val' settings just like XML elements.
+
+Fix *.flex specification to reject directive names with trailing characters.
+E.g. <<defaultLinkTargetWindowGarbage>> works fine but it should not.
 
 
 LONG TERM
 
 Support arbitrary href-linking.
+    Meaning allow an arbitrary span of HTML to be linked (like some text and an image).
     This is very difficult to do without adding a runtime performance-load and
     dependency on a JavaScript library, because at this time we only support
     insertions after the tag name but here we need to insert an <a> tag before

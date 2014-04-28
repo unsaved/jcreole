@@ -479,11 +479,15 @@ public class JCreole {
                             + "rel=\"stylesheet\" "
                             + "type=\"text/css\" href=\"%s\" />\n",
                             ++count, href));
+                if (getDefaultTargetWindow() != null)
+                    sb.append(String.format("<base target=\"%s\">\n",
+                      getDefaultTargetWindow()));
                 framingExpander.put("pageHeaders", sb.toString(), false);
-            } else if (getCssHrefs().size() > 0) {
+            } else if (getCssHrefs().size() > 0
+              || getDefaultTargetWindow() != null) {
                 throw new CreoleParseException(
-                        "Author-supplied style-sheets, but boilerplate has no "
-                        + "'pageHeaders' insertion-point");
+                  "Author-supplied style-sheets or default target window, "
+                  + "but boilerplate has no 'pageHeaders' insertion-point");
             }
             framingExpander.put("pageContent", htmlFrag, false);
             htmlString = framingExpander.expand(html).toString();
@@ -554,6 +558,15 @@ public class JCreole {
     }
 
     /**
+     * Calls the corresponding method on the underlying Parser.
+     *
+     * @see CreoleParser#getDefaultTargetWindow
+     */
+    public String getDefaultTargetWindow() {
+        return parser.getDefaultTargetWindow();
+    }
+
+    /**
      * Gets the underlying Parser, with which you can do a lot of useful stuff.
      *
      * @see CreoleParser
@@ -575,12 +588,8 @@ public class JCreole {
         return outCssHrefs;
     }
 
-    /**
-     * Calls the corresponding method on the underlying Parser.
-     *
-     * @see CreoleParser#getCssHrefs
-     */
     public void addCssHrefs(List<String> newCssHrefs) {
+        // Used by servlets
         cssHrefs = new ArrayList<String>(newCssHrefs);
     }
 
