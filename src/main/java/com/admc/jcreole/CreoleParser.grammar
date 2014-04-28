@@ -73,7 +73,6 @@
     private boolean indexAdded, masterDefListAdded, footNotesAdded;
     private InterWikiMapper interWikiMapper;
     private int lastMarkerId;
-    private int ewinCount;
     private int tabCount;
     private MarkerMap markers = new MarkerMap();
     private List<String> cssHrefs = new ArrayList<String>();
@@ -1108,17 +1107,19 @@ inline = NESTED_PRE.text {:
         | URL.text {:
             Token token = (Token) _symbol_text;
             int delimPos = token.getIntParam();
-            boolean extWin = false;
+            String winTarget = null;
             String lText = text;
-            if (lText.length() > 0 && lText.charAt(0) == '&') {
-                if (!jcreolePrivs.contains(JCreolePrivilege.WINDOWTARGETING))
+            if (lText.length() > 0
+              && lText.charAt(0) == '&' || lText.charAt(0) == '_') {
+                if (lText.charAt(0) == '&'
+                  && !jcreolePrivs.contains(JCreolePrivilege.WINDOWTARGETING))
                     throw new CreoleParseException(
                             "You lack the privilege "
                             + JCreolePrivilege.WINDOWTARGETING
                             + " which is required for &-linking");
+                winTarget = (lText.charAt(0) == '&') ? "_blank" : "_self";
                 lText = lText.substring(1);
                 delimPos -= 1;
-                extWin = true;
             }
             String inLbl = (delimPos > -1)
                          ? lText.substring(delimPos + 1) : null;
@@ -1237,8 +1238,8 @@ inline = NESTED_PRE.text {:
                             + StringEscapeUtils.escapeJavaScript(popupText)
                             + "'))")
                     ) + "\"" + markInline("a", true, true)
-                    + (extWin
-                      ? (" target=\"jc_extwin" + ++ewinCount + '"') : "")
+                    + ((winTarget == null)
+                      ? "" : (" target=\"" + winTarget + '"'))
                     + '>' + label + "</a>");
         :}
         | IMAGE.text {:
