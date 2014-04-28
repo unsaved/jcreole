@@ -511,17 +511,14 @@
             for (int r = 0; r < hCells.length; r++) {
                 sb.append('\n').append(indent(2)).append("<tr")
                         .append(markBlock("tr", true, false)).append("> ");
-                for (int c = 0; c < hCells[r].length; c++) {
-                    sb.append("<th");
-                    if (c + 1 == hCells[r].length) {
-                        unfilledCells = cols - hCells[r].length;
-                        if (unfilledCells > 0)
-                            sb.append(" colspan=\""
-                            + (1+unfilledCells) + '"');
-                    }
-                    sb.append(markBlock("th", true, false))
+                for (int c = 0; c < cols; c++) {
+                    sb.append("<th")
+                    .append(markBlock("th", true, false))
                     .append(markClose(TagType.BLOCK))
-                    .append('>').append(hCells[r][c]).append("</th>");
+                    .append('>').append(
+                      (c < hCells[r].length && hCells[r][c].length() > 0)
+                      ? hCells[r][c] : "&nbsp;")
+                    .append("</th>");
                 }
                 sb.append(markClose(TagType.BLOCK)).append(" </tr>");
             }
@@ -535,19 +532,18 @@
                     .append("<tr class=\"jcreole_")
                     .append((r == 2 * (r/2)) ? "even" : "odd").append('"')
                     .append(markBlock("tr", false, false)).append("> ");
-                for (int c = 0; c < bCells[r].length; c++) {
-                    sb.append("<t").append(isHead[r][c] ? 'h' : 'd');
-                    if (c + 1 == bCells[r].length) {
-                        unfilledCells = cols - bCells[r].length;
-                        if (unfilledCells > 0)
-                            sb.append(" colspan=\""
-                            + (1+unfilledCells) + '"');
-                    }
-                    tagName = isHead[r][c] ? "th" : "td";
+                for (int c = 0; c < cols; c++) {
+                    sb.append("<t").append(
+                      (c < isHead[r].length && isHead[r][c]) ? 'h' : 'd');
+                    tagName = (c < isHead[r].length && isHead[r][c])
+                      ? "th" : "td";
                     sb.append(markBlock(tagName, true, false))
-                    .append('>').append(bCells[r][c]).append("</")
-                            .append(markClose(TagType.BLOCK))
-                            .append(tagName).append('>');
+                    .append('>').append(
+                      (c < bCells[r].length && bCells[r][c].length() > 0)
+                      ? bCells[r][c] : "&nbsp;")
+                    .append("</")
+                    .append(markClose(TagType.BLOCK))
+                    .append(tagName).append('>');
                 }
                 sb.append(markClose(TagType.BLOCK)).append(" </tr>");
             }
@@ -932,6 +928,8 @@ lastrow   = cell.c+ FINAL_ROW;
 cell  = CELL.c jcxblockOrInline.l+ {: return new WashedSymbol(
                     ((((Token) c).getIntParam() == 1) ? "\u0001" : "")
                     + joinWashedSymbols(_list_l) + autoCloseInlines()); :};
+cell  = CELL.c {: return new WashedSymbol(
+                    (((Token) c).getIntParam() == 1) ? "\u0001" : ""); :};
 
 dl = lastdt.ldtitem {:
                 // A single <dt> list.

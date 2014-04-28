@@ -1,3 +1,7 @@
+<<# Colspanning support depended upon final position.
+    Due to that artibrariness, we no longer write any colspans.
+    We still allow and ignore final | pipes if nothing follows them. >>
+
 |=header1|=header2|=header3|=header4|   
 |row1col1
 |row2col1

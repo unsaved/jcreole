@@ -1,0 +1,13 @@
+|=header1|=|=
+||row1col2|
+|||
+|row2col1|row2col2|
+
+||row1col2|
+|intmedA|intmedB|intmedC
+|row3col1||
+
+||row1col2|
+|row2col1||
+
+|=|=Header only

@@ -953,8 +953,8 @@ guarantee that applications will provide it.)
 style this class as ##text-decoration:underline##.
 *=span.jcreole_orphanLink|You can infer the purpose.
 *=table.jcreole_data}Generated tables
-*=table.jcreole_even|Even numbered body rows of generated tables
-*=table.jcreole_odd|Odd numbered body rows of generated tables
+*=table.jcreole_even|Even numbered body rows of generated tables (zero-base row indexes)
+*=table.jcreole_odd|Odd numbered body rows of generated tables (zero-based row indexes)
 *=div.jcx|[[#jcsect_JcxblockCreateCustomStylableBlockElement|jcxBlocks]].
 *=span.jcx|[[#jcsect_JcxspanCreateCustomStylableInlineElement|jcxSpans]].
 *=div.jcx_toc|HTML ##div## container for [[#jcsect_TocTableOfContents]].\\
