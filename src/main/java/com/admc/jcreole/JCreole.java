@@ -253,12 +253,14 @@ public class JCreole {
         if (debugs) {
             jCreole.setInterWikiMapper(new InterWikiMapper() {
                 // This InterWikiMapper is just for prototyping.
-                // Use wiki name of "nil" to force lookup failure for path.
-                // Use wiki page of "nil" to force lookup failure for label.
+                // Use wiki name of "Nil" to force lookup failure for path.
+                // Remember that wiki names must contain a non-lowercase-letter
+                // to distinguish them from URL protocols.
                 public String toPath(String wikiName, String wikiPage) {
-                    if (wikiName != null && wikiName.equals("nil")) return null;
+                    if (wikiName != null && wikiName.equals("Nil")) return null;
                     return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
                 }
+                // Use page name of "nil" to force lookup failure for path.
                 public String toLabel(String wikiName, String wikiPage) {
                     if (wikiPage == null)
                             throw new RuntimeException(

@@ -269,21 +269,25 @@ public class CreoleToHtmlServlet
     protected Map<String, String> iwLabels = new HashMap<String, String>();
 
     // TODO:  Add translations for all of the popular public Wikis
+    // Must use at least one non-lowercase-letter in wiki name, to distinguish
+    // from URL protocol.
     public String toPath(String wikiName, String wikiPage) {
         if (wikiPage == null)
             throw new RuntimeException(
                     "wiki page name not given to InterWikiMapper");
         if (wikiName == null) return iwUrls.get(wikiPage);
-        if (wikiName.equals("wikipedia"))
+        if (wikiName.equals("Wikipedia"))
             return "http://en.wikipedia.org/wiki/" + wikiPage;
         return null;
     }
+    // Must use at least one non-lowercase-letter in wiki name, to distinguish
+    // from URL protocol.
     public String toLabel(String wikiName, String wikiPage) {
         if (wikiPage == null)
             throw new RuntimeException(
                     "wiki page name not given to InterWikiMapper");
         if (wikiName == null) return iwLabels.get(wikiPage);
-        if (wikiName.equals("wikipedia")) return wikiPage + " @ Wikipedia";
+        if (wikiName.equals("Wikipedia")) return wikiPage + " @ Wikipedia";
         return null;
     }
 }

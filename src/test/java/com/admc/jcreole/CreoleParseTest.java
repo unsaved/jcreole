@@ -125,12 +125,12 @@ public class CreoleParseTest {
             ));
             */
             parser.setInterWikiMapper(new InterWikiMapper() {
-                // Use wiki name of "nil" to force lookup failure for path.
-                // Use wiki page of "nil" to force lookup failure for label.
+                // Use wiki name of "Nil" to force lookup failure for path.
                 public String toPath(String wikiName, String wikiPage) {
-                    if (wikiName != null && wikiName.equals("nil")) return null;
+                    if (wikiName != null && wikiName.equals("Nil")) return null;
                     return "{WIKI-LINK to: " + wikiName + '|' + wikiPage + '}';
                 }
+                // Use wiki page of "nil" to force lookup failure for label.
                 public String toLabel(String wikiName, String wikiPage) {
                     if (wikiPage == null)
                         throw new RuntimeException(

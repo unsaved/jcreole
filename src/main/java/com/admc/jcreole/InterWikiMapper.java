@@ -35,6 +35,8 @@ public interface InterWikiMapper {
     /**
      * @return the URL path to be written for the link.
      * @param wikiName  if null, then this is an <em>intra-</em>wiki link.
+     *                  Must contain a non-lowercase-letter to distinguish a
+     *                  wikiName from an URL protocol.
      * @throws CreoleParseException if the given name or page is invalid, you
      *                  can't map them, or you have not implemented the needed
      *                  (intra- vs. inter-) type mapping.
@@ -44,6 +46,8 @@ public interface InterWikiMapper {
     /**
      * @return the Label to be written for the link.
      * @param wikiName  if null, then this is an <em>intra-</em>wiki link.
+     *                  Must contain a non-lowercase-letter to distinguish a
+     *                  wikiName from an URL protocol.
      * @throws CreoleParseException if the given name or page is invalid, you
      *                  can't map them, or you have not implemented the needed
      *                  (intra- vs. inter-) type mapping.

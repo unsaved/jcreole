@@ -55,6 +55,8 @@
             Pattern.compile("[_xaA01iI]{6}");
     public static final Pattern SlashDelimitedPattern =
             Pattern.compile("([^/]+)?(?:/\\s*(\\S+))?");
+    public static final Pattern UrlPattern =
+            Pattern.compile("[a-z]+:.+");
     private static final Symbol DUMMY_SYMBOL = new Symbol(null);
     private static final WashedSymbol DUMMY_WASHEDSYMBOL
             = new WashedSymbol(null);
@@ -1126,9 +1128,7 @@ inline = NESTED_PRE.text {:
             String popupText = null;
             String labelFromMap = null;
             boolean mapLookupFailed = false;
-            Matcher matcher = (lText.startsWith("http:")
-                    || lText.startsWith("https:")
-                    || lText.startsWith("ftp:")) ? null
+            Matcher matcher = UrlPattern.matcher(lText).matches() ? null
                     : InterWikiPattern.matcher(urlText);
             // Group 1 is logical wiki name or null
             // Group 2 is required page name
