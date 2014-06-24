@@ -80,7 +80,7 @@ public class Sections extends ArrayList<SectionHeading> {
             menuLevel = newMenuLevel;
             sb.append(CreoleParser.indent(menuLevel+1))
                     .append("<li><a href=\"#")
-                    .append(sh.getXmlId()).append("\">");
+                    .append(sh.getXmlId()).append("\" target=\"_self\">");
             seqLabel = sh.getSequenceLabel();
             if (seqLabel != null) {
                 sb.append("<span class=\"jcx_enum\">")
