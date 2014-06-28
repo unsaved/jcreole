@@ -89,7 +89,7 @@ class LiSymbol extends Token {
             sb.append("<span class=\"jcreole_lh\">")
             .append(content.substring(matcher.matches() ? 2 : 0,
                     (pipeOffset > 0) ? pipeOffset : content.length()))
-            .append("</span>");
+            .append("</span> ");
         if (pipeOffset > -1 && pipeOffset != content.length() - 1)
             sb.append("<span class=\"jcreole_ld\">")
                 .append(content.substring(pipeOffset + 1))
