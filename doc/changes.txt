@@ -26,3 +26,6 @@ For version 1.3.0
 For version 1.3.3
     Tables are now always written with all distinctive cells.  Colspan HTML attributes are never written any more (because our usage of colspans was effected rather arbitrarily by whether spanned columns were at end of row).
     Much improvement on window-targeting for links with very good defaults, ability to change page defaults, and per-tag overrides with & and _ prefixes.
+
+For version  1.4.0
+    Works with Gradle 2.1.
