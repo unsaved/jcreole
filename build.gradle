@@ -1,16 +1,10 @@
-defaultTasks 'jar'
-
-buildscript {
-    repositories { mavenCentral() }
-    dependencies {
-        classpath 'com.admc:gradle-javaPropFile-plugin:0.6.0'
-        classpath 'com.admc:gradle-ivyxml-plugin:0.3.3'
-    }
+plugins {
+    id 'com.admc.ivyxml' version '1.0.0'
+    id 'com.admc.javaPropFile' version '1.0.0'
 }
-
 apply plugin: 'java'
-apply plugin: 'ivyxml'
-apply plugin: 'javaPropFile'
+
+defaultTasks 'jar'
 
 import com.admc.gradle.GradleUtil
 
